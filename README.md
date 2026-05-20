@@ -5,7 +5,7 @@
 Besoin : organisation et scoring d'un tournoi de belote
 
 Contraintes :
- - outil PC mais compatible à n'importe quel OS
+ - outil compatible à n'importe quel OS
  - fonctionne sans connexion internet
  - outil de préférence portable (càd ne nécessite pas d'installation)
 
@@ -37,3 +37,48 @@ Contraintes :
  - créer un pdf imprimable A4 noir et blanc (une seule page) pour préciser les règles de jeu et comment compter les points
  - créer un pdf imprimable A4 noir et blanc (plusieurs pages) qui récapitule toutes les parties de toutes les parties avec les résultats finaux, et l'arbre du tournoi avec mise en évidence des gagnants de chaque partie
  - possibilité d'exporter les données d'un tournoi dans un format csv
+
+## Solution technique retenue : Flutter Desktop
+
+L'application est développée avec **Flutter** (Dart), ciblant les plateformes desktop : Windows, macOS et Linux.
+
+Flutter dispose de son propre moteur de rendu (Impeller/Skia), indépendant de la WebView système. Le rendu est donc **identique sur tous les OS** sans dépendance externe.
+
+### Stack technique
+
+| Composant | Technologie |
+|---|---|
+| Framework UI | Flutter (Dart) |
+| Gestion d'état | Riverpod |
+| Persistance locale | SQLite via `drift` |
+| Sauvegarde / export natif | Fichiers JSON via `path_provider` + `file_picker` |
+| Génération PDF | Package `pdf` + `printing` |
+| Export CSV | Package `csv` |
+| Visualisation bracket | Widget personnalisé (`CustomPainter`) |
+| Packaging desktop | `flutter build windows/linux/macos` |
+
+### Structure du projet (couches)
+
+```
+lib/
+├── data/           # Accès données : SQLite, fichiers JSON, CSV
+├── domain/         # Logique métier : règles belote, calcul scores, génération tournoi
+├── presentation/   # Widgets et écrans Flutter
+│   ├── desktop/    # Layouts optimisés PC (multi-colonnes, clavier/souris)
+│   └── shared/     # Widgets réutilisables toutes plateformes
+└── main.dart
+```
+
+La logique métier (`domain/`) et l'accès aux données (`data/`) sont **découplés de l'UI**, ce qui facilite les évolutions futures.
+
+### Portage smartphone (perspective future)
+
+Flutter ciblant nativement Android et iOS, un portage mobile est envisageable **sans réécriture** des couches `domain/` et `data/` (réutilisation estimée à ~90 %).
+
+Les adaptations nécessaires se limitent à la couche `presentation/` :
+
+- Ajouter des layouts adaptés aux petits écrans dans `presentation/mobile/` (navigation en pile, vues simplifiées)
+- Adapter la visualisation du bracket du tournoi pour le tactile (scroll horizontal, zoom)
+- Gérer les différences d'accès fichiers (sandbox mobile via `path_provider`)
+
+Un cas d'usage mobile pertinent serait une **application compagne** permettant la saisie des scores à la table par les joueurs eux-mêmes sur smartphone, synchronisée avec l'application desktop de l'organisateur.
