@@ -1,0 +1,17 @@
+services:
+  belotable-web:
+    build:
+      context: ../..
+      dockerfile: build/docker/Dockerfile
+      args:
+        FLUTTER_VERSION: ${FLUTTER_VERSION:-}
+      secrets:
+        - ca_cert
+    image: belotable-web:latest
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+secrets:
+  ca_cert:
+    file: ${CA_CERT_PATH:-./empty-ca-cert.pem}

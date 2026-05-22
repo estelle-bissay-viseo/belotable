@@ -1,0 +1,6 @@
+
+# FVM Version Cache
+.fvm/
+
+# Fichiers de spécifications Belotable
+.belotable/**

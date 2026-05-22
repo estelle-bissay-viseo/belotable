@@ -1,0 +1,313 @@
+name: Web Docker Cleanup
+
+on:
+  schedule:
+    - cron: "0 10 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: read
+
+concurrency:
+  group: web-docker-cleanup-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup-ghcr:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_NAME: ${{ github.event.repository.name }}-web
+
+    steps:
+      - name: Cleanup container versions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const packageName = process.env.PACKAGE_NAME;
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            const cutoff = Date.now() - sevenDaysMs;
+
+            const repoInfo = await github.rest.repos.get({ owner, repo });
+            const defaultBranch = repoInfo.data.default_branch;
+            const ownerType = repoInfo.data.owner.type;
+
+            const listVersions = async () => {
+              if (ownerType === "Organization") {
+                return github.paginate(
+                  "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
+                  {
+                    org: owner,
+                    package_type: "container",
+                    package_name: packageName,
+                    per_page: 100,
+                  }
+                );
+              }
+
+              return github.paginate(
+                "GET /users/{username}/packages/{package_type}/{package_name}/versions",
+                {
+                  username: owner,
+                  package_type: "container",
+                  package_name: packageName,
+                  per_page: 100,
+                }
+              );
+            };
+
+            const deleteVersion = async (versionId) => {
+              if (ownerType === "Organization") {
+                await github.request(
+                  "DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}",
+                  {
+                    org: owner,
+                    package_type: "container",
+                    package_name: packageName,
+                    package_version_id: versionId,
+                  }
+                );
+                return;
+              }
+
+              await github.request(
+                "DELETE /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}",
+                {
+                  username: owner,
+                  package_type: "container",
+                  package_name: packageName,
+                  package_version_id: versionId,
+                }
+              );
+            };
+
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+            const existingBranches = new Set(branches.map((b) => b.name));
+            const prStateCache = new Map();
+            const semverTagPattern =
+              /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+
+            const getPrNumbersFromTags = (tags) => {
+              return [...new Set(
+                tags
+                  .map((tag) => {
+                    const match = /^pr-(\d+)$/.exec(tag);
+                    return match ? Number(match[1]) : null;
+                  })
+                  .filter((n) => Number.isInteger(n))
+              )];
+            };
+
+            const getBranchTagsFromTags = (tags) => {
+              return tags.filter(
+                (tag) =>
+                  !tag.startsWith("pr-") &&
+                  !tag.startsWith("sha-") &&
+                  tag !== "latest" &&
+                  !semverTagPattern.test(tag)
+              );
+            };
+
+            let versions = [];
+            try {
+              versions = await listVersions();
+            } catch (error) {
+              if (error.status === 404) {
+                core.info(
+                  `Package ghcr.io/${owner}/${packageName} not found. Nothing to clean up.`
+                );
+                return;
+              }
+              throw error;
+            }
+
+            const versionInfos = versions.map((version) => {
+              const tags = version.metadata?.container?.tags || [];
+              return {
+                id: version.id,
+                tags,
+                createdAt: new Date(version.created_at).getTime(),
+                prNumbers: getPrNumbersFromTags(tags),
+                branchTags: getBranchTagsFromTags(tags),
+              };
+            });
+
+            const allPrNumbers = [...new Set(versionInfos.flatMap((v) => v.prNumbers))];
+
+            for (const prNumber of allPrNumbers) {
+              try {
+                const pr = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number: prNumber,
+                });
+                prStateCache.set(prNumber, pr.data.state);
+              } catch (error) {
+                if (error.status === 404) {
+                  prStateCache.set(prNumber, "closed");
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            const openPrNumbers = new Set(
+              allPrNumbers.filter((prNumber) => prStateCache.get(prNumber) === "open")
+            );
+
+            const versionsByNewest = [...versionInfos].sort(
+              (a, b) => b.createdAt - a.createdAt
+            );
+
+            const latestVersionByOpenPr = new Map();
+            for (const version of versionsByNewest) {
+              for (const prNumber of version.prNumbers) {
+                if (!openPrNumbers.has(prNumber)) {
+                  continue;
+                }
+                if (!latestVersionByOpenPr.has(prNumber)) {
+                  latestVersionByOpenPr.set(prNumber, version.id);
+                }
+              }
+            }
+
+            const latestVersionByExistingBranch = new Map();
+            for (const version of versionsByNewest) {
+              for (const branchTag of version.branchTags) {
+                if (branchTag === defaultBranch || !existingBranches.has(branchTag)) {
+                  continue;
+                }
+                if (!latestVersionByExistingBranch.has(branchTag)) {
+                  latestVersionByExistingBranch.set(branchTag, version.id);
+                }
+              }
+            }
+
+            let deletedCount = 0;
+            let keptDefaultCount = 0;
+            let keptSemverCount = 0;
+            let keptLatestOpenPrCount = 0;
+            let keptLatestBranchCount = 0;
+
+            for (const version of versionInfos) {
+              const { id, tags, createdAt, prNumbers, branchTags } = version;
+
+              const isDefaultBranchImage =
+                tags.includes(defaultBranch) || tags.includes("latest");
+              if (isDefaultBranchImage) {
+                keptDefaultCount += 1;
+                core.info(
+                  `KEEP version ${id}: default branch image (${tags.join(", ")})`
+                );
+                continue;
+              }
+
+              const hasSemverTag = tags.some((tag) => semverTagPattern.test(tag));
+              if (hasSemverTag) {
+                keptSemverCount += 1;
+                core.info(
+                  `KEEP version ${id}: semver release tag (${tags.join(", ")})`
+                );
+                continue;
+              }
+
+              const openPrTags = prNumbers.filter((prNumber) =>
+                openPrNumbers.has(prNumber)
+              );
+              const isLatestForOpenPr = openPrTags.some(
+                (prNumber) => latestVersionByOpenPr.get(prNumber) === id
+              );
+
+              if (isLatestForOpenPr) {
+                keptLatestOpenPrCount += 1;
+                core.info(
+                  `KEEP version ${id}: latest image for open PR (${tags.join(", ")})`
+                );
+                continue;
+              }
+
+              const existingBranchTagsForVersion = branchTags.filter(
+                (branchTag) =>
+                  branchTag !== defaultBranch && existingBranches.has(branchTag)
+              );
+              const isLatestForExistingBranch = existingBranchTagsForVersion.some(
+                (branchTag) => latestVersionByExistingBranch.get(branchTag) === id
+              );
+
+              if (isLatestForExistingBranch) {
+                keptLatestBranchCount += 1;
+                core.info(
+                  `KEEP version ${id}: latest image for existing branch (${tags.join(", ")})`
+                );
+                continue;
+              }
+
+              const reasons = [];
+
+              if (openPrTags.length === 0 && prNumbers.length > 0) {
+                reasons.push("pr_closed");
+              }
+
+              if (openPrTags.length > 0 && !isLatestForOpenPr) {
+                reasons.push("not_latest_open_pr");
+              }
+
+              const missingBranchTags = branchTags.filter(
+                (branchTag) =>
+                  branchTag !== defaultBranch && !existingBranches.has(branchTag)
+              );
+
+              if (missingBranchTags.length > 0) {
+                reasons.push(`branch_missing:${missingBranchTags.join(",")}`);
+              }
+
+              if (
+                existingBranchTagsForVersion.length > 0 &&
+                !isLatestForExistingBranch
+              ) {
+                reasons.push("not_latest_existing_branch");
+              }
+
+              if (createdAt < cutoff) {
+                reasons.push("older_than_7_days");
+              }
+
+              if (reasons.length === 0) {
+                core.info(
+                  `KEEP version ${id}: no cleanup rule matched (${tags.join(", ")})`
+                );
+                continue;
+              }
+
+              await deleteVersion(id);
+              deletedCount += 1;
+              core.info(
+                `DELETE version ${id}: ${reasons.join(" | ")} (${tags.join(", ")})`
+              );
+            }
+
+            core.summary
+              .addHeading("Web Docker cleanup summary")
+              .addRaw(`Package: ghcr.io/${owner}/${packageName}`)
+              .addBreak()
+              .addRaw(`Default branch: ${defaultBranch}`)
+              .addBreak()
+              .addRaw(`Total versions scanned: ${versions.length}`)
+              .addBreak()
+              .addRaw(`Default-branch versions kept: ${keptDefaultCount}`)
+              .addBreak()
+              .addRaw(`Semver-tagged versions kept: ${keptSemverCount}`)
+              .addBreak()
+              .addRaw(`Latest open-PR versions kept: ${keptLatestOpenPrCount}`)
+              .addBreak()
+              .addRaw(`Latest existing-branch versions kept: ${keptLatestBranchCount}`)
+              .addBreak()
+              .addRaw(`Versions deleted: ${deletedCount}`)
+              .write();
