@@ -1,0 +1,20 @@
+# Dépôt Git et CI
+.git
+.github
+
+# Ressources non nécessaires au build
+resources
+*.md
+
+# Artefacts Flutter / Dart inutiles dans le contexte Docker
+belotable/.dart_tool
+belotable/build
+belotable/.flutter-plugins
+belotable/.flutter-plugins-dependencies
+
+# Plateformes non ciblées
+belotable/android
+belotable/ios
+belotable/linux
+belotable/macos
+belotable/windows

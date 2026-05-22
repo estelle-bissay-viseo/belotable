@@ -1,0 +1,282 @@
+name: Build and Release (Web + Windows)
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: build-release-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' ||
+      github.event.pull_request.author_association == 'OWNER' ||
+      github.event.pull_request.author_association == 'COLLABORATOR'
+    outputs:
+      flutter_version: ${{ steps.vars.outputs.flutter_version }}
+      app_version: ${{ steps.vars.outputs.app_version }}
+      release_tag: ${{ steps.vars.outputs.release_tag }}
+      release_title: ${{ steps.vars.outputs.release_title }}
+      image_name: ${{ steps.vars.outputs.image_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Compute shared variables
+        id: vars
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          FLUTTER_VERSION="$(sed -nE 's/.*"flutter"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' .fvmrc | head -n1)"
+          if [[ -z "$FLUTTER_VERSION" ]]; then
+            echo "ERROR: Unable to read Flutter version from .fvmrc" >&2
+            exit 1
+          fi
+
+          APP_VERSION="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*$/\1/p' belotable/pubspec.yaml | head -n1)"
+          if [[ -z "$APP_VERSION" ]]; then
+            echo "ERROR: Unable to read app version from belotable/pubspec.yaml" >&2
+            exit 1
+          fi
+
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}-web"
+
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            RELEASE_TAG="dev-latest"
+            RELEASE_TITLE="Dev build v$APP_VERSION"
+          else
+            RELEASE_TAG="pr-$PR_NUMBER"
+            RELEASE_TITLE="PR $PR_NUMBER - build v$APP_VERSION"
+          fi
+
+          {
+            echo "flutter_version=$FLUTTER_VERSION"
+            echo "app_version=$APP_VERSION"
+            echo "release_tag=$RELEASE_TAG"
+            echo "release_title=$RELEASE_TITLE"
+            echo "image_name=$IMAGE_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+  build-docker-web:
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.docker_build.outputs.digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: belotable
+        run: flutter pub get
+
+      - name: Run tests
+        working-directory: belotable
+        run: flutter test --coverage
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ needs.prepare.outputs.image_name }}
+          tags: |
+            type=raw,value=${{ needs.prepare.outputs.release_tag }}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push if approved
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/docker/Dockerfile
+          build-args: |
+            FLUTTER_VERSION=${{ needs.prepare.outputs.flutter_version }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-windows-installer:
+    needs: prepare
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: belotable
+        run: flutter pub get
+
+      - name: Run tests
+        working-directory: belotable
+        run: flutter test --coverage
+
+      - name: Build Windows release
+        working-directory: belotable
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: ./build/windows-build-innosetup.ps1 -OutputDir "$env:GITHUB_WORKSPACE/artifacts/windows"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: artifacts/windows/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release:
+    needs:
+      - prepare
+      - build-docker-web
+      - build-windows-installer
+    runs-on: ubuntu-latest
+    if: >
+      needs.prepare.result == 'success' &&
+      needs.build-docker-web.result == 'success' &&
+      needs.build-windows-installer.result == 'success'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download Windows installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: release-assets/windows
+
+      - name: Publish release (notes + installer + Docker metadata)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          RELEASE_TITLE: ${{ needs.prepare.outputs.release_title }}
+          IMAGE_NAME: ${{ needs.prepare.outputs.image_name }}
+          IMAGE_DIGEST: ${{ needs.build-docker-web.outputs.image_digest }}
+        run: |
+          shopt -s nullglob
+          INSTALLERS=(release-assets/windows/*.exe)
+          if [[ ${#INSTALLERS[@]} -eq 0 ]]; then
+            echo "ERROR: No Windows installer found in release-assets/windows" >&2
+            exit 1
+          fi
+
+          START_MARKER='<!-- docker-image-start -->'
+          END_MARKER='<!-- docker-image-end -->'
+
+          BLOCK_CONTENT=""
+          if [[ -n "$IMAGE_DIGEST" ]]; then
+            BLOCK_CONTENT="$(printf '%s\n' \
+              "$START_MARKER" \
+              "## Web Docker image" \
+              "- Image: $IMAGE_NAME:$RELEASE_TAG" \
+              "- Digest: $IMAGE_DIGEST" \
+              "- Pull command: docker pull $IMAGE_NAME@$IMAGE_DIGEST" \
+              "$END_MARKER")"
+          fi
+
+          RELEASE_EXISTS=false
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            RELEASE_EXISTS=true
+          fi
+
+          EXISTING_BODY=""
+          if [[ "$RELEASE_EXISTS" == "true" ]]; then
+            EXISTING_BODY="$(gh release view "$RELEASE_TAG" --json body --jq '.body // ""')"
+          fi
+
+          CLEAN_BODY="$(printf '%s\n' "$EXISTING_BODY" | awk -v start="$START_MARKER" -v end="$END_MARKER" '
+            $0 == start { in_block=1; next }
+            $0 == end { in_block=0; next }
+            !in_block { print }
+          ')"
+
+          if [[ -n "$BLOCK_CONTENT" && -n "$CLEAN_BODY" ]]; then
+            printf '%s\n\n%s\n' "$CLEAN_BODY" "$BLOCK_CONTENT" > release-notes.md
+          elif [[ -n "$BLOCK_CONTENT" ]]; then
+            printf '%s\n' "$BLOCK_CONTENT" > release-notes.md
+          elif [[ -n "$CLEAN_BODY" ]]; then
+            printf '%s\n' "$CLEAN_BODY" > release-notes.md
+          else
+            printf 'Automated build assets.\n' > release-notes.md
+          fi
+
+          if [[ "$RELEASE_EXISTS" == "true" ]]; then
+            gh release edit "$RELEASE_TAG" \
+              --title "$RELEASE_TITLE" \
+              --prerelease \
+              --latest=false \
+              --notes-file release-notes.md
+            gh release upload "$RELEASE_TAG" "${INSTALLERS[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${INSTALLERS[@]}" \
+              --title "$RELEASE_TITLE" \
+              --prerelease \
+              --latest=false \
+              --notes-file release-notes.md
+          fi
