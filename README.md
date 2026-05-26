@@ -104,6 +104,8 @@ Pré-requis :
 | --- | --- | --- |
 | Chocolatey | https://chocolatey.org/install | https://community.chocolatey.org/packages |
 | winget | https://learn.microsoft.com/fr-fr/windows/package-manager/winget/ | |
+| Git | `winget install Git.Git` | https://git-scm.com/doc |
+| GitHub CLI | `winget install GitHub.cli` | https://cli.github.com/manual/ |
 | VS Code | `winget install Microsoft.VisualStudioCode` | https://code.visualstudio.com/ |
 | Flutter (via fvm) | `choco upgrade fvm --yes` | https://github.com/leoafarias/fvm et https://docs.flutter.dev/ |
 | Chrome | `winget install Google.Chrome` | |
