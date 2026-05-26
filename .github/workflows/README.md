@@ -1,90 +1,175 @@
 # GitHub Workflows
 
-Documentation des workflows GitHub Actions implémentés pour ce projet.
+Documentation des workflows GitHub Actions du projet.
+
+## Stratégie de branches
+
+Le dépôt suit un flux avec 3 branches principales :
+
+- `dev` : intégration continue de développement.
+- `release` : branche technique de préparation de release.
+- `main` : branche de référence de production.
+
+Cycle attendu :
+
+1. Chaque push sur `dev` exécute la CI et met à jour la pre-release `dev-latest`.
+2. Chaque push sur `release` exécute le pipeline technique de release, crée le tag `vX.Y.Z`, publie une release GitHub en brouillon, puis synchronise `main` et `dev`.
 
 ## Vue d'ensemble
 
-La version Flutter est centralisée dans le fichier `.fvmrc` (racine du dépôt). Les workflows la lisent dynamiquement avant `subosito/flutter-action`.
+La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue dynamiquement dans les workflows.
 
 | Workflow | Déclencheur | Rôle |
 |----------|------------|------|
-| **Build and Release** (`ci.yml`) | Push `dev` / PR | Build web (Docker) + Windows (Inno Setup) + publication de la release GitHub |
-| **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié (mardi 10h UTC) | Nettoyage automatique des images obsolètes dans GHCR |
+| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Tests + build Docker web + build Windows + mise à jour pre-release sur `dev` |
+| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, artefacts, tag, release draft, sync des branches |
+| **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
 
 ---
 
-## Build and Release (`ci.yml`)
+## Dev CI and Pre-release (`ci.yml`)
 
 ### Déclencheurs
 
-- **Push** sur la branche : `dev`
-- **Pull requests** : `opened`, `synchronize`, `reopened`, `ready_for_review`
+- Push sur `dev`
+- Pull requests : `opened`, `synchronize`, `reopened`, `ready_for_review`
 
-> Les PR de contributeurs non `OWNER` ou `COLLABORATOR` sont ignorées (condition sur `author_association`).
+Filtrage d'exécution :
+
+- Les jobs s'exécutent toujours sur `push`.
+- Pour les PR, l'exécution est limitée aux PR non draft dont l'auteur est `OWNER` ou `COLLABORATOR`.
+
+### Permissions
+
+- `contents: write`
+- `packages: write`
 
 ### Concurrence
 
-Un groupe de concurrence `build-release-*` annule le run précédent en cours pour la même PR ou branche.
+Groupe : `build-release-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}` avec annulation du run précédent en cours.
 
 ### Jobs
 
-#### 1. `prepare` — Variables partagées (`ubuntu-latest`)
+#### 1. `prepare` (`ubuntu-latest`)
 
-Calcule les valeurs réutilisées par tous les jobs suivants :
+Calcule les outputs partagés :
 
-| Output | Valeur |
-|--------|--------|
-| `flutter_version` | Lu depuis `.fvmrc` |
-| `app_version` | Lu depuis `belotable/pubspec.yaml` |
-| `release_tag` | `dev-latest` (push) ou `pr-<num>` (PR) |
-| `release_title` | `Dev build v<version>` ou `PR <num> - build v<version>` |
-| `image_name` | `ghcr.io/<owner>/<repo>-web` (en minuscules) |
+- `flutter_version` (depuis `.fvmrc`)
+- `app_version` (depuis `belotable/pubspec.yaml`)
+- `release_tag` (`dev-latest` pour push, `pr-<num>` pour PR)
+- `release_title` (`Dev build v<version>` ou `PR <num> - build v<version>`)
+- `image_name` (`ghcr.io/<owner>/<repo>-web` en minuscules)
 
-#### 2. `build-docker-web` — Image Docker web (`ubuntu-latest`)
+#### 2. `build-docker-web` (`ubuntu-latest`)
 
-1. **Checkout** du code à la ref correcte (HEAD de la PR ou commit du push)
-2. **Setup Flutter** (version issue de `.fvmrc`, channel stable, cache activé)
-3. **Installation des dépendances** : `flutter pub get` dans `belotable/`
-4. **Exécution des tests** : `flutter test --coverage`
-5. **Setup Docker Buildx** pour le build multi-plateforme
-6. **Authentification GHCR** avec `GITHUB_TOKEN`
-7. **Extraction des métadonnées** et génération des tags :
-   - `dev-latest` ou `pr-<num>` (valeur de `release_tag`)
-   - `type=ref,event=branch` → tag de branche (ex: `dev`)
-   - `type=ref,event=pr` → tag PR (ex: `pr-42`)
-   - `type=sha,prefix=sha-` → tag du commit (ex: `sha-abc123`)
-   - `type=semver,pattern={{version}}` → tag SemVer si applicable
-   - `latest` si branche par défaut
-8. **Build et push** vers GHCR avec `FLUTTER_VERSION` en build-arg, cache GHA activé
+- Checkout de la bonne révision (PR head SHA ou SHA du push)
+- Setup Flutter
+- `flutter pub get` + `flutter test --coverage` (dans `belotable/`)
+- Setup Buildx + login GHCR
+- Génération de tags Docker (`release_tag`, ref branch/PR, sha, semver, latest default branch)
+- Build et push de `build/docker/Dockerfile`
 
-**Output** : `image_digest` (digest de l'image poussée, transmis au job `publish-release`)
+Output principal : `image_digest`.
 
-#### 3. `build-windows-installer` — Installeur Windows (`windows-latest`)
+#### 3. `build-windows-installer` (`windows-latest`)
 
-1. **Checkout** du code à la ref correcte
-2. **Setup Flutter** (version issue de `.fvmrc`, channel stable, cache activé)
-3. **Installation des dépendances** : `flutter pub get` dans `belotable/`
-4. **Exécution des tests** : `flutter test --coverage`
-5. **Build Windows Release** : `flutter build windows --release`
-6. **Installation Inno Setup** via Chocolatey (`choco install innosetup`)
-7. **Génération de l'installeur** via `build/windows-build-innosetup.ps1`
-8. **Upload de l'artefact** `windows-installer` (rétention : 7 jours, `if-no-files-found: error`)
+- Checkout + setup Flutter
+- `flutter pub get` + `flutter test --coverage`
+- `flutter build windows --release`
+- Installation Inno Setup (`choco install innosetup`)
+- Génération installeur via `build/windows-build-innosetup.ps1`
+- Upload artefact `windows-installer` (rétention 7 jours)
 
-#### 4. `publish-release` — Release GitHub (`ubuntu-latest`)
+#### 4. `publish-prerelease` (`ubuntu-latest`)
 
-Déclenché uniquement si les trois jobs précédents ont réussi.
+Job exécuté uniquement pour les push sur `dev` si tous les jobs précédents ont réussi.
 
-1. **Téléchargement** de l'artefact `windows-installer`
-2. **Création ou mise à jour** d'une release GitHub pre-release :
-   - Tag : `dev-latest` (push) ou `pr-<num>` (PR)
-   - Titre : défini par `release_title`
-   - Notes : conserve le corps existant et insère/remplace un bloc `<!-- docker-image-start -->…<!-- docker-image-end -->` avec le nom de l'image, le digest et la commande `docker pull`
-   - L'installeur `.exe` est attaché à la release (écrase l'existant si présent)
+Actions principales :
 
-### Permissions requises
+1. Déplace le tag `dev-latest` sur le commit courant (force push du tag).
+2. Télécharge l'artefact Windows.
+3. Génère des release notes via l'API GitHub (`releases/generate-notes`) en se basant sur le dernier tag `vX.Y.Z` existant.
+4. Crée ou met à jour la pre-release GitHub :
+   - titre dynamique (`release_title`)
+   - notes enrichies avec les métadonnées Docker (image, digest, commande pull)
+   - upload de l'installeur `.exe` (avec `--clobber` si release existante)
 
-- `contents: write` — création/édition des releases GitHub
-- `packages: write` — push vers GHCR
+Pour les PR : pas de publication de pre-release.
+
+---
+
+## Release Technical Pipeline (`release.yml`)
+
+### Déclencheurs
+
+- Push sur `release`
+- `workflow_dispatch`
+
+### Permissions
+
+- `contents: write`
+- `packages: write`
+
+### Concurrence
+
+Groupe : `release-technical-${{ github.ref }}` avec annulation du run précédent en cours.
+
+### Objectif
+
+Automatiser le cycle technique de release à partir de `release` :
+
+1. Calculer et normaliser la version stable depuis `belotable/pubspec.yaml`.
+2. Mettre `release` à la version stable si nécessaire.
+3. Construire et publier l'image Docker web.
+4. Construire l'installeur Windows.
+5. Créer et pousser le tag `vX.Y.Z`.
+6. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefact Windows et infos Docker.
+7. Merger `release` dans `main`.
+8. Merger `main` dans `dev`.
+9. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
+
+### Versionnement appliqué
+
+- `current_version` : valeur brute de `pubspec.yaml` (ex: `1.2.3-rc.1+4`)
+- `release_version` : base stable extraite (`1.2.3`)
+- `release_tag` : `v<release_version>`
+- `next_dev_version` : `x.y.(z+1)-alpha`
+
+### Jobs
+
+#### 1. `prepare`
+
+- Lit les variables (Flutter/version)
+- Vérifie l'absence du tag distant cible
+- Met à jour `belotable/pubspec.yaml` sur la branche `release` vers la version stable
+- Commit/push si changement
+- Expose `release_sha` pour figer la suite du pipeline
+
+#### 2. `build-docker-web`
+
+- Build sur `release_sha`
+- Push GHCR avec tags : `vX.Y.Z`, `release`, `ref branch`, `sha-*`
+- Expose `image_digest`
+
+#### 3. `build-windows-installer`
+
+- Build Windows sur `release_sha`
+- Produit l'artefact `windows-installer`
+
+#### 4. `publish-release-and-sync`
+
+- Crée et pousse le tag annoté `vX.Y.Z`
+- Génère les release notes automatiques
+- Crée une release GitHub en brouillon (`--draft`) marquée latest (`--latest`)
+- Merge `release_sha` dans `main`, push `main`
+- Merge `main` dans `dev`
+- Met à jour `belotable/pubspec.yaml` sur `dev` vers `next_dev_version`, commit/push si changement
+
+### Points d'attention
+
+- Les branches `release`, `main` et `dev` doivent exister.
+- Les conflits de merge font échouer le workflow (pas de résolution implicite).
+- Si le tag `vX.Y.Z` existe déjà sur le remote, le workflow échoue.
 
 ---
 
@@ -92,67 +177,48 @@ Déclenché uniquement si les trois jobs précédents ont réussi.
 
 ### Déclencheurs
 
-- **Planifié** : Tous les mardis à 10h UTC
-- **Manuel** : `workflow_dispatch` via Actions tab
+- Planifié : tous les mardis à 10:00 UTC
+- Manuel : `workflow_dispatch`
+
+### Permissions
+
+- `contents: read`
+- `packages: write`
+- `pull-requests: read`
 
 ### Objectif
 
-Maintenir l'hygiène du registry GHCR en supprimant automatiquement les images obsolètes selon une politique de rétention stricte. Supporte les repos appartenant à un utilisateur ou à une organisation.
+Nettoyer automatiquement les versions obsolètes du package GHCR `<repo>-web`, pour les owners de type utilisateur ou organisation.
 
-### Exceptions (images toujours conservées)
+### Versions conservées systématiquement
 
-Les versions suivantes ne sont **jamais** supprimées :
-
-- **Branche par défaut** : image taggée avec la branche par défaut ou `latest`
-- **Tags SemVer** : tag correspondant au pattern `vX.Y.Z[-prerelease][+build]`
-- **Latest de PR ouverte** : la version la plus récente pour chaque PR encore ouverte
-- **Latest de branche existante** : la version la plus récente pour chaque branche encore présente dans le repo
+- Versions taggées avec la branche par défaut ou `latest`
+- Versions avec tag SemVer (`v` optionnel, prerelease/build metadata acceptés)
+- Dernière version de chaque PR encore ouverte
+- Dernière version de chaque branche existante (hors branche par défaut)
 
 ### Règles de suppression
 
-Une version est supprimée si elle ne satisfait aucune exception ci-dessus **et** qu'au moins une des conditions suivantes est vraie :
+Une version non protégée est supprimée si au moins une raison de cleanup est vraie :
 
-| Raison | Description |
-|--------|-------------|
-| `pr_closed` | Taggée `pr-<num>` et la PR est fermée |
-| `not_latest_open_pr` | Appartient à une PR ouverte mais n'en est pas la version la plus récente |
-| `branch_missing:<nom>` | Taggée avec un nom de branche qui n'existe plus |
-| `not_latest_existing_branch` | Appartient à une branche existante mais n'en est pas la version la plus récente |
-| `older_than_7_days` | Créée il y a plus de 7 jours |
+- `pr_closed`
+- `not_latest_open_pr`
+- `branch_missing:<nom>`
+- `not_latest_existing_branch`
+- `older_than_7_days`
 
 ### Résumé d'exécution
 
-Le job génère un résumé GitHub Actions avec :
-- Package cible (`ghcr.io/<owner>/<package>`)
+Le workflow publie un résumé avec :
+
+- Package ciblé
 - Branche par défaut détectée
-- Nombre de versions conservées (par catégorie) et supprimées
+- Nombre de versions conservées par catégorie
+- Nombre de versions supprimées
 
 ---
 
-## Bonnes pratiques
+## Ressources
 
-### Pour les contributeurs
-
-- Les PR sont buildées automatiquement (tests + Docker + Windows)
-- La release GitHub (`pr-<num>`) est créée ou mise à jour à chaque push sur la PR
-- Seuls les `OWNER` et `COLLABORATOR` déclenchent les jobs (configurez cela dans **Settings → Collaborators**)
-
-### Pour la maintenance
-
-- **Nettoyage GHCR** : exécuté automatiquement chaque mardi — pas d'intervention requise
-- **Versions SemVer** : jamais supprimées (pérennité des releases)
-- **Branche par défaut** : toujours protégée du cleanup
-
----
-
-## Restrictions et limites
-
-- Le pattern SemVer accepte les préfixes `v` et les suffixes `-prerelease`, `+build`
-- Les PR de contributeurs non-collaborateurs ne déclenchent aucun job
-
----
-
-## Ressources utiles
-
-- [GitHub Actions Workflows Documentation](https://docs.github.com/en/actions/using-workflows)
-- [Container Registry (GHCR) Documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+- https://docs.github.com/en/actions/using-workflows
+- https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry

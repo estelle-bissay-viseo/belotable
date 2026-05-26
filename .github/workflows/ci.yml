@@ -1,4 +1,4 @@
-name: Build and Release (Web + Windows)
+name: Dev CI and Pre-release (Web + Windows)
 
 on:
   push:
@@ -24,8 +24,14 @@ jobs:
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'push' ||
-      github.event.pull_request.author_association == 'OWNER' ||
-      github.event.pull_request.author_association == 'COLLABORATOR'
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.draft == false &&
+        (
+          github.event.pull_request.author_association == 'OWNER' ||
+          github.event.pull_request.author_association == 'COLLABORATOR'
+        )
+      )
     outputs:
       flutter_version: ${{ steps.vars.outputs.flutter_version }}
       app_version: ${{ steps.vars.outputs.app_version }}
@@ -187,13 +193,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  publish-release:
+  publish-prerelease:
     needs:
       - prepare
       - build-docker-web
       - build-windows-installer
     runs-on: ubuntu-latest
     if: >
+      github.event_name == 'push' &&
+      github.ref_name == 'dev' &&
       needs.prepare.result == 'success' &&
       needs.build-docker-web.result == 'success' &&
       needs.build-windows-installer.result == 'success'
@@ -204,11 +212,61 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Move prerelease tag to current commit
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin --tags
+          git tag -f "$RELEASE_TAG" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$RELEASE_TAG"
+
       - name: Download Windows installer artifact
         uses: actions/download-artifact@v4
         with:
           name: windows-installer
           path: release-assets/windows
+
+      - name: Generate release notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin --tags
+
+          mapfile -t SEMVER_TAGS < <(
+            git tag --list |
+              grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' |
+              sed 's/^v//' |
+              sort -V || true
+          )
+
+          PREVIOUS_TAG=""
+          if [[ ${#SEMVER_TAGS[@]} -gt 0 ]]; then
+            LAST_VERSION="${SEMVER_TAGS[-1]}"
+            PREVIOUS_TAG="v${LAST_VERSION}"
+            echo "Generating release notes from ${PREVIOUS_TAG} to ${RELEASE_TAG}"
+          else
+            echo "No previous SemVer release tag found; generating full release notes range"
+          fi
+
+          GH_API_ARGS=(
+            --method POST
+            "repos/${GITHUB_REPOSITORY}/releases/generate-notes"
+            -f tag_name="$RELEASE_TAG"
+            -f target_commitish="$GITHUB_SHA"
+          )
+
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            GH_API_ARGS+=( -f previous_tag_name="$PREVIOUS_TAG" )
+          fi
+
+          gh api "${GH_API_ARGS[@]}" --jq '.body' > release-notes.generated.md
 
       - name: Publish release (notes + installer + Docker metadata)
         shell: bash
@@ -219,6 +277,7 @@ jobs:
           IMAGE_NAME: ${{ needs.prepare.outputs.image_name }}
           IMAGE_DIGEST: ${{ needs.build-docker-web.outputs.image_digest }}
         run: |
+          set -euo pipefail
           shopt -s nullglob
           INSTALLERS=(release-assets/windows/*.exe)
           if [[ ${#INSTALLERS[@]} -eq 0 ]]; then
@@ -226,44 +285,26 @@ jobs:
             exit 1
           fi
 
-          START_MARKER='<!-- docker-image-start -->'
-          END_MARKER='<!-- docker-image-end -->'
-
-          BLOCK_CONTENT=""
-          if [[ -n "$IMAGE_DIGEST" ]]; then
-            BLOCK_CONTENT="$(printf '%s\n' \
-              "$START_MARKER" \
-              "## Web Docker image" \
-              "- Image: $IMAGE_NAME:$RELEASE_TAG" \
-              "- Digest: $IMAGE_DIGEST" \
-              "- Pull command: docker pull $IMAGE_NAME@$IMAGE_DIGEST" \
-              "$END_MARKER")"
+          if [[ -f release-notes.generated.md && -s release-notes.generated.md ]]; then
+            {
+              cat release-notes.generated.md
+              echo
+            } > release-notes.md
+          else
+            printf 'Automated build assets.\n\n' > release-notes.md
           fi
+
+          cat >> release-notes.md <<EOF
+          ## Web Docker image
+
+          - Image: ${IMAGE_NAME}:${RELEASE_TAG}
+          - Digest: ${IMAGE_DIGEST}
+          - Pull command: docker pull ${IMAGE_NAME}@${IMAGE_DIGEST}
+          EOF
 
           RELEASE_EXISTS=false
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             RELEASE_EXISTS=true
-          fi
-
-          EXISTING_BODY=""
-          if [[ "$RELEASE_EXISTS" == "true" ]]; then
-            EXISTING_BODY="$(gh release view "$RELEASE_TAG" --json body --jq '.body // ""')"
-          fi
-
-          CLEAN_BODY="$(printf '%s\n' "$EXISTING_BODY" | awk -v start="$START_MARKER" -v end="$END_MARKER" '
-            $0 == start { in_block=1; next }
-            $0 == end { in_block=0; next }
-            !in_block { print }
-          ')"
-
-          if [[ -n "$BLOCK_CONTENT" && -n "$CLEAN_BODY" ]]; then
-            printf '%s\n\n%s\n' "$CLEAN_BODY" "$BLOCK_CONTENT" > release-notes.md
-          elif [[ -n "$BLOCK_CONTENT" ]]; then
-            printf '%s\n' "$BLOCK_CONTENT" > release-notes.md
-          elif [[ -n "$CLEAN_BODY" ]]; then
-            printf '%s\n' "$CLEAN_BODY" > release-notes.md
-          else
-            printf 'Automated build assets.\n' > release-notes.md
           fi
 
           if [[ "$RELEASE_EXISTS" == "true" ]]; then
@@ -275,6 +316,7 @@ jobs:
             gh release upload "$RELEASE_TAG" "${INSTALLERS[@]}" --clobber
           else
             gh release create "$RELEASE_TAG" "${INSTALLERS[@]}" \
+              --target "$GITHUB_SHA" \
               --title "$RELEASE_TITLE" \
               --prerelease \
               --latest=false \

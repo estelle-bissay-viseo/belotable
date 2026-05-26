@@ -43,7 +43,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Erreur: option inconnue '$1'" >&2
+      echo "Error: unknown option '$1'" >&2
       show_help >&2
       exit 1
       ;;
@@ -51,23 +51,23 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -n "$DESCRIPTION" && -n "$DESCRIPTION_FILE" ]]; then
-  echo "Erreur: utilisez soit --description soit --description-file, pas les deux." >&2
+  echo "Error: use either --description or --description-file, not both." >&2
   exit 1
 fi
 
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  echo "Erreur: ce dossier n'est pas un dépôt git." >&2
+  echo "Error: this folder is not a git repository." >&2
   exit 1
 fi
 
 if [[ -n "$(git status --porcelain)" ]]; then
-  echo "Erreur: arbre de travail non propre. Commitez/stashez vos changements avant de lancer ce script." >&2
+  echo "Error: working tree is not clean. Commit or stash your changes before running this script." >&2
   exit 1
 fi
 
 CURRENT_BRANCH="$(git symbolic-ref --quiet --short HEAD || true)"
 if [[ -z "$CURRENT_BRANCH" ]]; then
-  echo "Erreur: HEAD détachée. Placez-vous sur une branche." >&2
+  echo "Error: detached HEAD. Checkout a branch first." >&2
   exit 1
 fi
 
@@ -79,18 +79,19 @@ fi
 if [[ -n "$DESCRIPTION_FILE" ]]; then
   if [[ ! -f "$DESCRIPTION_FILE" ]]; then
     if [[ "$AUTO_DESCRIPTION_FILE" == "true" ]]; then
-      echo "Erreur: fichier de description PR introuvable: $DESCRIPTION_FILE" >&2
-      echo "Fournissez un chemin explicite avec --description-file <path>." >&2
+      echo "Error: PR description file not found: $DESCRIPTION_FILE" >&2
+      echo "Provide an explicit path with --description-file <path>." >&2
     else
-      echo "Erreur: fichier introuvable: $DESCRIPTION_FILE" >&2
+      echo "Error: file not found: $DESCRIPTION_FILE" >&2
     fi
     exit 1
   fi
-  DESCRIPTION="$(cat "$DESCRIPTION_FILE")"
+  # When a markdown file is provided, use only the first non-empty line.
+  DESCRIPTION="$(sed '/^[[:space:]]*$/d' "$DESCRIPTION_FILE" | head -n 1 | tr -d '\r')"
 fi
 
 if [[ -z "${DESCRIPTION//[[:space:]]/}" ]]; then
-  echo "Erreur: la description PR est vide." >&2
+  echo "Error: PR description is empty." >&2
   exit 1
 fi
 
@@ -130,25 +131,25 @@ resolve_parent_ref() {
 
 if [[ -z "$PARENT_BRANCH" ]]; then
   if ! PARENT_BRANCH="$(infer_parent_from_reflog "$CURRENT_BRANCH")"; then
-    echo "Erreur: impossible de déterminer automatiquement la branche parent." >&2
-    echo "Relancez avec --parent-branch <nom-branche>." >&2
+    echo "Error: unable to automatically determine parent branch." >&2
+    echo "Run again with --parent-branch <branch-name>." >&2
     exit 1
   fi
 fi
 
 if ! PARENT_REF="$(resolve_parent_ref "$PARENT_BRANCH")"; then
-  echo "Erreur: branche parent introuvable localement: $PARENT_BRANCH" >&2
+  echo "Error: parent branch not found locally: $PARENT_BRANCH" >&2
   exit 1
 fi
 
-echo "Branche courante : $CURRENT_BRANCH"
-echo "Branche parent   : $PARENT_REF"
+echo "Current branch: $CURRENT_BRANCH"
+echo "Parent branch : $PARENT_REF"
 
 MERGE_BASE="$(git merge-base "$PARENT_REF" HEAD)"
 COMMITS_AHEAD_COUNT="$(git rev-list --count "${MERGE_BASE}..HEAD")"
 
 if [[ "$COMMITS_AHEAD_COUNT" -eq 0 ]]; then
-  echo "Aucun commit à squasher depuis le point de divergence."
+  echo "No commits to squash since divergence point."
 else
   SUBJECT="$(printf '%s\n' "$DESCRIPTION" | sed '/^[[:space:]]*$/d' | sed -E 's/^[[:space:]]*#+[[:space:]]*//' | sed -E 's/^[[:space:]]*[-*][[:space:]]*//' | sed -E 's/^[[:space:]]*[0-9]+[.)][[:space:]]*//' | head -n 1 | tr -d '\r')"
 
@@ -166,14 +167,14 @@ else
     printf '%s\n' "$DESCRIPTION"
   } > "$TMP_MSG_FILE"
 
-  echo "Squash de $COMMITS_AHEAD_COUNT commit(s) en un seul commit..."
+  echo "Squashing $COMMITS_AHEAD_COUNT commit(s) into a single commit..."
   git reset --soft "$MERGE_BASE"
   git commit -F "$TMP_MSG_FILE"
   rm -f "$TMP_MSG_FILE"
 fi
 
-echo "Rebase sur la branche parent..."
+echo "Rebasing onto parent branch..."
 git rebase "$PARENT_REF"
 
-echo "Terminé. Aucun push n'a été effectué."
-echo "Vérifiez l'historique puis poussez manuellement si nécessaire."
+echo "Done. No push was performed."
+echo "Review the history and push manually if needed."
