@@ -21,9 +21,10 @@ La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue d
 
 | Workflow | Déclencheur | Rôle |
 |----------|------------|------|
-| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Tests + build Docker web + build Windows + mise à jour pre-release sur `dev` |
-| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, artefacts, tag, release draft, sync des branches |
+| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Tests + build Docker web + build Windows + build PDF docs + mise à jour pre-release sur `dev` |
+| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, artefacts (Windows + PDF docs), tag, release draft, sync des branches |
 | **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
+| **Docs - GitHub Pages** (`docs-pages.yml`) | Push `main` ciblé + manuel | Build MkDocs, génération d'un PDF combiné en artefact, puis déploiement de la documentation utilisateur sur GitHub Pages |
 
 ---
 
@@ -80,7 +81,16 @@ Output principal : `image_digest`.
 - Génération installeur via `build/windows-build-innosetup.ps1`
 - Upload artefact `windows-installer` (rétention 7 jours)
 
-#### 4. `publish-prerelease` (`ubuntu-latest`)
+#### 4. `build-docs-pdf` (`ubuntu-latest`)
+
+- Checkout de la bonne révision (PR head SHA ou SHA du push)
+- Setup Python 3.12
+- Installation des dépendances docs (`mkdocs`, `mkdocs-material`, `mkdocs-pdf-export-plugin`)
+- Build strict de la documentation avec export PDF activé (`ENABLE_PDF_EXPORT=1`)
+- Renommage du PDF en `belotable-documentation-v<app_version>.pdf`
+- Upload artefact `docs-pdf` (rétention 7 jours)
+
+#### 5. `publish-prerelease` (`ubuntu-latest`)
 
 Job exécuté uniquement pour les push sur `dev` si tous les jobs précédents ont réussi.
 
@@ -88,11 +98,12 @@ Actions principales :
 
 1. Déplace le tag `dev-latest` sur le commit courant (force push du tag).
 2. Télécharge l'artefact Windows.
-3. Génère des release notes via l'API GitHub (`releases/generate-notes`) en se basant sur le dernier tag `vX.Y.Z` existant.
-4. Crée ou met à jour la pre-release GitHub :
+3. Télécharge l'artefact PDF docs versionné.
+4. Génère des release notes via l'API GitHub (`releases/generate-notes`) en se basant sur le dernier tag `vX.Y.Z` existant.
+5. Crée ou met à jour la pre-release GitHub :
    - titre dynamique (`release_title`)
    - notes enrichies avec les métadonnées Docker (image, digest, commande pull)
-   - upload de l'installeur `.exe` (avec `--clobber` si release existante)
+   - upload des assets `.exe` et `.pdf` (avec `--clobber` si release existante)
 
 Pour les PR : pas de publication de pre-release.
 
@@ -122,11 +133,12 @@ Automatiser le cycle technique de release à partir de `release` :
 2. Mettre `release` à la version stable si nécessaire.
 3. Construire et publier l'image Docker web.
 4. Construire l'installeur Windows.
-5. Créer et pousser le tag `vX.Y.Z`.
-6. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefact Windows et infos Docker.
-7. Merger `release` dans `main`.
-8. Merger `main` dans `dev`.
-9. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
+5. Construire le PDF de documentation.
+6. Créer et pousser le tag `vX.Y.Z`.
+7. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefacts Windows + PDF docs et infos Docker.
+8. Merger `release` dans `main`.
+9. Merger `main` dans `dev`.
+10. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
 
 ### Versionnement appliqué
 
@@ -156,11 +168,19 @@ Automatiser le cycle technique de release à partir de `release` :
 - Build Windows sur `release_sha`
 - Produit l'artefact `windows-installer`
 
-#### 4. `publish-release-and-sync`
+#### 4. `build-docs-pdf`
+
+- Build docs sur `release_sha`
+- Génère le PDF via MkDocs
+- Renomme le PDF en `belotable-documentation-v<release_version>.pdf`
+- Produit l'artefact `docs-pdf`
+
+#### 5. `publish-release-and-sync`
 
 - Crée et pousse le tag annoté `vX.Y.Z`
 - Génère les release notes automatiques
-- Crée une release GitHub en brouillon (`--draft`) marquée latest (`--latest`)
+- Télécharge les artefacts Windows et PDF docs
+- Crée une release GitHub en brouillon (`--draft`) marquée latest (`--latest`) avec les assets `.exe` et `.pdf`
 - Merge `release_sha` dans `main`, push `main`
 - Merge `main` dans `dev`
 - Met à jour `belotable/pubspec.yaml` sur `dev` vers `next_dev_version`, commit/push si changement
@@ -215,6 +235,52 @@ Le workflow publie un résumé avec :
 - Branche par défaut détectée
 - Nombre de versions conservées par catégorie
 - Nombre de versions supprimées
+
+---
+
+## Docs - GitHub Pages (`docs-pages.yml`)
+
+### Déclencheurs
+
+- Push sur `main` uniquement si des fichiers de documentation changent :
+   - `user-docs/**`
+   - `.github/workflows/docs-pages.yml`
+- Manuel : `workflow_dispatch`
+
+### Permissions
+
+- `contents: read`
+- `pages: write`
+- `id-token: write`
+
+### Concurrence
+
+Groupe : `docs-pages` avec annulation du run précédent en cours.
+
+### Objectif
+
+Publier automatiquement la documentation utilisateur statique (MkDocs) sur GitHub Pages.
+
+### Jobs
+
+#### 1. `build` (`ubuntu-latest`)
+
+- Checkout du dépôt
+- Setup Python 3.12
+- Installation des dépendances docs (`mkdocs`, `mkdocs-material`, `mkdocs-pdf-export-plugin`)
+- Build strict de la doc (`mkdocs build --strict --config-file user-docs/mkdocs.yml`) avec activation de l'export PDF en CI (`ENABLE_PDF_EXPORT=1`)
+- Upload de l'artefact PDF (`docs-pdf`, fichier `user-docs/site/pdf/belotable-documentation.pdf`)
+- Upload de l'artefact Pages (dossier `user-docs/site`)
+
+#### 2. `deploy` (`ubuntu-latest`)
+
+- Déploiement de l'artefact via `actions/deploy-pages@v4`
+- Publication dans l'environnement GitHub Pages (`github-pages`)
+
+### Points d'attention
+
+- Dans les paramètres du dépôt, la source GitHub Pages doit être `GitHub Actions`.
+- Le build strict échoue en cas d'erreur de doc (liens cassés, références invalides, etc.).
 
 ---
 

@@ -7,7 +7,7 @@ Usage:
   sync-remote-pr.sh [--parent-branch name] [--parent-source value] [--description-file path] [--confirm-update-existing] [--draft]
 
 Description:
-  - Loads PR description from .belotable/pr_descriptions/<current-branch>.md by default.
+  - Loads PR description from .github/pr_descriptions/<current-branch>.md by default.
   - Extracts PR title from the first non-empty line of the markdown.
   - If --parent-branch is missing, proposes the most likely parent branch and stops.
   - Syncs the remote branch (push if missing or local ahead).
@@ -87,7 +87,7 @@ if [[ -z "$CURRENT_BRANCH" ]]; then
 fi
 
 if [[ -z "$DESCRIPTION_FILE" ]]; then
-  DESCRIPTION_FILE=".belotable/pr_descriptions/${CURRENT_BRANCH}.md"
+  DESCRIPTION_FILE=".github/pr_descriptions/${CURRENT_BRANCH}.md"
 fi
 
 if [[ ! -f "$DESCRIPTION_FILE" ]]; then

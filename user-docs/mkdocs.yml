@@ -1,0 +1,28 @@
+site_name: Belotable - Documentation utilisateur
+site_description: Guide utilisateur de l'application Belotable
+site_url: https://estelle-bissay-viseo.github.io/belotable/
+
+theme:
+  name: material
+  language: fr
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+plugins:
+  - search
+  - pdf-export:
+      combined: true
+      combined_output_path: pdf/belotable-documentation.pdf
+      enabled_if_env: ENABLE_PDF_EXPORT
+
+nav:
+  - Accueil: index.md
+  - Installation: installation.md
+  - Utilisation: utilisation.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
