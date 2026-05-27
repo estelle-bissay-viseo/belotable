@@ -18,3 +18,7 @@ Chaque release met à disposition les éléments nécessaires pour installer Bel
 ## Documentation utilisateur
 
 La documentation utilisateur de la version stable la plus récente est disponible en ligne sur https://estelle-bissay-viseo.github.io/belotable/
+
+## Documentation technique
+
+La documentation technique est disponible dans le répertoire `technical-docs`. Son point d'entrée est [technical-docs/home.md](./technical-docs/home.md).
