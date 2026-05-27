@@ -5,6 +5,7 @@
 # Ressources non nécessaires au build
 resources
 *.md
+user-docs
 
 # Artefacts Flutter / Dart inutiles dans le contexte Docker
 belotable/.dart_tool

@@ -1,5 +1,5 @@
 ---
-description: "Use when: creating or updating a GitHub pull request for the current branch; selecting or confirming parent branch; loading PR description from .belotable/pr_descriptions/<current-branch>.md; pushing branch updates when needed; stopping on divergent/rewritten branch history; preventing update without explicit confirmation"
+description: "Use when: creating or updating a GitHub pull request for the current branch; selecting or confirming parent branch; loading PR description from .github/pr_descriptions/<current-branch>.md; pushing branch updates when needed; stopping on divergent/rewritten branch history; preventing update without explicit confirmation"
 name: "Sync Remote PR"
 tools: [read, execute]
 user-invocable: true
@@ -37,7 +37,7 @@ Create or update the remote GitHub pull request that corresponds to the current 
 
 ## Constraints
 - Never guess a parent branch silently.
-- Never proceed with missing `.belotable/pr_descriptions/<current-branch>.md`.
+- Never proceed with missing `.github/pr_descriptions/<current-branch>.md`.
 - Never update an existing PR without explicit user confirmation after showing its URL.
 - Never force-push in this workflow.
 - If script reports divergent/rewritten history, stop and ask user for manual resolution.

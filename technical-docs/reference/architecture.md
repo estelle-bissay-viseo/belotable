@@ -1,0 +1,55 @@
+# Référence: Architecture logicielle
+
+## Aperçu
+
+Application Flutter structurée en couches dans `belotable/lib/`.
+
+```
+belotable/lib/
+├── data/           # Accès données (SQLite, fichiers JSON, CSV)
+├── domain/         # Logique métier (règles belote, calcul scores, génération tournoi)
+├── gen/            # Fichiers générés (assets, etc.) - NE PAS MODIFIER
+├── presentation/   # Widgets et écrans Flutter
+│   ├── desktop/    # Layouts optimisés PC (multi-colonnes, clavier/souris)
+│   └── shared/     # Widgets réutilisables toutes plateformes
+├── utils/          # utilitaires transverses
+└── main.dart       # Point d'entrée de l'application
+```
+
+## Point d'entrée applicatif
+
+`belotable/lib/main.dart` :
+
+- crée `MyApp`.
+- configure un `MaterialApp` avec un theme base sur `ColorScheme.fromSeed`.
+- utilise `MyHomePage` comme écran initial.
+
+## Ecran principal actuel
+
+`belotable/lib/presentation/shared/home_page.dart` :
+
+- affiche un `AppBar` avec icône asset et titre.
+- affiche le texte `Bienvenue !` dans le corps de page.
+
+## Assets
+
+Voir [ajouter-un-asset-flutter.md](../how-to/flutter-ajouter-un-asset.md)
+
+## Règles de qualité
+
+`belotable/analysis_options.yaml` inclut `flutter_lints`.
+
+## Devices actuellement pris en charge
+
+- windows
+- web (chrome)
+
+Les autres plateformes seront disponibles dans une prochaine version.
+
+## Sources (dépôt)
+
+- `belotable/lib/main.dart`
+- `belotable/lib/presentation/shared/home_page.dart`
+- `belotable/lib/gen/assets.gen.dart`
+- `belotable/pubspec.yaml`
+- `belotable/analysis_options.yaml`

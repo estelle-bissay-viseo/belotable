@@ -7,7 +7,7 @@ Usage:
   prepare-pr.sh [--description "text" | --description-file path] [--parent-branch name]
 
 Description:
-  0) By default, loads PR description from .belotable/pr_descriptions/<current-branch>.md.
+  0) By default, loads PR description from .github/pr_descriptions/<current-branch>.md.
   1) Detects parent branch (from branch creation reflog) unless --parent-branch is provided.
   2) Squashes all commits on current branch since divergence from parent branch.
   3) Creates one commit with message derived from PR description.
@@ -72,7 +72,7 @@ if [[ -z "$CURRENT_BRANCH" ]]; then
 fi
 
 if [[ -z "$DESCRIPTION" && -z "$DESCRIPTION_FILE" ]]; then
-  DESCRIPTION_FILE=".belotable/pr_descriptions/${CURRENT_BRANCH}.md"
+  DESCRIPTION_FILE=".github/pr_descriptions/${CURRENT_BRANCH}.md"
   AUTO_DESCRIPTION_FILE="true"
 fi
 

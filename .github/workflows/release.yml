@@ -220,11 +220,60 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  build-docs-pdf:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_sha }}
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install MkDocs dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs mkdocs-material mkdocs-pdf-export-plugin
+
+      - name: Build documentation PDF
+        env:
+          ENABLE_PDF_EXPORT: "1"
+        run: mkdocs build --strict --config-file user-docs/mkdocs.yml
+
+      - name: Rename docs PDF with release version
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          SRC="user-docs/site/pdf/belotable-documentation.pdf"
+          DST="user-docs/site/pdf/belotable-documentation-v${RELEASE_VERSION}.pdf"
+          if [[ ! -f "$SRC" ]]; then
+            echo "ERROR: Expected PDF not found at $SRC" >&2
+            exit 1
+          fi
+          mv "$SRC" "$DST"
+
+      - name: Upload docs PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-pdf
+          path: user-docs/site/pdf/belotable-documentation-v${{ needs.prepare.outputs.release_version }}.pdf
+          if-no-files-found: error
+          retention-days: 7
+
   publish-release-and-sync:
     needs:
       - prepare
       - build-docker-web
       - build-windows-installer
+      - build-docs-pdf
     runs-on: ubuntu-latest
     env:
       RELEASE_BRANCH: release
@@ -242,6 +291,12 @@ jobs:
         with:
           name: windows-installer
           path: release-assets/windows
+
+      - name: Download docs PDF artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-pdf
+          path: release-assets/docs
 
       - name: Configure Git identity
         run: |
@@ -330,6 +385,14 @@ jobs:
             exit 1
           fi
 
+          DOC_PDFS=(release-assets/docs/*.pdf)
+          if [[ ${#DOC_PDFS[@]} -eq 0 ]]; then
+            echo "ERROR: No documentation PDF found in release-assets/docs" >&2
+            exit 1
+          fi
+
+          RELEASE_ASSETS=("${INSTALLERS[@]}" "${DOC_PDFS[@]}")
+
           if [[ -f release-notes.generated.md && -s release-notes.generated.md ]]; then
             {
               cat release-notes.generated.md
@@ -353,7 +416,7 @@ jobs:
             exit 1
           fi
 
-          gh release create "$RELEASE_TAG" "${INSTALLERS[@]}" \
+          gh release create "$RELEASE_TAG" "${RELEASE_ASSETS[@]}" \
             --target "$RELEASE_SHA" \
             --title "$RELEASE_TITLE" \
             --latest \

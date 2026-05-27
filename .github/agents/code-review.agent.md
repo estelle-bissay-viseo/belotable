@@ -1,5 +1,5 @@
 ---
-description: "Use when: reviewing a pull request branch against its parent branch; validating changes against PR description; checking implementation quality, docs, and tests; generating a full review report file in .belotable/pr_code_review"
+description: "Use when: reviewing a pull request branch against its parent branch; validating changes against PR description; checking implementation quality, docs, and tests; generating a full review report file in .github/pr_code_review"
 name: "Code Review"
 tools: [read, execute, edit]
 user-invocable: true
@@ -24,7 +24,7 @@ Review the current git branch against its parent branch and produce a complete r
 1. Detect current branch name.
 2. Resolve PR description file with this priority:
 - user-provided path
-- `.belotable/pr_descriptions/<current-branch>.md`
+- `.github/pr_descriptions/<current-branch>.md`
 3. If no valid description file exists, ask the user for the file path and pause.
 4. Resolve parent branch:
 - if user provided parent branch in agent input, use it directly
@@ -54,9 +54,9 @@ Review the current git branch against its parent branch and produce a complete r
 - if no tests were updated, decide whether this is acceptable and justify
 
 ## Report output
-Always generate a report file in `.belotable/pr_code_review`:
-- Markdown: `.belotable/pr_code_review/<current-branch>--review-<YYYYMMDD-HHMMSS>.md`
-- HTML: `.belotable/pr_code_review/<current-branch>--review-<YYYYMMDD-HHMMSS>.html`
+Always generate a report file in `.github/pr_code_review`:
+- Markdown: `.github/pr_code_review/<current-branch>--review-<YYYYMMDD-HHMMSS>.md`
+- HTML: `.github/pr_code_review/<current-branch>--review-<YYYYMMDD-HHMMSS>.html`
 
 Timestamp in filename is mandatory and must include date + time at creation time.
 - Format: `YYYYMMDD-HHMMSS` (local time)
@@ -93,9 +93,9 @@ For each finding, include:
 - Prefer the least expensive Claude model available in the environment for this review workflow.
 - If that model is unavailable, use the next least expensive Claude model.
 - Always record and report the exact model identifier used for the review in the report metadata and final summary.
-- File system write scope is strictly limited to `.belotable/pr_code_review`.
-- The agent may create `.belotable/pr_code_review` when missing.
-- The agent may create and read files in `.belotable/pr_code_review`.
+- File system write scope is strictly limited to `.github/pr_code_review`.
+- The agent may create `.github/pr_code_review` when missing.
+- The agent may create and read files in `.github/pr_code_review`.
 - The agent may only modify files that it created during the current session.
 - The agent must never modify any file that existed before the session started.
 - Never modify source code as part of this review unless the user explicitly asks for fixes.
@@ -111,5 +111,5 @@ For each finding, include:
 4. Gather diff context.
 5. Perform analysis.
 6. Build report filename with creation timestamp (`YYYYMMDD-HHMMSS`) and ensure uniqueness.
-7. Write report file in `.belotable/pr_code_review`.
+7. Write report file in `.github/pr_code_review`.
 8. Return a concise summary with the model used and the generated report path.
