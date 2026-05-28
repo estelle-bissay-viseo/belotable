@@ -39,7 +39,13 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 Un job dédié `test` exécute l'intégralité de la suite de tests avant les builds (Docker, Windows), dans les deux workflows `ci.yml` et `release.yml`, pour :
 - Paralléliser les builds tout en garantissant que les tests passent d'abord.
 - Centraliser la gestion du timeout (**15 minutes max**).
+- Publier les résultats détaillés de tests (check run + éventuel commentaire PR) via `EnricoMi/publish-unit-test-result-action@v2`.
 - Publier le taux de couverture dans le résumé du run Actions (onglet "Summary"), visible aussi bien sur les pushs `dev` que sur les PR et les releases.
+
+Commande de test utilisée :
+- `flutter test --coverage -r github --file-reporter json:tests-report.json`
+- `-r github` alimente les annotations GitHub Actions.
+- `--file-reporter` produit `tests-report.json`, consommé par l'action de publication des résultats.
 
 Dans `release.yml`, le checkout du job `test` utilise le SHA du commit de release (`release_sha`) pour garantir la cohérence avec les builds.
 
@@ -51,6 +57,7 @@ Tous les builds (`build-docker-web`, `build-windows-installer`) dépendent du su
 - Le pipeline release échoue si le tag distant cible existe déjà.
 - Le rebase suppose une absence de divergence significative entre les branches ; le flux TBD garantit cette stabilité.
 - Le job `test` échoue si l'exécution dépasse 15 minutes ou si un test échoue (exit code non-zéro).
+- Les workflows `ci.yml` et `release.yml` exigent les permissions GitHub suivantes pour publier les résultats de tests : `checks: write`, `issues: write`, `pull-requests: write`.
 
 
 ## Sources (dépôt)
