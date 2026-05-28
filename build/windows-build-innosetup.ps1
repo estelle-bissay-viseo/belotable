@@ -118,7 +118,7 @@ if (-not $iscc) {
 # ------
 
 ${pubspecContent} = Get-Content $pubspecPath -Raw
-$match = [regex]::Match($pubspecContent, '(?m)^version:\s*([0-9]+\.[0-9]+\.[0-9]+)(?:-([0-9A-Za-z.-]+))?\s*$')
+$match = [regex]::Match($pubspecContent, '(?m)^version:\s*([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)\s*$')
 
 if (-not $match.Success) {
     Write-Error "Impossible de lire une version valide dans pubspec.yaml (attendu: version: x.y.z[-tag])."
@@ -126,14 +126,13 @@ if (-not $match.Success) {
 }
 
 $appVersion = $match.Groups[1].Value
-$appBuild = if ($match.Groups[2].Success) { $match.Groups[2].Value } else { "1" }
 
 # ------
 # Compilation
 # ------
 
 Write-Host "Inno Setup trouvé : $iscc"
-Write-Host "Numéro de version détecté : $appVersion+$appBuild"
+Write-Host "Numéro de version détecté : $appVersion"
 Write-Host "Compilation de : $issScript"
 if ($resolvedOutputDir) {
     Write-Host "Répertoire de sortie surchargé : $resolvedOutputDir"
