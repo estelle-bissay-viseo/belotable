@@ -34,12 +34,23 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 - Release stable taggée sous `vX.Y.Z`.
 - En flux `release`, bump automatique de `dev` vers `X.Y.(Z+1)-alpha`.
 
+## Stratégie de test
+
+Un job dédié `test` exécute l'intégralité de la suite de tests avant les builds (Docker, Windows), dans les deux workflows `ci.yml` et `release.yml`, pour :
+- Paralléliser les builds tout en garantissant que les tests passent d'abord.
+- Centraliser la gestion du timeout (**15 minutes max**).
+- Publier le taux de couverture dans le résumé du run Actions (onglet "Summary"), visible aussi bien sur les pushs `dev` que sur les PR et les releases.
+
+Dans `release.yml`, le checkout du job `test` utilise le SHA du commit de release (`release_sha`) pour garantir la cohérence avec les builds.
+
+Tous les builds (`build-docker-web`, `build-windows-installer`) dépendent du succès du job `test` et ne réexécutent pas les tests.
+
 ## Conditions importantes
 
-- Les tests (`fvm flutter test --coverage`) sont exécutés avant les builds dans les workflows principaux.
 - Le build docs est en mode strict (`mkdocs build --strict`).
 - Le pipeline release échoue si le tag distant cible existe déjà.
 - Le rebase suppose une absence de divergence significative entre les branches ; le flux TBD garantit cette stabilité.
+- Le job `test` échoue si l'exécution dépasse 15 minutes ou si un test échoue (exit code non-zéro).
 
 
 ## Sources (dépôt)
