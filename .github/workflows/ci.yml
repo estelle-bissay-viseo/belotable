@@ -14,6 +14,9 @@ on:
 permissions:
   contents: write
   packages: write
+  checks: write
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: build-release-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -59,7 +62,7 @@ jobs:
             exit 1
           fi
 
-          APP_VERSION="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*$/\1/p' belotable/pubspec.yaml | head -n1)"
+          APP_VERSION="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+(-[^+[:space:]]+)?)(\+[0-9A-Za-z.-]+)?[[:space:]]*$/\1/p' belotable/pubspec.yaml | head -n1)"
           if [[ -z "$APP_VERSION" ]]; then
             echo "ERROR: Unable to read app version from belotable/pubspec.yaml" >&2
             exit 1
@@ -83,11 +86,10 @@ jobs:
             echo "image_name=$IMAGE_NAME"
           } >> "$GITHUB_OUTPUT"
 
-  build-docker-web:
+  test:
     needs: prepare
     runs-on: ubuntu-latest
-    outputs:
-      image_digest: ${{ steps.docker_build.outputs.digest }}
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -109,7 +111,65 @@ jobs:
 
       - name: Run tests
         working-directory: belotable
-        run: flutter test --coverage
+        run: flutter test --coverage -r github --file-reporter json:tests-report.json
+        timeout-minutes: 12
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
+        with:
+          files: |
+            belotable/tests-report.json
+
+      - name: Publish test coverage to workflow summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coveragePath = 'belotable/coverage/lcov.info';
+            let coverageText = '❌ Coverage report not generated';
+
+            if (fs.existsSync(coveragePath)) {
+              const lines = fs.readFileSync(coveragePath, 'utf8').split('\n');
+              const lineHit = Number(lines.find(l => l.startsWith('LH:'))?.split(':')[1] ?? 0);
+              const lineFound = Number(lines.find(l => l.startsWith('LF:'))?.split(':')[1] ?? 0);
+              if (lineFound > 0) {
+                const pct = ((lineHit / lineFound) * 100).toFixed(2);
+                coverageText = `✅ Coverage: ${pct}% (${lineHit}/${lineFound} lines)`;
+              }
+            }
+
+            await core.summary
+              .addHeading('Test Coverage')
+              .addRaw(coverageText, true)
+              .write();
+
+  build-docker-web:
+    needs:
+      - prepare
+      - test
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.docker_build.outputs.digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: belotable
+        run: flutter pub get
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -149,7 +209,9 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-windows-installer:
-    needs: prepare
+    needs:
+      - prepare
+      - test
     runs-on: windows-latest
 
     steps:
@@ -169,10 +231,6 @@ jobs:
       - name: Install dependencies
         working-directory: belotable
         run: flutter pub get
-
-      - name: Run tests
-        working-directory: belotable
-        run: flutter test --coverage
 
       - name: Build Windows release
         working-directory: belotable
@@ -244,6 +302,7 @@ jobs:
   publish-prerelease:
     needs:
       - prepare
+      - test
       - build-docker-web
       - build-windows-installer
       - build-docs-pdf
@@ -252,6 +311,7 @@ jobs:
       github.event_name == 'push' &&
       github.ref_name == 'dev' &&
       needs.prepare.result == 'success' &&
+      needs.test.result == 'success' &&
       needs.build-docker-web.result == 'success' &&
       needs.build-windows-installer.result == 'success' &&
       needs.build-docs-pdf.result == 'success'
@@ -378,6 +438,18 @@ jobs:
               --prerelease \
               --latest=false \
               --notes-file release-notes.md
+
+            mapfile -t EXISTING_ASSET_IDS < <(
+              gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" \
+                --jq '.assets[].id' 2>/dev/null || true
+            )
+
+            if [[ ${#EXISTING_ASSET_IDS[@]} -gt 0 ]]; then
+              for ASSET_ID in "${EXISTING_ASSET_IDS[@]}"; do
+                gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
+              done
+            fi
+
             gh release upload "$RELEASE_TAG" "${RELEASE_ASSETS[@]}" --clobber
           else
             gh release create "$RELEASE_TAG" "${RELEASE_ASSETS[@]}" \

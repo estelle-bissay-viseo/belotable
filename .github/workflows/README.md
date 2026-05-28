@@ -40,11 +40,6 @@ Filtrage d'exécution :
 - Les jobs s'exécutent toujours sur `push`.
 - Pour les PR, l'exécution est limitée aux PR non draft dont l'auteur est `OWNER` ou `COLLABORATOR`.
 
-### Permissions
-
-- `contents: write`
-- `packages: write`
-
 ### Concurrence
 
 Groupe : `build-release-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}` avec annulation du run précédent en cours.
@@ -61,27 +56,37 @@ Calcule les outputs partagés :
 - `release_title` (`Dev build v<version>` ou `PR <num> - build v<version>`)
 - `image_name` (`ghcr.io/<owner>/<repo>-web` en minuscules)
 
-#### 2. `build-docker-web` (`ubuntu-latest`)
+#### 2. `test` (`ubuntu-latest`)
 
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
 - Setup Flutter
-- `flutter pub get` + `flutter test --coverage` (dans `belotable/`)
+- `flutter pub get`
+- Exécution des tests avec couverture et reporter GitHub + export JSON :
+   - `flutter test --coverage -r github --file-reporter json:tests-report.json`
+- Publication des résultats de tests via `EnricoMi/publish-unit-test-result-action@v2`
+- Publication du taux de couverture dans l'onglet Summary
+
+#### 3. `build-docker-web` (`ubuntu-latest`)
+
+- Checkout de la bonne révision (PR head SHA ou SHA du push)
+- Setup Flutter
+- `flutter pub get`
 - Setup Buildx + login GHCR
 - Génération de tags Docker (`release_tag`, ref branch/PR, sha, semver, latest default branch)
 - Build et push de `build/docker/Dockerfile`
 
 Output principal : `image_digest`.
 
-#### 3. `build-windows-installer` (`windows-latest`)
+#### 4. `build-windows-installer` (`windows-latest`)
 
 - Checkout + setup Flutter
-- `flutter pub get` + `flutter test --coverage`
+- `flutter pub get`
 - `flutter build windows --release`
 - Installation Inno Setup (`choco install innosetup`)
 - Génération installeur via `build/windows-build-innosetup.ps1`
 - Upload artefact `windows-installer` (rétention 7 jours)
 
-#### 4. `build-docs-pdf` (`ubuntu-latest`)
+#### 5. `build-docs-pdf` (`ubuntu-latest`)
 
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
 - Setup Python 3.12
@@ -90,7 +95,7 @@ Output principal : `image_digest`.
 - Renommage du PDF en `belotable-documentation-v<app_version>.pdf`
 - Upload artefact `docs-pdf` (rétention 7 jours)
 
-#### 5. `publish-prerelease` (`ubuntu-latest`)
+#### 6. `publish-prerelease` (`ubuntu-latest`)
 
 Job exécuté uniquement pour les push sur `dev` si tous les jobs précédents ont réussi.
 
@@ -116,11 +121,6 @@ Pour les PR : pas de publication de pre-release.
 - Push sur `release`
 - `workflow_dispatch`
 
-### Permissions
-
-- `contents: write`
-- `packages: write`
-
 ### Concurrence
 
 Groupe : `release-technical-${{ github.ref }}` avec annulation du run précédent en cours.
@@ -131,14 +131,15 @@ Automatiser le cycle technique de release à partir de `release` :
 
 1. Calculer et normaliser la version stable depuis `belotable/pubspec.yaml`.
 2. Mettre `release` à la version stable si nécessaire.
-3. Construire et publier l'image Docker web.
-4. Construire l'installeur Windows.
-5. Construire le PDF de documentation.
-6. Créer et pousser le tag `vX.Y.Z`.
-7. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefacts Windows + PDF docs et infos Docker.
-8. Rebaser `release` dans `main` (intégration linéaire sans merge commit).
-9. Rebaser `main` dans `dev` (intégration linéaire sans merge commit).
-10. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
+3. Exécuter les tests avec publication des résultats détaillés et de la couverture.
+4. Construire et publier l'image Docker web.
+5. Construire l'installeur Windows.
+6. Construire le PDF de documentation.
+7. Créer et pousser le tag `vX.Y.Z`.
+8. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefacts Windows + PDF docs et infos Docker.
+9. Rebaser `release` dans `main` (intégration linéaire sans merge commit).
+10. Rebaser `main` dans `dev` (intégration linéaire sans merge commit).
+11. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
 
 ### Versionnement appliqué
 
@@ -157,25 +158,31 @@ Automatiser le cycle technique de release à partir de `release` :
 - Commit/push si changement
 - Expose `release_sha` pour figer la suite du pipeline
 
-#### 2. `build-docker-web`
+#### 2. `test`
+
+- Exécute `flutter test --coverage -r github --file-reporter json:tests-report.json`
+- Publie les résultats de tests via `EnricoMi/publish-unit-test-result-action@v2`
+- Publie la couverture dans l'onglet Summary
+
+#### 3. `build-docker-web`
 
 - Build sur `release_sha`
 - Push GHCR avec tags : `vX.Y.Z`, `release`, `ref branch`, `sha-*`
 - Expose `image_digest`
 
-#### 3. `build-windows-installer`
+#### 4. `build-windows-installer`
 
 - Build Windows sur `release_sha`
 - Produit l'artefact `windows-installer`
 
-#### 4. `build-docs-pdf`
+#### 5. `build-docs-pdf`
 
 - Build docs sur `release_sha`
 - Génère le PDF via MkDocs
 - Renomme le PDF en `belotable-documentation-v<release_version>.pdf`
 - Produit l'artefact `docs-pdf`
 
-#### 5. `publish-release-and-sync`
+#### 6. `publish-release-and-sync`
 
 - Crée et pousse le tag annoté `vX.Y.Z`
 - Génère les release notes automatiques
