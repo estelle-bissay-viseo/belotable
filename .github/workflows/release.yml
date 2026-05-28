@@ -423,7 +423,7 @@ jobs:
             --draft \
             --notes-file release-notes.md
 
-      - name: Merge release into main then prepare dev
+      - name: Rebase release into main then prepare dev
         shell: bash
         env:
           RELEASE_SHA: ${{ needs.prepare.outputs.release_sha }}
@@ -440,12 +440,12 @@ jobs:
           git fetch origin "$RELEASE_BRANCH" "$MAIN_BRANCH" "$DEV_BRANCH" --tags
 
           git checkout -B "$MAIN_BRANCH" "origin/$MAIN_BRANCH"
-          git merge --no-ff "$RELEASE_SHA" -m "chore(release): merge $RELEASE_BRANCH into $MAIN_BRANCH"
+          git rebase "$RELEASE_SHA"
           MAIN_SHA="$(git rev-parse HEAD)"
           git push origin "$MAIN_BRANCH"
 
           git checkout -B "$DEV_BRANCH" "origin/$DEV_BRANCH"
-          git merge --no-ff "$MAIN_SHA" -m "chore(release): sync $MAIN_BRANCH into $DEV_BRANCH"
+          git rebase "$MAIN_SHA"
 
           update_pubspec_version "$NEXT_DEV_VERSION"
           if ! git diff --quiet -- belotable/pubspec.yaml; then
