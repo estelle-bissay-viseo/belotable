@@ -59,7 +59,7 @@ jobs:
             exit 1
           fi
 
-          APP_VERSION="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*$/\1/p' belotable/pubspec.yaml | head -n1)"
+          APP_VERSION="$(sed -nE 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+(-[^+[:space:]]+)?)(\+[0-9A-Za-z.-]+)?[[:space:]]*$/\1/p' belotable/pubspec.yaml | head -n1)"
           if [[ -z "$APP_VERSION" ]]; then
             echo "ERROR: Unable to read app version from belotable/pubspec.yaml" >&2
             exit 1
@@ -378,6 +378,18 @@ jobs:
               --prerelease \
               --latest=false \
               --notes-file release-notes.md
+
+            mapfile -t EXISTING_ASSET_IDS < <(
+              gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" \
+                --jq '.assets[].id' 2>/dev/null || true
+            )
+
+            if [[ ${#EXISTING_ASSET_IDS[@]} -gt 0 ]]; then
+              for ASSET_ID in "${EXISTING_ASSET_IDS[@]}"; do
+                gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
+              done
+            fi
+
             gh release upload "$RELEASE_TAG" "${RELEASE_ASSETS[@]}" --clobber
           else
             gh release create "$RELEASE_TAG" "${RELEASE_ASSETS[@]}" \
