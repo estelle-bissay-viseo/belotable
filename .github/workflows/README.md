@@ -13,7 +13,7 @@ Le dépôt suit un flux avec 3 branches principales :
 Cycle attendu :
 
 1. Chaque push sur `dev` exécute la CI et met à jour la pre-release `dev-latest`.
-2. Chaque push sur `release` exécute le pipeline technique de release, crée le tag `vX.Y.Z`, publie une release GitHub en brouillon, puis synchronise `main` et `dev`.
+2. Chaque push sur `release` exécute le pipeline technique de release, crée le tag `vX.Y.Z`, publie une release GitHub en brouillon, puis intègre `release` dans `main` et `main` dans `dev` via rebase.
 
 ## Vue d'ensemble
 
@@ -136,8 +136,8 @@ Automatiser le cycle technique de release à partir de `release` :
 5. Construire le PDF de documentation.
 6. Créer et pousser le tag `vX.Y.Z`.
 7. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefacts Windows + PDF docs et infos Docker.
-8. Merger `release` dans `main`.
-9. Merger `main` dans `dev`.
+8. Rebaser `release` dans `main` (intégration linéaire sans merge commit).
+9. Rebaser `main` dans `dev` (intégration linéaire sans merge commit).
 10. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
 
 ### Versionnement appliqué
@@ -181,15 +181,16 @@ Automatiser le cycle technique de release à partir de `release` :
 - Génère les release notes automatiques
 - Télécharge les artefacts Windows et PDF docs
 - Crée une release GitHub en brouillon (`--draft`) marquée latest (`--latest`) avec les assets `.exe` et `.pdf`
-- Merge `release_sha` dans `main`, push `main`
-- Merge `main` dans `dev`
+- Rebases `release` dans `main` via rebase linéaire (pas de merge commit)
+- Rebases `main` dans `dev` via rebase linéaire (pas de merge commit)
 - Met à jour `belotable/pubspec.yaml` sur `dev` vers `next_dev_version`, commit/push si changement
 
 ### Points d'attention
 
 - Les branches `release`, `main` et `dev` doivent exister.
-- Les conflits de merge font échouer le workflow (pas de résolution implicite).
+- Les conflits de rebase font échouer le workflow (pas de résolution implicite).
 - Si le tag `vX.Y.Z` existe déjà sur le remote, le workflow échoue.
+- Le rebase suppose une absence de divergence significative entre les branches ; le flux TBD garantit cette stabilité.
 
 ---
 

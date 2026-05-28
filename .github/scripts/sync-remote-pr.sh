@@ -87,7 +87,8 @@ if [[ -z "$CURRENT_BRANCH" ]]; then
 fi
 
 if [[ -z "$DESCRIPTION_FILE" ]]; then
-  DESCRIPTION_FILE=".github/pr_descriptions/${CURRENT_BRANCH}.md"
+  SANITIZED_BRANCH="${CURRENT_BRANCH//[^a-zA-Z0-9._-]/_}"
+  DESCRIPTION_FILE=".github/pr_descriptions/${SANITIZED_BRANCH}.md"
 fi
 
 if [[ ! -f "$DESCRIPTION_FILE" ]]; then

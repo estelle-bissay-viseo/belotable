@@ -13,6 +13,14 @@
 - `release` : préparation technique de release.
 - `main` : référence production.
 
+## Intégration via rebase
+
+Les mise à jour des branches après une release utilisent **rebase** plutôt que merge :
+- `release` est rebased dans `main`.
+- `main` est rebased dans `dev`.
+
+Cette approche conserve un historique Git linéaire, sans merge commits, tout en maintenant la traçabilité des changements.
+
 ## Artefacts principaux
 
 - Installeur Windows (`windows-installer`).
@@ -31,6 +39,8 @@
 - Les tests (`fvm flutter test --coverage`) sont exécutés avant les builds dans les workflows principaux.
 - Le build docs est en mode strict (`mkdocs build --strict`).
 - Le pipeline release échoue si le tag distant cible existe déjà.
+- Le rebase suppose une absence de divergence significative entre les branches ; le flux TBD garantit cette stabilité.
+
 
 ## Sources (dépôt)
 
