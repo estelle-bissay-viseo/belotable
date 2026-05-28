@@ -403,7 +403,7 @@ jobs:
           fi
 
           cat >> release-notes.md <<EOF
-          ## Automated release
+          ## Web Docker image
 
           - Version: ${RELEASE_VERSION}
           - Docker image: ${IMAGE_NAME}:${RELEASE_TAG}
