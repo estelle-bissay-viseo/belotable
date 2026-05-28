@@ -118,10 +118,10 @@ if (-not $iscc) {
 # ------
 
 ${pubspecContent} = Get-Content $pubspecPath -Raw
-$match = [regex]::Match($pubspecContent, '(?m)^version:\s*([0-9]+\.[0-9]+\.[0-9]+)(?:\+(\d+))?\s*$')
+$match = [regex]::Match($pubspecContent, '(?m)^version:\s*([0-9]+\.[0-9]+\.[0-9]+)(?:-([0-9A-Za-z.-]+))?\s*$')
 
 if (-not $match.Success) {
-    Write-Error "Impossible de lire une version valide dans pubspec.yaml (attendu: version: x.y.z+n)."
+    Write-Error "Impossible de lire une version valide dans pubspec.yaml (attendu: version: x.y.z[-tag])."
     exit 1
 }
 
