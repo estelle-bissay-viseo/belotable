@@ -299,6 +299,51 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  scan-with-trivy:
+    needs:
+     - prepare
+     - build-docker-web
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Generate Trivy Vulnerability Report about FileSystem
+        uses: aquasecurity/trivy-action@master
+        with:
+          trivy-config: trivy.yaml
+          scan-type: fs
+          output: trivy-fs-report.json
+          format: json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+      
+      - name: Generate Trivy Vulnerability Report about Docker Container Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: image
+          output: trivy-image-report.json
+          format: json
+          image-ref: ${{ needs.prepare.outputs.image_name }}:${{ needs.prepare.outputs.release_tag }}
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Upload Vulnerability Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: trivy-reports
+          path: |
+            trivy-fs-report.json
+            trivy-image-report.json
+
   publish-prerelease:
     needs:
       - prepare
@@ -306,6 +351,7 @@ jobs:
       - build-docker-web
       - build-windows-installer
       - build-docs-pdf
+      - scan-with-trivy
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'push' &&
