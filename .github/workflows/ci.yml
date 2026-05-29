@@ -371,7 +371,7 @@ jobs:
           trivy-config: trivy.yaml
           scan-type: fs
           scan-ref: .
-          exit-code: 0
+          exit-code: 1
 
       - name: Scan with Trivy about Docker Container Image
         id: trivy_scan_image
@@ -382,7 +382,7 @@ jobs:
           trivy-config: trivy.yaml
           scan-type: image
           image-ref: ${{ needs.prepare.outputs.image_name }}:${{ needs.prepare.outputs.release_tag }}
-          exit-code: 0
+          exit-code: 1
 
       - name: Fail if major vulnerabilities found
         if: ${{ steps.trivy_scan_fs.outcome == 'failure' || steps.trivy_scan_image.outcome == 'failure' }}
