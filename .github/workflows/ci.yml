@@ -312,7 +312,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
-      - name: Generate Trivy Vulnerability Report about FileSystem
+      - name: Generate Trivy Report about FileSystem
         uses: aquasecurity/trivy-action@master
         with:
           trivy-config: trivy.yaml
@@ -323,7 +323,7 @@ jobs:
           severity: LOW,MEDIUM,HIGH,CRITICAL
           exit-code: 0
       
-      - name: Generate Trivy Vulnerability Report about Docker Container Image
+      - name: Generate Trivy Report about Docker Container Image
         uses: aquasecurity/trivy-action@master
         with:
           skip-setup-trivy: true
@@ -335,7 +335,24 @@ jobs:
           severity: LOW,MEDIUM,HIGH,CRITICAL
           exit-code: 0
 
-      - name: Upload Vulnerability Scan Results
+      - name: Generate Trivy Report about FileSystem for GitHub Code Scanning
+        uses: aquasecurity/trivy-action@master
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: fs
+          output: trivy-fs-report.sarif
+          format: sarif
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-fs-report.sarif
+
+      - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
         with:
           retention-days: 7
@@ -343,6 +360,35 @@ jobs:
           path: |
             trivy-fs-report.json
             trivy-image-report.json
+            trivy-fs-report.sarif
+
+      - name: Scan with Trivy about FileSystem
+        id: trivy_scan_fs
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: fs
+          scan-ref: .
+          exit-code: 0
+
+      - name: Scan with Trivy about Docker Container Image
+        id: trivy_scan_image
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: image
+          image-ref: ${{ needs.prepare.outputs.image_name }}:${{ needs.prepare.outputs.release_tag }}
+          exit-code: 0
+
+      - name: Fail if major vulnerabilities found
+        if: ${{ steps.trivy_scan_fs.outcome == 'failure' || steps.trivy_scan_image.outcome == 'failure' }}
+        run: |
+          echo "ERROR: Trivy scan found vulnerabilities with severity HIGH or CRITICAL" >&2
+          exit 1
 
   publish-prerelease:
     needs:
