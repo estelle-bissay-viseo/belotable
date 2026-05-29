@@ -35,6 +35,7 @@ winget install Microsoft.VisualStudioCode
 winget install Python.Python.3.12
 winget install Google.Chrome
 winget install JRSoftware.InnoSetup
+winget install AquaSecurity.Trivy
 ```
 
 Puis installez Flutter via FVM (Flutter Version Manager) :

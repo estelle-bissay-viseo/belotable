@@ -16,7 +16,7 @@ RUN --mount=type=secret,id=ca_cert,required=false \
       cp /run/secrets/ca_cert /usr/local/share/ca-certificates/corp.crt; \
     fi
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git unzip xz-utils zip \
     && update-ca-certificates \
     && apt-get clean \
@@ -31,10 +31,9 @@ RUN flutter_version="${FLUTTER_VERSION}" \
     -o flutter.tar.xz \
     && tar xf flutter.tar.xz -C /usr/local \
     && rm flutter.tar.xz
-
-RUN git config --global --add safe.directory ${FLUTTER_HOME}
-
-RUN flutter --disable-analytics
+    
+RUN git config --global --add safe.directory ${FLUTTER_HOME} \
+    && flutter --disable-analytics
     
 WORKDIR /app
 
@@ -48,11 +47,19 @@ RUN flutter build web --release
 # ─────────────────────────────────────────────────────────
 # Stage 2 : Image de production (nginx:alpine ~20 MB)
 # ─────────────────────────────────────────────────────────
-FROM nginx:alpine AS runtime
+FROM nginxinc/nginx-unprivileged:stable-alpine AS runtime
+USER root
+ARG DOCROOT=/usr/share/nginx/html
 
-COPY --from=builder /app/build/web /usr/share/nginx/html
+COPY --from=builder /app/build/web ${DOCROOT}
 COPY build/docker/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+RUN find ${DOCROOT} -type d -print0 | xargs -0 chmod 755 && \
+    find ${DOCROOT} -type f -print0 | xargs -0 chmod 644 && \
+    chmod 755 ${DOCROOT}
+
+USER nginx
+
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]

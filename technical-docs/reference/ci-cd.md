@@ -6,6 +6,7 @@
 - `release.yml` : pipeline technique de release sur `release` ou manuel.
 - `docs-pages.yml` : publication de la documentation utilisateur sur GitHub Pages.
 - `web-docker-cleanup.yml` : nettoyage des images GHCR obsolètes.
+- `trivy-update-cache.yml` : scan Trivy planifié et production d'un artefact SBOM.
 
 ## Stratégie de branches
 
@@ -26,6 +27,7 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 - Installeur Windows (`windows-installer`).
 - PDF de documentation (`docs-pdf`).
 - Image web Docker publiée sur GHCR (`ghcr.io/<owner>/<repo>-web`).
+- Rapports Trivy (`trivy-reports`) incluant un fichier SBOM (`*.sbom.json`).
 
 ## Variables et versionnement
 
@@ -38,8 +40,9 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 
 Un job dédié `test` exécute l'intégralité de la suite de tests avant les builds (Docker, Windows), dans les deux workflows `ci.yml` et `release.yml`, pour :
 - Paralléliser les builds tout en garantissant que les tests passent d'abord.
+- Exécuter les tests sur runner Windows pour partager le cache avec le build Windows.
 - Centraliser la gestion du timeout (**15 minutes max**).
-- Publier les résultats détaillés de tests (check run + éventuel commentaire PR) via `EnricoMi/publish-unit-test-result-action@v2`.
+- Publier les résultats détaillés de tests (check run + éventuel commentaire PR) via `EnricoMi/publish-unit-test-result-action/windows@v2`.
 - Publier le taux de couverture dans le résumé du run Actions (onglet "Summary"), visible aussi bien sur les pushs `dev` que sur les PR et les releases.
 
 Commande de test utilisée :
@@ -50,6 +53,16 @@ Commande de test utilisée :
 Dans `release.yml`, le checkout du job `test` utilise le SHA du commit de release (`release_sha`) pour garantir la cohérence avec les builds.
 
 Tous les builds (`build-docker-web`, `build-windows-installer`) dépendent du succès du job `test` et ne réexécutent pas les tests.
+
+## Scan de sécurité Trivy
+
+Les workflows `ci.yml` et `release.yml` ajoutent un job `scan-with-trivy` qui :
+- génère des rapports JSON sur le filesystem et l'image Docker ;
+- génère un rapport SARIF envoyé dans l'onglet Security GitHub ;
+- génère un SBOM (`dependency-results.sbom.json`) envoyé au Dependency Graph ;
+- échoue si des vulnérabilités `HIGH` ou `CRITICAL` sont détectées.
+
+Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie un artefact `trivy-reports`.
 
 ## Conditions importantes
 
@@ -67,3 +80,6 @@ Tous les builds (`build-docker-web`, `build-windows-installer`) dépendent du su
 - `.github/workflows/release.yml`
 - `.github/workflows/docs-pages.yml`
 - `.github/workflows/web-docker-cleanup.yml`
+- `.github/workflows/trivy-update-cache.yml`
+- `trivy.yaml`
+- `.trivyignore`
