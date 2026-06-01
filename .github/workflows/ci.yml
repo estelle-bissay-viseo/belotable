@@ -109,6 +109,151 @@ jobs:
         working-directory: belotable
         run: flutter pub get
 
+      - name: Analyze code
+        id: flutter_analyze
+        working-directory: belotable
+        shell: pwsh
+        run: |
+          flutter analyze --no-fatal-infos | Tee-Object -FilePath flutter_analyze_report.log
+          echo "exit_code=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Annotate code with analyzer results
+        shell: pwsh
+        if: steps.flutter_analyze.conclusion != 'skipped'
+        working-directory: belotable
+        run: |
+          Get-Content flutter_analyze_report.log | ForEach-Object {
+            if ($_ -match '^\s*(?<severity>\w+) - (?<message>.+) - (?<file>.+):(?<line>\d+):(?<col>\d+) - (?<rule>.+)$') {
+              $severity = $matches['severity']
+              $message = $matches['message']
+              $file = $matches['file']
+              # normalize file path
+              $file = $file -replace '\\', '/'
+              $file = "belotable/$file"
+              $line = $matches['line']
+              $col = $matches['col']
+              $rule = $matches['rule']
+              $fullMessage = "$message ($rule) [severity=$severity]"
+
+              switch ($severity) {
+                "error" {
+                  Write-Output "::error file=$file,line=$line,col=$col::$fullMessage"
+                }
+                "warning" {
+                  Write-Output "::warning file=$file,line=$line,col=$col::$fullMessage"
+                }
+                default {
+                  Write-Output "::notice file=$file,line=$line,col=$col::$fullMessage"
+                }
+              }
+            }
+          }
+      
+      - name: Comment PR with analyzer results
+        if: steps.flutter_analyze.conclusion != 'skipped' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // read and parse the analyzer report to extract issues
+            const fs = require('fs');
+            const content = fs.readFileSync('belotable/flutter_analyze_report.log', 'utf8');
+            const lines = content.split('\n');
+            const issues = [];
+            const regex = /^\s*(\w+)\s+-\s+(.+?)\s+-\s+(.+?):(\d+):(\d+)\s+-\s+(.+)$/;
+            for (const line of lines) {
+              const cleaned = line.replace(/\r/g, '').trim();
+              const match = cleaned.match(regex);
+              if (!match) continue;
+              const severity = match[1];
+              const message = match[2];
+              const file = `belotable/${match[3].replace(/\\/g, '/')}`;
+              const lineNum = parseInt(match[4], 10);
+              const rule = match[6];
+              issues.push({ severity, message, file, line: lineNum, rule });
+            }
+            // sort issues by file and line number
+            issues.sort((a, b) => {
+              if (a.file === b.file) return a.line - b.line;
+              return a.file.localeCompare(b.file);
+            });
+            // group issues by file
+            const grouped = {};
+            for (const issue of issues) {
+              if (!grouped[issue.file]) {
+                grouped[issue.file] = [];
+              }
+              grouped[issue.file].push(issue);
+            }
+
+            // prepare comment body with markdown formatting
+            const severityIcon = {
+              error: '🔴',
+              warning: '🟡',
+              info: '🟢',
+            };
+            let body = `## Flutter Analyze Report\n\n`;
+            body += `This comment has been updated with latest results.\n\n`;
+            body += `This report concerns all files in the \`belotable\` directory, not only the files changed in this PR.\n\n`;
+            body += `---\n`;
+            // summary of issues by severity
+            const total = issues.length;
+            const errors = issues.filter(i => i.severity === 'error').length;
+            const warnings = issues.filter(i => i.severity === 'warning').length;
+            const infos = issues.filter(i => i.severity === 'info').length;
+            const unknown = issues.filter(i => i.severity !== 'error' && i.severity !== 'warning' && i.severity !== 'info').length;
+            body += `### Total: ${total} issues\n\n`;
+            body += `| Severity | Count |\n`;
+            body += `|----------|-------|\n`;
+            body += `| 🔴 Errors | ${errors} |\n`;
+            body += `| 🟡 Warnings | ${warnings} |\n`;
+            body += `| 🟢 Info | ${infos} |\n`;
+            body += `| ⚪ Unknown severity | ${unknown} |\n`;
+            body += `\n`;
+            body += `---\n`;
+            // detailed table of issues grouped by file
+            for (const file of Object.keys(grouped)) {
+              body += `### ${file}\n`;
+              body += `| Line | Severity | Rule | Message |\n`;
+              body += `|------|--------|------|--------|\n`;
+              for (const issue of grouped[file]) {
+                const icon = severityIcon[issue.severity] || '⚪';
+                body += `| ${issue.line} | ${icon} ${issue.severity} | ${issue.rule} | ${issue.message} |\n`;
+              }
+              body += `\n`;
+            }
+            // check if a comment with the same header already exists, if so update it, otherwise create a new one
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const existing = comments.data.find(c =>
+              c.body.includes('## Flutter Analyze Report')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+      - name: Quality gate
+        if: always() && steps.flutter_analyze.outputs.exit_code != '0'
+        shell: pwsh
+        run: |
+          Write-Error "Flutter analyze failed (quality gate)"
+          exit 1
+
       - name: Run tests
         working-directory: belotable
         run: flutter test --coverage -r github --file-reporter json:tests-report.json

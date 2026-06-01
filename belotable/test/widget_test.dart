@@ -9,7 +9,7 @@ import 'package:belotable/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('App displays welcome message', (WidgetTester tester) async {
+  testWidgets('App displays welcome message', (tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 

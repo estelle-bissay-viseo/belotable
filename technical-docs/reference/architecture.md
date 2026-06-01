@@ -37,7 +37,7 @@ Voir [ajouter-un-asset-flutter.md](../how-to/flutter-ajouter-un-asset.md)
 
 ## Règles de qualité
 
-`belotable/analysis_options.yaml` inclut `flutter_lints`.
+`belotable/analysis_options.yaml` inclut `package:very_good_analysis/analysis_options.yaml`.
 
 ## Devices actuellement pris en charge
 

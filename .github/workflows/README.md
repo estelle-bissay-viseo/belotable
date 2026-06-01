@@ -21,8 +21,8 @@ La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue d
 
 | Workflow | Déclencheur | Rôle |
 |----------|------------|------|
-| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Tests + build Docker web + scan Trivy + build Windows + build PDF docs + mise à jour pre-release sur `dev` |
-| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, artefacts (Windows + PDF docs + SBOM), scan Trivy, tag, release draft, sync des branches |
+| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Analyse statique Flutter (annotations + commentaire PR), quality gate, tests, build Docker web, scan Trivy, build Windows, build PDF docs, mise à jour pre-release sur `dev` |
+| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, analyse statique Flutter (annotations), quality gate, tests, artefacts (Windows + PDF docs + SBOM), scan Trivy, tag, release draft, sync des branches |
 | **Trivy scan and Update Trivy cache** (`trivy-update-cache.yml`) | Planifié + manuel | Met à jour le cache DB Trivy quotidiennement et publie un SBOM vers GitHub Dependency Graph |
 | **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
 | **Docs - GitHub Pages** (`docs-pages.yml`) | Push `main` ciblé + manuel | Build MkDocs, génération d'un PDF combiné en artefact, puis déploiement de la documentation utilisateur sur GitHub Pages |
@@ -62,6 +62,12 @@ Calcule les outputs partagés :
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
 - Setup Flutter
 - `flutter pub get`
+- Analyse statique :
+   - `flutter analyze --no-fatal-infos` avec capture du rapport `flutter_analyze_report.log`
+   - stockage du code de sortie de l'analyse dans `steps.flutter_analyze.outputs.exit_code`
+- Publication d'annotations GitHub (error/warning/notice) à partir du rapport d'analyse (`flutter_analyze_report.log`)
+- Sur PR uniquement : création ou mise à jour d'un commentaire `## Flutter Analyze Report` (tableau par fichier, ligne, sévérité, règle)
+- Quality gate : échec explicite du job si `steps.flutter_analyze.outputs.exit_code != '0'`
 - Exécution des tests avec couverture et reporter GitHub + export JSON :
    - `flutter test --coverage -r github --file-reporter json:tests-report.json`
 - Publication des résultats de tests via `EnricoMi/publish-unit-test-result-action/windows@v2`
@@ -144,7 +150,7 @@ Automatiser le cycle technique de release à partir de `release` :
 
 1. Calculer et normaliser la version stable depuis `belotable/pubspec.yaml`.
 2. Mettre `release` à la version stable si nécessaire.
-3. Exécuter les tests avec publication des résultats détaillés et de la couverture.
+3. Exécuter l'analyse statique Flutter, appliquer le quality gate, puis exécuter les tests avec publication des résultats détaillés et de la couverture.
 4. Construire et publier l'image Docker web.
 5. Exécuter les scans Trivy (filesystem + image) et publier les rapports sécurité.
 6. Construire l'installeur Windows.
@@ -174,6 +180,9 @@ Automatiser le cycle technique de release à partir de `release` :
 
 #### 2. `test`
 
+- Exécute `flutter analyze --no-fatal-infos` et écrit le rapport `flutter_analyze_report.log`
+- Parse le rapport et publie des annotations GitHub (`error` / `warning` / `notice`)
+- Applique un quality gate : le job échoue si `steps.flutter_analyze.outputs.exit_code != '0'`
 - Exécute `flutter test --coverage -r github --file-reporter json:tests-report.json`
 - Publie les résultats de tests via `EnricoMi/publish-unit-test-result-action/windows@v2`
 - Publie la couverture dans l'onglet Summary

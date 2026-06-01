@@ -138,6 +138,54 @@ jobs:
         working-directory: belotable
         run: flutter pub get
 
+      - name: Analyze code
+        id: flutter_analyze
+        working-directory: belotable
+        shell: pwsh
+        run: |
+          flutter analyze --no-fatal-infos | Tee-Object -FilePath flutter_analyze_report.log
+          echo "exit_code=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Annotate code with analyzer results
+        shell: pwsh
+        if: steps.flutter_analyze.conclusion != 'skipped'
+        working-directory: belotable
+        run: |
+          Get-Content flutter_analyze_report.log | ForEach-Object {
+            if ($_ -match '^\s*(?<severity>\w+) - (?<message>.+) - (?<file>.+):(?<line>\d+):(?<col>\d+) - (?<rule>.+)$') {
+              $severity = $matches['severity']
+              $message = $matches['message']
+              $file = $matches['file']
+              # normalize file path
+              $file = $file -replace '\\', '/'
+              $file = "belotable/$file"
+              $line = $matches['line']
+              $col = $matches['col']
+              $rule = $matches['rule']
+              $fullMessage = "$message ($rule) [severity=$severity]"
+
+              switch ($severity) {
+                "error" {
+                  Write-Output "::error file=$file,line=$line,col=$col::$fullMessage"
+                }
+                "warning" {
+                  Write-Output "::warning file=$file,line=$line,col=$col::$fullMessage"
+                }
+                default {
+                  Write-Output "::notice file=$file,line=$line,col=$col::$fullMessage"
+                }
+              }
+            }
+          }
+
+      - name: Quality gate
+        if: always() && steps.flutter_analyze.outputs.exit_code != '0'
+        shell: pwsh
+        run: |
+          Write-Error "Flutter analyze failed (quality gate)"
+          exit 1
+
       - name: Run tests
         working-directory: belotable
         run: flutter test --coverage -r github --file-reporter json:tests-report.json

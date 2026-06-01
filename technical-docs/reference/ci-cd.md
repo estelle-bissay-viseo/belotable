@@ -36,14 +36,21 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 - Release stable taggée sous `vX.Y.Z`.
 - En flux `release`, bump automatique de `dev` vers `X.Y.(Z+1)-alpha`.
 
-## Stratégie de test
+## Stratégie de qualité et test
 
 Un job dédié `test` exécute l'intégralité de la suite de tests avant les builds (Docker, Windows), dans les deux workflows `ci.yml` et `release.yml`, pour :
 - Paralléliser les builds tout en garantissant que les tests passent d'abord.
 - Exécuter les tests sur runner Windows pour partager le cache avec le build Windows.
 - Centraliser la gestion du timeout (**15 minutes max**).
+- Exécuter une analyse statique Flutter avant les tests avec annotations GitHub.
 - Publier les résultats détaillés de tests (check run + éventuel commentaire PR) via `EnricoMi/publish-unit-test-result-action/windows@v2`.
 - Publier le taux de couverture dans le résumé du run Actions (onglet "Summary"), visible aussi bien sur les pushs `dev` que sur les PR et les releases.
+
+Commande d'analyse utilisée :
+- `flutter analyze --no-fatal-infos`
+- Le rapport est capturé dans `flutter_analyze_report.log`.
+- Le code de sortie est propagé et validé par un quality gate (`exit_code != 0` => échec du job).
+- Dans `ci.yml` uniquement, un commentaire PR `Flutter Analyze Report` est créé/mis à jour à partir du rapport.
 
 Commande de test utilisée :
 - `flutter test --coverage -r github --file-reporter json:tests-report.json`
@@ -69,7 +76,7 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - Le build docs est en mode strict (`mkdocs build --strict`).
 - Le pipeline release échoue si le tag distant cible existe déjà.
 - Le rebase suppose une absence de divergence significative entre les branches ; le flux TBD garantit cette stabilité.
-- Le job `test` échoue si l'exécution dépasse 15 minutes ou si un test échoue (exit code non-zéro).
+- Le job `test` échoue si l'exécution dépasse 15 minutes, si l'analyse Flutter échoue (quality gate), ou si un test échoue (exit code non-zéro).
 - Les workflows `ci.yml` et `release.yml` exigent les permissions GitHub suivantes pour publier les résultats de tests : `checks: write`, `issues: write`, `pull-requests: write`.
 
 
