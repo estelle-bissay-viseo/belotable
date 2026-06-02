@@ -1,35 +1,49 @@
-# Note: This workflow only updates the cache.
-# In your scan workflows, set TRIVY_SKIP_DB_UPDATE=true and TRIVY_SKIP_JAVA_DB_UPDATE=true.
-name: Update Trivy Cache
+name: Trivy scan and Update Trivy cache
 
 on:
   schedule:
     - cron: '0 2 * * *'  # Run daily at 2 AM UTC
   workflow_dispatch:  # Allow manual triggering
 
+permissions:
+  contents: write
+  security-events: write
+
 jobs:
   update-trivy-db:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          
       - name: Setup oras
         uses: oras-project/setup-oras@v1
 
-      - name: Download and extract the vulnerability DB
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/.cache/trivy/db
-          oras pull ghcr.io/aquasecurity/trivy-db:2
-          tar -xzf db.tar.gz -C $GITHUB_WORKSPACE/.cache/trivy/db
-          rm db.tar.gz
-
-      - name: Download and extract the Java DB
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/.cache/trivy/java-db
-          oras pull ghcr.io/aquasecurity/trivy-java-db:1
-          tar -xzf javadb.tar.gz -C $GITHUB_WORKSPACE/.cache/trivy/java-db
-          rm javadb.tar.gz
-
-      - name: Cache DBs
-        uses: actions/cache/save@v4
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          path: ${{ github.workspace }}/.cache/trivy
-          key: cache-trivy-${{ runner.os }}
+          scan-type: fs
+          format: github
+          output: dependency-results.sbom.json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+          exit-code: 0
+      
+      - name: Upload Trivy Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: trivy-reports
+          path: |
+            dependency-results.sbom.json
+
+      - name: Scan with Trivy about FileSystem
+        uses: aquasecurity/trivy-action@master
+        with:
+          trivy-config: trivy.yaml
+          scan-type: fs
+          scan-ref: .
