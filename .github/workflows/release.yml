@@ -359,7 +359,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ needs.prepare.outputs.release_sha }}
           fetch-depth: 1
 
       - name: Generate Trivy Report about FileSystem
@@ -658,6 +658,7 @@ jobs:
           SBOM_FILES=(release-assets/trivy-reports/*.sbom.json)
           if [[ ${#SBOM_FILES[@]} -eq 0 ]]; then
             echo "ERROR: No SBOM files found in release-assets/trivy-reports" >&2
+            exit 1
           fi
 
           RELEASE_ASSETS=("${INSTALLERS[@]}" "${DOC_PDFS[@]}" "${SBOM_FILES[@]}")

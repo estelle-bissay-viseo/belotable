@@ -60,7 +60,7 @@ Calcule les outputs partagés :
 #### 2. `semgrep`
 
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
-- Exécution de Semgrep selon la configuration `.semgrep.yml`
+- Exécution de Semgrep
 - Analyse du code source avec les règles définies en `.semgrepignore` pour exclusions
 - Génération de rapports au format JSON et SARIF
 - Publication du rapport `semgrep-report.sarif` dans l'onglet Security
@@ -190,7 +190,7 @@ Automatiser le cycle technique de release à partir de `release` :
 
 #### 2. `semgrep`
 
-- Exécute Semgrep avec la configuration `.semgrep.yml`
+- Exécute Semgrep
 - Analyse du code source avec les règles définies, ignoration des chemins listés dans `.semgrepignore`
 - Génération des rapports en JSON et SARIF
 - Publication du rapport `semgrep-report.sarif` dans l'onglet Security

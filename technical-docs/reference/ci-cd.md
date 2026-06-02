@@ -45,7 +45,6 @@ Les workflows `ci.yml` et `release.yml` ajoutent un job `semgrep` qui :
 - le job `test` dépend du succès de `semgrep` pour s'exécuter.
 
 Fichiers de configuration :
-- `.semgrep.yml` : configuration Semgrep (actuellement minimale) ;
 - `.semgrepignore` : chemins exclus du scan (dépendances, dossiers de build, docs, etc.).
 
 ## Stratégie de qualité et test
@@ -102,5 +101,4 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - `.github/workflows/trivy-update-cache.yml`
 - `trivy.yaml`
 - `.trivyignore`
-- `.semgrep.yml`
 - `.semgrepignore`

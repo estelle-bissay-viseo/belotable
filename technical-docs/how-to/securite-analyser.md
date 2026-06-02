@@ -71,5 +71,4 @@ semgrep scan --config=auto --config=p/owasp-top-ten  --config=p/cwe-top-25  --co
 - `.github/workflows/release.yml`
 - `.github/workflows/trivy-update-cache.yml`
 - `build/docker/docker-compose.yml`
-- `.semgrep.yml`
 - `.semgrepignore`
