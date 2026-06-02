@@ -4,7 +4,7 @@ import 'package:belotable/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({required this.title, super.key});
 
   /// The title displayed in the application bar.
   final String title;

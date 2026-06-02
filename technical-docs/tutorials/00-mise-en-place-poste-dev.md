@@ -35,7 +35,16 @@ winget install Microsoft.VisualStudioCode
 winget install Python.Python.3.12
 winget install Google.Chrome
 winget install JRSoftware.InnoSetup
+winget install AquaSecurity.Trivy
 ```
+
+Ajouter ces variables d'environnement (niveau user) :
+
+| Variable d'environnement | Valeur                  | Commentaire                           | 
+|--------------------------|-------------------------|---------------------------------------|
+| `PYTHONUTF8`             | `1` | Force Python à utiliser UTF-8 pour éviter les problèmes d'encodage |
+| `REQUESTS_CA_BUNDLE`     | Chemin absolu vers votre fichier de certificats SSL si vous en avez | Permet à Python de faire confiance aux certificats SSL de l'entreprise |
+
 
 Puis installez Flutter via FVM (Flutter Version Manager) :
 
@@ -190,7 +199,16 @@ pip install mkdocs mkdocs-material mkdocs-pdf-export-plugin
 
 Il est possible qu'il soit nécessaire d'ajouter le répertoire des scripts python dans votre PATH et de redémarrer votre terminal pour prendre en compte la mise à jour du PATH.
 
-## Étape 7 : Ouvrir le projet dans VS Code
+## Étape 7 : Installer semgrep
+
+```bash
+python -m pip install --upgrade pip
+pip install semgrep
+```
+
+Voir la documentation officielle de semgrep pour plus d'informations : https://semgrep.dev/docs/getting-started/quickstart-ce
+
+## Étape 8 : Ouvrir le projet dans VS Code
 
 ```bash
 code .

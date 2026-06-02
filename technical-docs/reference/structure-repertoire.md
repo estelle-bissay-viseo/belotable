@@ -7,6 +7,8 @@
 - `user-docs/` : documentation utilisateur (MkDocs).
 - `technical-docs/` : documentation technique (ce répertoire).
 - `.github/workflows/` : pipelines CI/CD et documentation.
+- `trivy.yaml` : configuration centralisée des scans Trivy.
+- `.trivyignore` : liste d'exceptions Trivy.
 - `resources/` : ressources projet.
 
 ## Sous-projet Flutter
@@ -37,3 +39,4 @@ Dans `belotable/` :
 - `.github/workflows/release.yml`
 - `.github/workflows/docs-pages.yml`
 - `.github/workflows/web-docker-cleanup.yml`
+- `.github/workflows/trivy-update-cache.yml`

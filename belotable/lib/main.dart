@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:belotable/presentation/shared/home_page.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());

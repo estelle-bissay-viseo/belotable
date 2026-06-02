@@ -115,9 +115,40 @@ jobs:
           RELEASE_SHA="$(git rev-parse HEAD)"
           echo "commit_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
 
-  test:
+  semgrep:
     needs: prepare
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_sha }}
+          fetch-depth: 1
+          
+      - name: Run Semgrep full output without quality gate
+        run: semgrep scan --config=auto --config=p/owasp-top-ten  --config=p/cwe-top-25  --config=p/security-audit --config=p/trailofbits --json-output=semgrep.result.json
+        continue-on-error: true # we want to report all issues first, then apply quality gate in a separate step
+
+      - name: Upload Semgrep Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: semgrep-reports
+          path: |
+            semgrep.result.json
+            
+      - name: Run Semgrep with quality gate
+        run: semgrep ci --config=auto --config=p/owasp-top-ten --config=p/cwe-top-25 --config=p/security-audit --config=p/trailofbits
+
+  test:
+    needs:
+      - prepare
+      - semgrep
+    runs-on: windows-latest # tests are executed on Windows to share cache with Windows build job and speed up overall workflow execution
     timeout-minutes: 15
 
     steps:
@@ -138,13 +169,61 @@ jobs:
         working-directory: belotable
         run: flutter pub get
 
+      - name: Analyze code
+        id: flutter_analyze
+        working-directory: belotable
+        shell: pwsh
+        run: |
+          flutter analyze --no-fatal-infos | Tee-Object -FilePath flutter_analyze_report.log
+          echo "exit_code=$LASTEXITCODE" >> $env:GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Annotate code with analyzer results
+        shell: pwsh
+        if: steps.flutter_analyze.conclusion != 'skipped'
+        working-directory: belotable
+        run: |
+          Get-Content flutter_analyze_report.log | ForEach-Object {
+            if ($_ -match '^\s*(?<severity>\w+) - (?<message>.+) - (?<file>.+):(?<line>\d+):(?<col>\d+) - (?<rule>.+)$') {
+              $severity = $matches['severity']
+              $message = $matches['message']
+              $file = $matches['file']
+              # normalize file path
+              $file = $file -replace '\\', '/'
+              $file = "belotable/$file"
+              $line = $matches['line']
+              $col = $matches['col']
+              $rule = $matches['rule']
+              $fullMessage = "$message ($rule) [severity=$severity]"
+
+              switch ($severity) {
+                "error" {
+                  Write-Output "::error file=$file,line=$line,col=$col::$fullMessage"
+                }
+                "warning" {
+                  Write-Output "::warning file=$file,line=$line,col=$col::$fullMessage"
+                }
+                default {
+                  Write-Output "::notice file=$file,line=$line,col=$col::$fullMessage"
+                }
+              }
+            }
+          }
+
+      - name: Quality gate
+        if: always() && steps.flutter_analyze.outputs.exit_code != '0'
+        shell: pwsh
+        run: |
+          Write-Error "Flutter analyze failed (quality gate)"
+          exit 1
+
       - name: Run tests
         working-directory: belotable
         run: flutter test --coverage -r github --file-reporter json:tests-report.json
         timeout-minutes: 12
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: (!cancelled())
         with:
           files: |
@@ -188,17 +267,6 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.release_sha }}
           fetch-depth: 1
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ needs.prepare.outputs.flutter_version }}
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        working-directory: belotable
-        run: flutter pub get
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -278,6 +346,137 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  scan-with-trivy:
+    needs:
+     - prepare
+     - build-docker-web
+    runs-on: ubuntu-latest
+    env:
+      TRIVY_SKIP_DB_UPDATE: true # DB updates were done by a daily workflow
+      TRIVY_SKIP_JAVA_DB_UPDATE: true # DB updates were done by a daily workflow
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_sha }}
+          fetch-depth: 1
+
+      - name: Generate Trivy Report about FileSystem
+        uses: aquasecurity/trivy-action@master
+        with:
+          trivy-config: trivy.yaml
+          scan-type: fs
+          output: trivy-fs-report.json
+          format: json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+      
+      - name: Generate Trivy Report about Docker Container Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: image
+          output: trivy-image-report.json
+          format: json
+          image-ref: ${{ needs.prepare.outputs.image_name }}:${{ needs.prepare.outputs.release_tag }}
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Generate Trivy Report about FileSystem for GitHub Code Scanning
+        uses: aquasecurity/trivy-action@master
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: fs
+          output: trivy-fs-report.sarif
+          format: sarif
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-fs-report.sarif
+
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          skip-setup-trivy: true
+          scan-type: fs
+          format: github
+          output: dependency-results.sbom.json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+          exit-code: 0
+
+      - name: Generate Trivy SBOM report as cyclonedx format
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          skip-setup-trivy: true
+          scan-type: fs
+          format: cyclonedx
+          output: cyclonedx.sbom.json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Generate Trivy SBOM report as spdx-json format
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          skip-setup-trivy: true
+          scan-type: fs
+          format: spdx-json
+          output: spdx-json.sbom.json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+      
+      - name: Upload Trivy Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: trivy-reports
+          path: |
+            trivy-fs-report.json
+            trivy-image-report.json
+            trivy-fs-report.sarif
+            dependency-results.sbom.json
+            cyclonedx.sbom.json
+            spdx-json.sbom.json
+
+      - name: Scan with Trivy about FileSystem
+        id: trivy_scan_fs
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: fs
+          scan-ref: .
+          exit-code: 1
+
+      - name: Scan with Trivy about Docker Container Image
+        id: trivy_scan_image
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          skip-setup-trivy: true
+          trivy-config: trivy.yaml
+          scan-type: image
+          image-ref: ${{ needs.prepare.outputs.image_name }}:${{ needs.prepare.outputs.release_tag }}
+          exit-code: 1
+
+      - name: Fail if major vulnerabilities found
+        if: ${{ steps.trivy_scan_fs.outcome == 'failure' || steps.trivy_scan_image.outcome == 'failure' }}
+        run: |
+          echo "ERROR: Trivy scan found vulnerabilities with severity HIGH or CRITICAL" >&2
+          exit 1
+
   build-docs-pdf:
     needs: prepare
     runs-on: ubuntu-latest
@@ -332,6 +531,7 @@ jobs:
       - build-docker-web
       - build-windows-installer
       - build-docs-pdf
+      - scan-with-trivy
     runs-on: ubuntu-latest
     env:
       RELEASE_BRANCH: release
@@ -355,6 +555,12 @@ jobs:
         with:
           name: docs-pdf
           path: release-assets/docs
+
+      - name: Download SBOM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: trivy-reports
+          path: release-assets/trivy-reports
 
       - name: Configure Git identity
         run: |
@@ -449,7 +655,13 @@ jobs:
             exit 1
           fi
 
-          RELEASE_ASSETS=("${INSTALLERS[@]}" "${DOC_PDFS[@]}")
+          SBOM_FILES=(release-assets/trivy-reports/*.sbom.json)
+          if [[ ${#SBOM_FILES[@]} -eq 0 ]]; then
+            echo "ERROR: No SBOM files found in release-assets/trivy-reports" >&2
+            exit 1
+          fi
+
+          RELEASE_ASSETS=("${INSTALLERS[@]}" "${DOC_PDFS[@]}" "${SBOM_FILES[@]}")
 
           if [[ -f release-notes.generated.md && -s release-notes.generated.md ]]; then
             {

@@ -1,0 +1,16 @@
+dependency-tree: false
+exit-code: 1
+format: "table"
+ignorefile: ".trivyignore"
+ignore-unfixed: true
+list-all-pkgs: true
+report: "all"
+scan:
+  scanners:
+   - vuln
+   - secret
+   - misconfig
+severity:
+ - HIGH
+ - CRITICAL
+timeout: 10m
