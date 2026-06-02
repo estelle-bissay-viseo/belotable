@@ -382,6 +382,28 @@ jobs:
           severity: LOW,MEDIUM,HIGH,CRITICAL
           github-pat: ${{ secrets.GITHUB_TOKEN }}
           exit-code: 0
+
+      - name: Generate Trivy SBOM report as cyclonedx format
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          skip-setup-trivy: true
+          scan-type: fs
+          format: cyclonedx
+          output: cyclonedx.sbom.json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
+
+      - name: Generate Trivy SBOM report as spdx-json format
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          skip-setup-trivy: true
+          scan-type: fs
+          format: spdx-json
+          output: spdx-json.sbom.json
+          scan-ref: .
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: 0
       
       - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
@@ -393,6 +415,8 @@ jobs:
             trivy-image-report.json
             trivy-fs-report.sarif
             dependency-results.sbom.json
+            cyclonedx.sbom.json
+            spdx-json.sbom.json
 
       - name: Scan with Trivy about FileSystem
         id: trivy_scan_fs
