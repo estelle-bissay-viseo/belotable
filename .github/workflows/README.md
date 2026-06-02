@@ -21,8 +21,8 @@ La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue d
 
 | Workflow | Déclencheur | Rôle |
 |----------|------------|------|
-| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Analyse statique Flutter (annotations + commentaire PR), quality gate, tests, build Docker web, scan Trivy, build Windows, build PDF docs, mise à jour pre-release sur `dev` |
-| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, analyse statique Flutter (annotations), quality gate, tests, artefacts (Windows + PDF docs + SBOM), scan Trivy, tag, release draft, sync des branches |
+| **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Analyse statique Semgrep, analyse statique Flutter (annotations + commentaire PR), quality gate, tests, build Docker web, scan Trivy, build Windows, build PDF docs, mise à jour pre-release sur `dev` |
+| **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, analyse statique Semgrep, analyse statique Flutter (annotations), quality gate, tests, artefacts (Windows + PDF docs + SBOM), scan Trivy, tag, release draft, sync des branches |
 | **Trivy scan and Update Trivy cache** (`trivy-update-cache.yml`) | Planifié + manuel | Met à jour le cache DB Trivy quotidiennement et publie un SBOM vers GitHub Dependency Graph |
 | **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
 | **Docs - GitHub Pages** (`docs-pages.yml`) | Push `main` ciblé + manuel | Build MkDocs, génération d'un PDF combiné en artefact, puis déploiement de la documentation utilisateur sur GitHub Pages |
@@ -57,7 +57,16 @@ Calcule les outputs partagés :
 - `release_title` (`Dev build v<version>` ou `PR <num> - build v<version>`)
 - `image_name` (`ghcr.io/<owner>/<repo>-web` en minuscules)
 
-#### 2. `test`
+#### 2. `semgrep`
+
+- Checkout de la bonne révision (PR head SHA ou SHA du push)
+- Exécution de Semgrep selon la configuration `.semgrep.yml`
+- Analyse du code source avec les règles définies en `.semgrepignore` pour exclusions
+- Génération de rapports au format JSON et SARIF
+- Publication du rapport `semgrep-report.sarif` dans l'onglet Security
+- Quality gate : le job échoue si des vulnérabilités sont détectées
+
+#### 3. `test`
 
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
 - Setup Flutter
@@ -73,7 +82,7 @@ Calcule les outputs partagés :
 - Publication des résultats de tests via `EnricoMi/publish-unit-test-result-action/windows@v2`
 - Publication du taux de couverture dans l'onglet Summary
 
-#### 3. `build-docker-web` (`ubuntu-latest`)
+#### 4. `build-docker-web` (`ubuntu-latest`)
 
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
 - Setup Flutter
@@ -84,7 +93,7 @@ Calcule les outputs partagés :
 
 Output principal : `image_digest`.
 
-#### 4. `build-windows-installer` (`windows-latest`)
+#### 5. `build-windows-installer` (`windows-latest`)
 
 - Checkout + setup Flutter
 - `flutter pub get`
@@ -93,7 +102,7 @@ Output principal : `image_digest`.
 - Génération installeur via `build/windows-build-innosetup.ps1`
 - Upload artefact `windows-installer` (rétention 7 jours)
 
-#### 5. `build-docs-pdf` (`ubuntu-latest`)
+#### 6. `build-docs-pdf` (`ubuntu-latest`)
 
 - Checkout de la bonne révision (PR head SHA ou SHA du push)
 - Setup Python 3.12
@@ -102,7 +111,7 @@ Output principal : `image_digest`.
 - Renommage du PDF en `belotable-documentation-v<app_version>.pdf`
 - Upload artefact `docs-pdf` (rétention 7 jours)
 
-#### 6. `scan-with-trivy` (`ubuntu-latest`)
+#### 7. `scan-with-trivy` (`ubuntu-latest`)
 
 - Exécute les scans Trivy filesystem et image Docker avec config `trivy.yaml`
 - Évite la mise à jour DB pendant CI (`TRIVY_SKIP_DB_UPDATE=true`, `TRIVY_SKIP_JAVA_DB_UPDATE=true`) car gérée par workflow quotidien
@@ -113,7 +122,7 @@ Output principal : `image_digest`.
    - `dependency-results.sbom.json` (SBOM)
 - Fait échouer le job si vulnérabilités `HIGH`/`CRITICAL` détectées
 
-#### 7. `publish-prerelease` (`ubuntu-latest`)
+#### 8. `publish-prerelease` (`ubuntu-latest`)
 
 Job exécuté uniquement pour les push sur `dev` si tous les jobs précédents ont réussi.
 
@@ -150,16 +159,17 @@ Automatiser le cycle technique de release à partir de `release` :
 
 1. Calculer et normaliser la version stable depuis `belotable/pubspec.yaml`.
 2. Mettre `release` à la version stable si nécessaire.
-3. Exécuter l'analyse statique Flutter, appliquer le quality gate, puis exécuter les tests avec publication des résultats détaillés et de la couverture.
-4. Construire et publier l'image Docker web.
-5. Exécuter les scans Trivy (filesystem + image) et publier les rapports sécurité.
-6. Construire l'installeur Windows.
-7. Construire le PDF de documentation.
-8. Créer et pousser le tag `vX.Y.Z`.
-9. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefacts Windows + PDF docs + SBOM et infos Docker.
-10. Rebaser `release` dans `main` (intégration linéaire sans merge commit).
-11. Rebaser `main` dans `dev` (intégration linéaire sans merge commit).
-12. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
+3. Exécuter les scans Semgrep et appliquer le quality gate.
+4. Exécuter l'analyse statique Flutter, appliquer le quality gate, puis exécuter les tests avec publication des résultats détaillés et de la couverture.
+5. Construire et publier l'image Docker web.
+6. Exécuter les scans Trivy (filesystem + image) et publier les rapports sécurité.
+7. Construire l'installeur Windows.
+8. Construire le PDF de documentation.
+9. Créer et pousser le tag `vX.Y.Z`.
+10. Créer la release GitHub `vX.Y.Z` en brouillon (`draft`) avec artefacts Windows + PDF docs + SBOM et infos Docker.
+11. Rebaser `release` dans `main` (intégration linéaire sans merge commit).
+12. Rebaser `main` dans `dev` (intégration linéaire sans merge commit).
+13. Bumper `belotable/pubspec.yaml` sur `dev` vers la prochaine version `x.y.(z+1)-alpha`.
 
 ### Versionnement appliqué
 
@@ -178,7 +188,15 @@ Automatiser le cycle technique de release à partir de `release` :
 - Commit/push si changement
 - Expose `release_sha` pour figer la suite du pipeline
 
-#### 2. `test`
+#### 2. `semgrep`
+
+- Exécute Semgrep avec la configuration `.semgrep.yml`
+- Analyse du code source avec les règles définies, ignoration des chemins listés dans `.semgrepignore`
+- Génération des rapports en JSON et SARIF
+- Publication du rapport `semgrep-report.sarif` dans l'onglet Security
+- Quality gate : le job échoue si des vulnérabilités sont détectés
+
+#### 3. `test`
 
 - Exécute `flutter analyze --no-fatal-infos` et écrit le rapport `flutter_analyze_report.log`
 - Parse le rapport et publie des annotations GitHub (`error` / `warning` / `notice`)
@@ -187,32 +205,32 @@ Automatiser le cycle technique de release à partir de `release` :
 - Publie les résultats de tests via `EnricoMi/publish-unit-test-result-action/windows@v2`
 - Publie la couverture dans l'onglet Summary
 
-#### 3. `build-docker-web`
+#### 4. `build-docker-web`
 
 - Build sur `release_sha`
 - Push GHCR avec tags : `vX.Y.Z`, `release`, `ref branch`, `sha-*`
 - Expose `image_digest`
 
-#### 4. `build-windows-installer`
+#### 5. `build-windows-installer`
 
 - Build Windows sur `release_sha`
 - Produit l'artefact `windows-installer`
 
-#### 5. `scan-with-trivy`
+#### 6. `scan-with-trivy`
 
 - Exécute les scans Trivy filesystem et image Docker avec config `trivy.yaml`
 - Publie `trivy-fs-report.sarif` dans l'onglet Security
 - Génère et publie `dependency-results.sbom.json` dans `trivy-reports`
 - Fait échouer le pipeline si vulnérabilités `HIGH`/`CRITICAL`
 
-#### 6. `build-docs-pdf`
+#### 7. `build-docs-pdf`
 
 - Build docs sur `release_sha`
 - Génère le PDF via MkDocs
 - Renomme le PDF en `belotable-documentation-v<release_version>.pdf`
 - Produit l'artefact `docs-pdf`
 
-#### 7. `publish-release-and-sync`
+#### 8. `publish-release-and-sync`
 
 - Crée et pousse le tag annoté `vX.Y.Z`
 - Génère les release notes automatiques

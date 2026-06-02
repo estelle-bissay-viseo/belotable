@@ -21,7 +21,7 @@ Primary goal:
 ## Inputs
 - Optional commit ref (default: `HEAD`).
 - Optional documentation scope:
-- `technical-docs` only
+- `technical-docs` and `.github\workflows\README.md` only
 - `user-docs` only
 - both (default)
 

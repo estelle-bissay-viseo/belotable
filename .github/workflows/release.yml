@@ -115,8 +115,39 @@ jobs:
           RELEASE_SHA="$(git rev-parse HEAD)"
           echo "commit_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
 
-  test:
+  semgrep:
     needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_sha }}
+          fetch-depth: 1
+          
+      - name: Run Semgrep full output without quality gate
+        run: semgrep scan --config=auto --config=p/owasp-top-ten  --config=p/cwe-top-25  --config=p/security-audit --config=p/trailofbits --json-output=semgrep.result.json
+        continue-on-error: true # we want to report all issues first, then apply quality gate in a separate step
+
+      - name: Upload Semgrep Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: semgrep-reports
+          path: |
+            semgrep.result.json
+            
+      - name: Run Semgrep with quality gate
+        run: semgrep ci --config=auto --config=p/owasp-top-ten --config=p/cwe-top-25 --config=p/security-audit --config=p/trailofbits
+
+  test:
+    needs:
+      - prepare
+      - semgrep
     runs-on: windows-latest # tests are executed on Windows to share cache with Windows build job and speed up overall workflow execution
     timeout-minutes: 15
 

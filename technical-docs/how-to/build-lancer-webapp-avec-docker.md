@@ -42,7 +42,7 @@ Il faut alors fournir le path du certificat via `CA_CERT_PATH`.
 
 ```bash
 # Bash
-CA_CERT_PATH="C:/alice/cacert.pem" docker compose -f build/docker/docker-compose.yml up --build
+CA_CERT_PATH="C:/alice/cacert.pem" docker compose -f build/docker/docker-compose.yml up --build -d
 ```
 
 ## Démarrage via une image Docker stockée sur GitHub Container Registry

@@ -36,6 +36,18 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 - Release stable taggée sous `vX.Y.Z`.
 - En flux `release`, bump automatique de `dev` vers `X.Y.(Z+1)-alpha`.
 
+## Scan de sécurité Semgrep
+
+Les workflows `ci.yml` et `release.yml` ajoutent un job `semgrep` qui :
+- scanne le code avec Semgrep en utilisant les règles de sécurité préintégrées (auto-config, OWASP Top Ten, CWE Top 25, security-audit, TrailOfBits) ;
+- produit un rapport JSON (`semgrep.result.json`) publié en artefact ;
+- applique un quality gate (`semgrep ci`) qui échoue si des vulnérabilités sont trouvées ;
+- le job `test` dépend du succès de `semgrep` pour s'exécuter.
+
+Fichiers de configuration :
+- `.semgrep.yml` : configuration Semgrep (actuellement minimale) ;
+- `.semgrepignore` : chemins exclus du scan (dépendances, dossiers de build, docs, etc.).
+
 ## Stratégie de qualité et test
 
 Un job dédié `test` exécute l'intégralité de la suite de tests avant les builds (Docker, Windows), dans les deux workflows `ci.yml` et `release.yml`, pour :
@@ -90,3 +102,5 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - `.github/workflows/trivy-update-cache.yml`
 - `trivy.yaml`
 - `.trivyignore`
+- `.semgrep.yml`
+- `.semgrepignore`
