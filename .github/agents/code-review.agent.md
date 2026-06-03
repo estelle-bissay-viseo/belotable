@@ -104,6 +104,11 @@ For each finding, include:
 - If information is missing, state it explicitly and ask targeted follow-up questions.
 - If there are no findings, still generate the report and state "No blocking findings" with residual risks.
 
+## Communication with user
+- Intermediary/thinking updates must be in English and very concise.
+- Use one short sentence per progress update.
+- Keep final summary concise unless user asks for details.
+
 ## Example command sequence
 1. Resolve current branch and PR description.
 2. If parent branch is provided, use it; otherwise infer the most probable parent branch.

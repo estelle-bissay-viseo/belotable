@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=dev-scripts/lib/global-common.sh
+source "$SCRIPT_DIR/../lib/global-common.sh"
+# shellcheck source=dev-scripts/lib/git-common.sh
+source "$SCRIPT_DIR/../lib/git-common.sh"
+
 show_help() {
   cat <<'EOF'
 Usage:
@@ -43,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Error: unknown option '$1'" >&2
+      log_error "unknown option '$1'"
       show_help >&2
       exit 1
       ;;
@@ -51,23 +57,23 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -n "$DESCRIPTION" && -n "$DESCRIPTION_FILE" ]]; then
-  echo "Error: use either --description or --description-file, not both." >&2
+  log_error "use either --description or --description-file, not both."
   exit 1
 fi
 
-if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  echo "Error: this folder is not a git repository." >&2
+if ! is_git_repository; then
+  log_error "this folder is not a git repository."
   exit 1
 fi
 
-if [[ -n "$(git status --porcelain)" ]]; then
-  echo "Error: working tree is not clean. Commit or stash your changes before running this script." >&2
+if ! is_working_tree_clean; then
+  log_error "working tree is not clean. Commit or stash your changes before running this script."
   exit 1
 fi
 
-CURRENT_BRANCH="$(git symbolic-ref --quiet --short HEAD || true)"
+CURRENT_BRANCH="$(get_current_branch)"
 if [[ -z "$CURRENT_BRANCH" ]]; then
-  echo "Error: detached HEAD. Checkout a branch first." >&2
+  log_error "detached HEAD. Checkout a branch first."
   exit 1
 fi
 
@@ -79,77 +85,43 @@ fi
 if [[ -n "$DESCRIPTION_FILE" ]]; then
   if [[ ! -f "$DESCRIPTION_FILE" ]]; then
     if [[ "$AUTO_DESCRIPTION_FILE" == "true" ]]; then
-      echo "Error: PR description file not found: $DESCRIPTION_FILE" >&2
-      echo "Provide an explicit path with --description-file <path>." >&2
+      log_error "PR description file not found: $DESCRIPTION_FILE"
+      log_info "Provide an explicit path with --description-file <path>."
     else
-      echo "Error: file not found: $DESCRIPTION_FILE" >&2
+      log_error "file not found: $DESCRIPTION_FILE"
     fi
     exit 1
   fi
   # When a markdown file is provided, use only the first non-empty line.
-  DESCRIPTION="$(sed '/^[[:space:]]*$/d' "$DESCRIPTION_FILE" | head -n 1 | tr -d '\r')"
+  DESCRIPTION="$(read_first_non_empty_line "$DESCRIPTION_FILE")"
 fi
 
 if [[ -z "${DESCRIPTION//[[:space:]]/}" ]]; then
-  echo "Error: PR description is empty." >&2
+  log_error "PR description is empty."
   exit 1
 fi
 
-infer_parent_from_reflog() {
-  local branch="$1"
-  local line parent
-
-  line="$( (git reflog --format='%gs' | grep -E "checkout: moving from .* to ${branch}$" || true) | tail -n 1 )"
-  if [[ -n "$line" ]]; then
-    parent="$(printf '%s\n' "$line" | sed -E "s/^checkout: moving from (.*) to ${branch}$/\\1/")"
-    if [[ -n "$parent" ]]; then
-      printf '%s\n' "$parent"
-      return 0
-    fi
-  fi
-
-  return 1
-}
-
-resolve_parent_ref() {
-  local parent="$1"
-  local remote_ref
-
-  if git show-ref --verify --quiet "refs/heads/$parent"; then
-    printf '%s\n' "$parent"
-    return 0
-  fi
-
-  remote_ref="$(git for-each-ref --format='%(refname:short)' "refs/remotes/*/$parent" | head -n 1)"
-  if [[ -n "$remote_ref" ]]; then
-    printf '%s\n' "$remote_ref"
-    return 0
-  fi
-
-  return 1
-}
-
 if [[ -z "$PARENT_BRANCH" ]]; then
   if ! PARENT_BRANCH="$(infer_parent_from_reflog "$CURRENT_BRANCH")"; then
-    echo "Error: unable to automatically determine parent branch." >&2
-    echo "Run again with --parent-branch <branch-name>." >&2
+    log_error "unable to automatically determine parent branch."
+    log_info "Run again with --parent-branch <branch-name>."
     exit 1
   fi
 fi
 
 if ! PARENT_REF="$(resolve_parent_ref "$PARENT_BRANCH")"; then
-  echo "Error: parent branch not found locally: $PARENT_BRANCH" >&2
+  log_error "parent branch not found locally: $PARENT_BRANCH"
   exit 1
 fi
 
-echo "Current branch: $CURRENT_BRANCH"
-echo "Parent branch : $PARENT_REF"
+log_info "Current branch: $CURRENT_BRANCH"
+log_info "Parent branch : $PARENT_REF"
 
 MERGE_BASE="$(git merge-base "$PARENT_REF" HEAD)"
 COMMITS_AHEAD_COUNT="$(git rev-list --count "${MERGE_BASE}..HEAD")"
 
 if [[ "$COMMITS_AHEAD_COUNT" -eq 0 ]]; then
-  echo "No commits to squash since divergence point."
+  log_info "No commits to squash since divergence point."
 else
   SUBJECT="$(printf '%s\n' "$DESCRIPTION" | sed '/^[[:space:]]*$/d' | sed -E 's/^[[:space:]]*#+[[:space:]]*//' | sed -E 's/^[[:space:]]*[-*][[:space:]]*//' | sed -E 's/^[[:space:]]*[0-9]+[.)][[:space:]]*//' | head -n 1 | tr -d '\r')"
 
@@ -167,14 +139,14 @@ else
     printf '%s\n' "$DESCRIPTION"
   } > "$TMP_MSG_FILE"
 
-  echo "Squashing $COMMITS_AHEAD_COUNT commit(s) into a single commit..."
+  log_info "Squashing $COMMITS_AHEAD_COUNT commit(s) into a single commit..."
   git reset --soft "$MERGE_BASE"
   git commit -F "$TMP_MSG_FILE"
   rm -f "$TMP_MSG_FILE"
 fi
 
-echo "Rebasing onto parent branch..."
+log_info "Rebasing onto parent branch..."
 git rebase "$PARENT_REF"
 
-echo "Done. No push was performed."
-echo "Review the history and push manually if needed."
+log_info "Done. No push was performed."
+log_info "Review the history and push manually if needed."

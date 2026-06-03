@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "**/.dart_tool": true,
+        "**/.idea": true,
+        "**/.pub": true,
+        "**/.pub-cache": true,
+        "**/coverage": true,
+        "belotable/build": true
+    },
+    "search.exclude": {
+        "belotable/build": true
+    },
+    "git.addAICoAuthor": "off"
+}

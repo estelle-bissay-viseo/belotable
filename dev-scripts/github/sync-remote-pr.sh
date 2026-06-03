@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=dev-scripts/lib/global-common.sh
+source "$SCRIPT_DIR/../lib/global-common.sh"
+# shellcheck source=dev-scripts/lib/git-common.sh
+source "$SCRIPT_DIR/../lib/git-common.sh"
+
 show_help() {
   cat <<'EOF'
 Usage:
-  sync-remote-pr.sh [--parent-branch name] [--parent-source value] [--description-file path] [--confirm-update-existing] [--draft]
+  sync-remote-pr.sh [--parent-branch name] [--description-file path] [--confirm-update-existing] [--no-draft]
 
 Description:
   - Loads PR description from .github/pr_descriptions/<current-branch>.md by default.
@@ -13,7 +19,8 @@ Description:
   - Syncs the remote branch (push if missing or local ahead).
   - Stops if divergent/rewritten history detected (non fast-forward).
   - Creates PR if missing, or requests confirmation before update if already exists.
-  - With --draft, creates PR as draft and ensures an existing PR is draft.
+  - Draft mode is enabled by default: creates PR as draft and ensures an existing PR is draft.
+  - Use --no-draft to create/update PR as ready for review (non-draft).
 
 Exit codes:
   0  : action completed (create/update) or execution without blocking
@@ -25,7 +32,6 @@ EOF
 print_state() {
   printf 'CURRENT_BRANCH=%s\n' "$CURRENT_BRANCH"
   printf 'PARENT_BRANCH=%s\n' "${PARENT_BRANCH:-}"
-  printf 'PARENT_SOURCE=%s\n' "${PARENT_SOURCE:-}"
   printf 'DESCRIPTION_FILE=%s\n' "$DESCRIPTION_FILE"
   printf 'PR_TITLE=%s\n' "$PR_TITLE"
   printf 'BRANCH_SYNC_STATUS=%s\n' "${BRANCH_SYNC_STATUS:-unknown}"
@@ -36,19 +42,13 @@ print_state() {
 
 DESCRIPTION_FILE=""
 PARENT_BRANCH=""
-PARENT_SOURCE=""
-PARENT_SOURCE_INPUT=""
 CONFIRM_UPDATE_EXISTING="false"
-DRAFT="false"
+DRAFT="true"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --parent-branch)
       PARENT_BRANCH="${2:-}"
-      shift 2
-      ;;
-    --parent-source)
-      PARENT_SOURCE_INPUT="${2:-}"
       shift 2
       ;;
     --description-file)
@@ -63,36 +63,40 @@ while [[ $# -gt 0 ]]; do
       DRAFT="true"
       shift 1
       ;;
+    --no-draft)
+      DRAFT="false"
+      shift 1
+      ;;
     -h|--help)
       show_help
       exit 0
       ;;
     *)
-      echo "Error: unknown option '$1'" >&2
+      log_error "unknown option '$1'"
       show_help >&2
       exit 1
       ;;
   esac
 done
 
-if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  echo "Error: this folder is not a git repository." >&2
+if ! is_git_repository; then
+  log_error "this folder is not a git repository."
   exit 1
 fi
 
-CURRENT_BRANCH="$(git symbolic-ref --quiet --short HEAD || true)"
+CURRENT_BRANCH="$(get_current_branch)"
 if [[ -z "$CURRENT_BRANCH" ]]; then
-  echo "Error: detached HEAD. Checkout a branch first." >&2
+  log_error "detached HEAD. Checkout a branch first."
   exit 1
 fi
 
 if [[ -z "$DESCRIPTION_FILE" ]]; then
-  SANITIZED_BRANCH="${CURRENT_BRANCH//[^a-zA-Z0-9._-]/_}"
+  SANITIZED_BRANCH="$(sanitize_branch_for_filename "$CURRENT_BRANCH")"
   DESCRIPTION_FILE=".github/pr_descriptions/${SANITIZED_BRANCH}.md"
 fi
 
 if [[ ! -f "$DESCRIPTION_FILE" ]]; then
-  echo "Error: PR description file not found: $DESCRIPTION_FILE" >&2
+  log_error "PR description file not found: $DESCRIPTION_FILE"
   ACTION="blocked"
   NEXT_INPUT="create-description-file"
   BRANCH_SYNC_STATUS="unknown"
@@ -102,9 +106,9 @@ if [[ ! -f "$DESCRIPTION_FILE" ]]; then
   exit 1
 fi
 
-PR_TITLE="$(awk 'NF { gsub(/\r$/, "", $0); print; exit }' "$DESCRIPTION_FILE")"
+PR_TITLE="$(read_first_non_empty_line "$DESCRIPTION_FILE")"
 if [[ -z "${PR_TITLE//[[:space:]]/}" ]]; then
-  echo "Error: first non-empty line of markdown is empty/invalid." >&2
+  log_error "first non-empty line of markdown is empty/invalid."
   ACTION="blocked"
   NEXT_INPUT="fix-description-title"
   BRANCH_SYNC_STATUS="unknown"
@@ -113,42 +117,17 @@ if [[ -z "${PR_TITLE//[[:space:]]/}" ]]; then
   exit 1
 fi
 
-infer_parent_from_reflog() {
-  local branch="$1"
-  local line candidate
-
-  line="$( (git reflog --format='%gs' | grep -E "checkout: moving from .* to ${branch}$" || true) | tail -n 1 )"
-  if [[ -n "$line" ]]; then
-    candidate="$(printf '%s\n' "$line" | sed -E "s/^checkout: moving from (.*) to ${branch}$/\\1/")"
-    if [[ -n "$candidate" ]]; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  fi
-
-  for b in main master develop dev; do
-    if git show-ref --verify --quiet "refs/heads/$b" || git show-ref --verify --quiet "refs/remotes/origin/$b"; then
-      printf '%s\n' "$b"
-      return 0
-    fi
-  done
-
-  return 1
-}
-
 if [[ -z "$PARENT_BRANCH" ]]; then
-  if ! PARENT_BRANCH="$(infer_parent_from_reflog "$CURRENT_BRANCH")"; then
-    echo "Error: unable to propose a likely parent branch." >&2
+  if ! PARENT_BRANCH="$(infer_parent_from_reflog "$CURRENT_BRANCH" "true")"; then
+    log_error "unable to propose a likely parent branch."
     ACTION="blocked"
     NEXT_INPUT="provide-parent-branch"
     BRANCH_SYNC_STATUS="unknown"
-    PARENT_SOURCE="unresolved"
     PR_URL=""
     print_state
     exit 1
   fi
 
-  PARENT_SOURCE="inferred"
   ACTION="waiting-for-confirmation"
   NEXT_INPUT="confirm-parent-branch"
   BRANCH_SYNC_STATUS="unknown"
@@ -157,14 +136,8 @@ if [[ -z "$PARENT_BRANCH" ]]; then
   exit 20
 fi
 
-if [[ -n "$PARENT_SOURCE_INPUT" ]]; then
-  PARENT_SOURCE="$PARENT_SOURCE_INPUT"
-else
-  PARENT_SOURCE="user-provided"
-fi
-
 if ! gh auth status >/dev/null 2>&1; then
-  echo "Error: GitHub CLI not authenticated (gh auth status)." >&2
+  log_error "GitHub CLI not authenticated (gh auth status)."
   ACTION="blocked"
   NEXT_INPUT="gh-auth-login"
   BRANCH_SYNC_STATUS="unknown"
