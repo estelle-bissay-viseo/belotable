@@ -4,6 +4,7 @@
 
 - `ci.yml` : CI de développement sur `dev` et PR éligibles.
 - `release.yml` : pipeline technique de release sur `release` ou manuel.
+- `_shared-build-scan.yml` : workflow réutilisable appelé par `ci.yml` et `release.yml` pour exécuter jobs techniques communs (Semgrep, test/analyze Flutter, builds, scans Trivy).
 - `docs-pages.yml` : publication de la documentation utilisateur sur GitHub Pages.
 - `web-docker-cleanup.yml` : nettoyage des images GHCR obsolètes.
 - `trivy-update-cache.yml` : scan Trivy planifié et production d'un artefact SBOM.
@@ -36,9 +37,25 @@ Cette approche conserve un historique Git linéaire, sans merge commits, tout en
 - Release stable taggée sous `vX.Y.Z`.
 - En flux `release`, bump automatique de `dev` vers `X.Y.(Z+1)-alpha`.
 
+## Factorisation CI/release
+
+Les workflows `ci.yml` et `release.yml` utilisent des jobs techniques communs (analyse de code, tests, builds, scans) qui ont été factorisés dans `_shared-build-scan.yml` pour éviter les redondances et faciliter la maintenance.
+
+Approche :
+- `ci.yml` conserve `prepare` + `publish-prerelease`, puis appelle `_shared-build-scan.yml` via un job `quality-build`.
+- `release.yml` conserve `prepare` + `publish-release-and-sync`, puis appelle `_shared-build-scan.yml` via un job `quality-build`.
+- `_shared-build-scan.yml` contient les jobs communs : `semgrep`, `test`, `build-docker-web`, `build-windows-installer`, `build-docs-pdf`, `scan-with-trivy`.
+
+Garantie fonctionnelle :
+- mêmes outils,
+- mêmes commandes,
+- mêmes quality gates,
+- mêmes artefacts,
+- même enchaînement logique des validations/builds/scans.
+
 ## Scan de sécurité Semgrep
 
-Les workflows `ci.yml` et `release.yml` ajoutent un job `semgrep` qui :
+Le workflow partagé `_shared-build-scan.yml` exécute un job `semgrep` (appelé par `ci.yml` et `release.yml`) qui :
 - scanne le code avec Semgrep en utilisant les règles de sécurité préintégrées (auto-config, OWASP Top Ten, CWE Top 25, security-audit, TrailOfBits) ;
 - produit un rapport JSON (`semgrep.result.json`) publié en artefact ;
 - applique un quality gate (`semgrep ci`) qui échoue si des vulnérabilités sont trouvées ;
@@ -49,7 +66,7 @@ Fichiers de configuration :
 
 ## Stratégie de qualité et test
 
-Un job dédié `test` exécute l'intégralité de la suite de tests avant les builds (Docker, Windows), dans les deux workflows `ci.yml` et `release.yml`, pour :
+Le workflow partagé `_shared-build-scan.yml` exécute un job dédié `test` avant les builds (Docker, Windows), pour :
 - Paralléliser les builds tout en garantissant que les tests passent d'abord.
 - Exécuter les tests sur runner Windows pour partager le cache avec le build Windows.
 - Centraliser la gestion du timeout (**15 minutes max**).
@@ -61,20 +78,20 @@ Commande d'analyse utilisée :
 - `flutter analyze --no-fatal-infos`
 - Le rapport est capturé dans `flutter_analyze_report.log`.
 - Le code de sortie est propagé et validé par un quality gate (`exit_code != 0` => échec du job).
-- Dans `ci.yml` uniquement, un commentaire PR `Flutter Analyze Report` est créé/mis à jour à partir du rapport.
+- Dans `ci.yml` uniquement (paramètre `enable_pr_analyze_comment=true`), un commentaire PR `Flutter Analyze Report` est créé/mis à jour à partir du rapport.
 
 Commande de test utilisée :
 - `flutter test --coverage -r github --file-reporter json:tests-report.json`
 - `-r github` alimente les annotations GitHub Actions.
 - `--file-reporter` produit `tests-report.json`, consommé par l'action de publication des résultats.
 
-Dans `release.yml`, le checkout du job `test` utilise le SHA du commit de release (`release_sha`) pour garantir la cohérence avec les builds.
+Dans `release.yml`, le paramètre `checkout_ref` passé au workflow partagé vaut `release_sha` pour garantir la cohérence avec les builds.
 
-Tous les builds (`build-docker-web`, `build-windows-installer`) dépendent du succès du job `test` et ne réexécutent pas les tests.
+Tous les builds (`build-docker-web`, `build-windows-installer`) du workflow partagé dépendent du succès du job `test` et ne réexécutent pas les tests.
 
 ## Scan de sécurité Trivy
 
-Les workflows `ci.yml` et `release.yml` ajoutent un job `scan-with-trivy` qui :
+Le workflow partagé `_shared-build-scan.yml` exécute un job `scan-with-trivy` (appelé par `ci.yml` et `release.yml`) qui :
 - génère des rapports JSON sur le filesystem et l'image Docker ;
 - génère un rapport SARIF envoyé dans l'onglet Security GitHub ;
 - génère un SBOM (`dependency-results.sbom.json`) envoyé au Dependency Graph ;
@@ -87,8 +104,8 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - Le build docs est en mode strict (`mkdocs build --strict`).
 - Le pipeline release échoue si le tag distant cible existe déjà.
 - Le rebase suppose une absence de divergence significative entre les branches ; le flux TBD garantit cette stabilité.
-- Le job `test` échoue si l'exécution dépasse 15 minutes, si l'analyse Flutter échoue (quality gate), ou si un test échoue (exit code non-zéro).
-- Les workflows `ci.yml` et `release.yml` exigent les permissions GitHub suivantes pour publier les résultats de tests : `checks: write`, `issues: write`, `pull-requests: write`.
+- Le job `test` du workflow partagé échoue si l'exécution dépasse 15 minutes, si l'analyse Flutter échoue (quality gate), ou si un test échoue (exit code non-zéro).
+- Les workflows `ci.yml` et `release.yml` exigent les permissions GitHub suivantes pour publier les résultats de tests via le workflow partagé : `checks: write`, `issues: write`, `pull-requests: write`.
 
 
 ## Sources (dépôt)
@@ -96,6 +113,7 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - `.github/workflows/README.md`
 - `.github/workflows/ci.yml`
 - `.github/workflows/release.yml`
+- `.github/workflows/_shared-build-scan.yml`
 - `.github/workflows/docs-pages.yml`
 - `.github/workflows/web-docker-cleanup.yml`
 - `.github/workflows/trivy-update-cache.yml`
