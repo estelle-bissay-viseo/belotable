@@ -17,7 +17,7 @@ permissions:
   checks: write
   issues: write
   pull-requests: write
-  security-events: read
+  security-events: write
 
 concurrency:
   group: build-release-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
