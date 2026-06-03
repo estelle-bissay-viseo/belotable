@@ -23,9 +23,11 @@ La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue d
 |----------|------------|------|
 | **Dev CI and Pre-release** (`ci.yml`) | Push `dev` + PR | Analyse statique Semgrep, analyse statique Flutter (annotations + commentaire PR), quality gate, tests, build Docker web, scan Trivy, build Windows, build PDF docs, mise à jour pre-release sur `dev` |
 | **Release Technical Pipeline** (`release.yml`) | Push `release` + manuel | Pipeline de release technique : normalisation version, analyse statique Semgrep, analyse statique Flutter (annotations), quality gate, tests, artefacts (Windows + PDF docs + SBOM), scan Trivy, tag, release draft, sync des branches |
+| **Shared Build and Scan Pipeline** (`_shared-build-scan.yml`) | `workflow_call` | Workflow réutilisable appelé par `ci.yml` et `release.yml` pour exécuter Semgrep, test/analyse Flutter, builds Docker/Windows/docs et scan Trivy |
 | **Trivy scan and Update Trivy cache** (`trivy-update-cache.yml`) | Planifié + manuel | Met à jour le cache DB Trivy quotidiennement et publie un SBOM vers GitHub Dependency Graph |
 | **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
 | **Docs - GitHub Pages** (`docs-pages.yml`) | Push `main` ciblé + manuel | Build MkDocs, génération d'un PDF combiné en artefact, puis déploiement de la documentation utilisateur sur GitHub Pages |
+| **Retry failed jobs in workflow** (`_retry-workflow.yml`) | Manuel | Workflow technique de retry pour relancer les jobs échoués d'un workflow principal (CI ou release) sans relancer les jobs ayant réussi |
 
 ---
 
@@ -57,72 +59,20 @@ Calcule les outputs partagés :
 - `release_title` (`Dev build v<version>` ou `PR <num> - build v<version>`)
 - `image_name` (`ghcr.io/<owner>/<repo>-web` en minuscules)
 
-#### 2. `semgrep`
+#### 2. `quality-build` (workflow réutilisable)
 
-- Checkout de la bonne révision (PR head SHA ou SHA du push)
-- Exécution de Semgrep
-- Analyse du code source avec les règles définies en `.semgrepignore` pour exclusions
-- Génération de rapports au format JSON et SARIF
-- Publication du rapport `semgrep-report.sarif` dans l'onglet Security
-- Quality gate : le job échoue si des vulnérabilités sont détectées
+`ci.yml` appelle `_shared-build-scan.yml` via `workflow_call` avec les paramètres (`checkout_ref`, `flutter_version`, `image_name`, `release_tag`, `docs_pdf_version`, `docker_metadata_tags`, `enable_pr_analyze_comment=true`).
 
-#### 3. `test`
+Le workflow partagé exécute les jobs techniques suivant :
 
-- Checkout de la bonne révision (PR head SHA ou SHA du push)
-- Setup Flutter
-- `flutter pub get`
-- Analyse statique :
-   - `flutter analyze --no-fatal-infos` avec capture du rapport `flutter_analyze_report.log`
-   - stockage du code de sortie de l'analyse dans `steps.flutter_analyze.outputs.exit_code`
-- Publication d'annotations GitHub (error/warning/notice) à partir du rapport d'analyse (`flutter_analyze_report.log`)
-- Sur PR uniquement : création ou mise à jour d'un commentaire `## Flutter Analyze Report` (tableau par fichier, ligne, sévérité, règle)
-- Quality gate : échec explicite du job si `steps.flutter_analyze.outputs.exit_code != '0'`
-- Exécution des tests avec couverture et reporter GitHub + export JSON :
-   - `flutter test --coverage -r github --file-reporter json:tests-report.json`
-- Publication des résultats de tests via `EnricoMi/publish-unit-test-result-action/windows@v2`
-- Publication du taux de couverture dans l'onglet Summary
+- `semgrep`
+- `test` (avec commentaire PR Flutter Analyze activé côté CI)
+- `build-docker-web` (output `image_digest`)
+- `build-windows-installer`
+- `build-docs-pdf`
+- `scan-with-trivy`
 
-#### 4. `build-docker-web` (`ubuntu-latest`)
-
-- Checkout de la bonne révision (PR head SHA ou SHA du push)
-- Setup Flutter
-- `flutter pub get`
-- Setup Buildx + login GHCR
-- Génération de tags Docker (`release_tag`, ref branch/PR, sha, semver, latest default branch)
-- Build et push de `build/docker/Dockerfile`
-
-Output principal : `image_digest`.
-
-#### 5. `build-windows-installer` (`windows-latest`)
-
-- Checkout + setup Flutter
-- `flutter pub get`
-- `flutter build windows --release`
-- Installation Inno Setup (`choco install innosetup`)
-- Génération installeur via `build/windows-build-innosetup.ps1`
-- Upload artefact `windows-installer` (rétention 7 jours)
-
-#### 6. `build-docs-pdf` (`ubuntu-latest`)
-
-- Checkout de la bonne révision (PR head SHA ou SHA du push)
-- Setup Python 3.12
-- Installation des dépendances docs (`mkdocs`, `mkdocs-material`, `mkdocs-pdf-export-plugin`)
-- Build strict de la documentation avec export PDF activé (`ENABLE_PDF_EXPORT=1`)
-- Renommage du PDF en `belotable-documentation-v<app_version>.pdf`
-- Upload artefact `docs-pdf` (rétention 7 jours)
-
-#### 7. `scan-with-trivy` (`ubuntu-latest`)
-
-- Exécute les scans Trivy filesystem et image Docker avec config `trivy.yaml`
-- Évite la mise à jour DB pendant CI (`TRIVY_SKIP_DB_UPDATE=true`, `TRIVY_SKIP_JAVA_DB_UPDATE=true`) car gérée par workflow quotidien
-- Génère les artefacts :
-   - `trivy-fs-report.json`
-   - `trivy-image-report.json`
-   - `trivy-fs-report.sarif` (upload dans l'onglet Security)
-   - `dependency-results.sbom.json` (SBOM)
-- Fait échouer le job si vulnérabilités `HIGH`/`CRITICAL` détectées
-
-#### 8. `publish-prerelease` (`ubuntu-latest`)
+#### 3. `publish-prerelease` (`ubuntu-latest`)
 
 Job exécuté uniquement pour les push sur `dev` si tous les jobs précédents ont réussi.
 
@@ -139,6 +89,10 @@ Actions principales :
    - upload des assets `.exe`, `.pdf` et `.sbom.json` (avec `--clobber` si release existante)
 
 Pour les PR : pas de publication de pre-release.
+
+#### 4. `retry-on-failure`
+
+Ce job est exécuté uniquement si au moins un des jobs précédents a échoué. Il permet de lancer le workflow _retry-workflow.yml pour relancer les jobs échoués. Ce retry est exécuté une seule fois par échec (pas de boucle infinie) et est limité aux jobs échoués (pas de relance complète du workflow).
 
 ---
 
@@ -188,49 +142,20 @@ Automatiser le cycle technique de release à partir de `release` :
 - Commit/push si changement
 - Expose `release_sha` pour figer la suite du pipeline
 
-#### 2. `semgrep`
+#### 2. `quality-build` (workflow réutilisable)
 
-- Exécute Semgrep
-- Analyse du code source avec les règles définies, ignoration des chemins listés dans `.semgrepignore`
-- Génération des rapports en JSON et SARIF
-- Publication du rapport `semgrep-report.sarif` dans l'onglet Security
-- Quality gate : le job échoue si des vulnérabilités sont détectés
+`release.yml` appelle `_shared-build-scan.yml` via `workflow_call` avec (`checkout_ref=release_sha`, `flutter_version`, `image_name`, `release_tag`, `docs_pdf_version=release_version`, `docker_metadata_tags`, `enable_pr_analyze_comment=false`).
 
-#### 3. `test`
+Le workflow partagé exécute les jobs techniques suivants :
 
-- Exécute `flutter analyze --no-fatal-infos` et écrit le rapport `flutter_analyze_report.log`
-- Parse le rapport et publie des annotations GitHub (`error` / `warning` / `notice`)
-- Applique un quality gate : le job échoue si `steps.flutter_analyze.outputs.exit_code != '0'`
-- Exécute `flutter test --coverage -r github --file-reporter json:tests-report.json`
-- Publie les résultats de tests via `EnricoMi/publish-unit-test-result-action/windows@v2`
-- Publie la couverture dans l'onglet Summary
+- `semgrep`
+- `test`
+- `build-docker-web`
+- `build-windows-installer`
+- `build-docs-pdf`
+- `scan-with-trivy`
 
-#### 4. `build-docker-web`
-
-- Build sur `release_sha`
-- Push GHCR avec tags : `vX.Y.Z`, `release`, `ref branch`, `sha-*`
-- Expose `image_digest`
-
-#### 5. `build-windows-installer`
-
-- Build Windows sur `release_sha`
-- Produit l'artefact `windows-installer`
-
-#### 6. `scan-with-trivy`
-
-- Exécute les scans Trivy filesystem et image Docker avec config `trivy.yaml`
-- Publie `trivy-fs-report.sarif` dans l'onglet Security
-- Génère et publie `dependency-results.sbom.json` dans `trivy-reports`
-- Fait échouer le pipeline si vulnérabilités `HIGH`/`CRITICAL`
-
-#### 7. `build-docs-pdf`
-
-- Build docs sur `release_sha`
-- Génère le PDF via MkDocs
-- Renomme le PDF en `belotable-documentation-v<release_version>.pdf`
-- Produit l'artefact `docs-pdf`
-
-#### 8. `publish-release-and-sync`
+#### 3. `publish-release-and-sync`
 
 - Crée et pousse le tag annoté `vX.Y.Z`
 - Génère les release notes automatiques
