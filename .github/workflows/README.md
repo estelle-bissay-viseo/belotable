@@ -27,6 +27,7 @@ La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue d
 | **Trivy scan and Update Trivy cache** (`trivy-update-cache.yml`) | Planifié + manuel | Met à jour le cache DB Trivy quotidiennement et publie un SBOM vers GitHub Dependency Graph |
 | **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
 | **Docs - GitHub Pages** (`docs-pages.yml`) | Push `main` ciblé + manuel | Build MkDocs, génération d'un PDF combiné en artefact, puis déploiement de la documentation utilisateur sur GitHub Pages |
+| **Retry failed jobs in workflow** (`_retry-workflow.yml`) | Manuel | Workflow technique de retry pour relancer les jobs échoués d'un workflow principal (CI ou release) sans relancer les jobs ayant réussi |
 
 ---
 
@@ -88,6 +89,10 @@ Actions principales :
    - upload des assets `.exe`, `.pdf` et `.sbom.json` (avec `--clobber` si release existante)
 
 Pour les PR : pas de publication de pre-release.
+
+#### 4. `retry-on-failure`
+
+Ce job est exécuté uniquement si au moins un des jobs précédents a échoué. Il permet de lancer le workflow _retry-workflow.yml pour relancer les jobs échoués. Ce retry est exécuté une seule fois par échec (pas de boucle infinie) et est limité aux jobs échoués (pas de relance complète du workflow).
 
 ---
 
