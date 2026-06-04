@@ -80,14 +80,20 @@ Commande d'analyse utilisée :
 - Le code de sortie est propagé et validé par un quality gate (`exit_code != 0` => échec du job).
 - Dans `ci.yml` uniquement (paramètre `enable_pr_analyze_comment=true`), un commentaire PR `Flutter Analyze Report` est créé/mis à jour à partir du rapport.
 
-Commande de test utilisée :
+Commande de test utilisée (tests unitaires) :
 - `flutter test --coverage -r github --file-reporter json:tests-report.json`
 - `-r github` alimente les annotations GitHub Actions.
 - `--file-reporter` produit `tests-report.json`, consommé par l'action de publication des résultats.
 
+Tests d'intégration (E2E) :
+- Exécutés après les tests unitaires sur le runner Windows.
+- Commande : `flutter test integration_test/all_tests.dart -d windows -r expanded`.
+- Nécessite l'activation du support Windows (`flutter config --enable-windows-desktop`) qui est exécutée automatiquement dans le workflow.
+- Les tests d'intégration sont localisés dans `belotable/integration_test/`.
+
 Dans `release.yml`, le paramètre `checkout_ref` passé au workflow partagé vaut `release_sha` pour garantir la cohérence avec les builds.
 
-Tous les builds (`build-docker-web`, `build-windows-installer`) du workflow partagé dépendent du succès du job `test` et ne réexécutent pas les tests.
+Tous les builds (`build-docker-web`, `build-windows-installer`) du workflow partagé dépendent du succès du job `test` (incluant les tests d'intégration) et ne réexécutent pas les tests.
 
 ## Scan de sécurité Trivy
 
@@ -120,3 +126,4 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - `trivy.yaml`
 - `.trivyignore`
 - `.semgrepignore`
+- `belotable/integration_test/` : tests d'intégration (voir how-to [flutter-lancer-integration-tests-local.md](../how-to/flutter-lancer-integration-tests-local.md))
