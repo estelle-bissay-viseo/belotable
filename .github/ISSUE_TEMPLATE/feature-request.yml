@@ -1,0 +1,47 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[FEATURE] <title>"
+labels: ["feature"]
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: Description claire et concise de la fonctionnalité demandée. Ajoutez toute information ou contexte permettant de comprendre le bénéfice de cette fonctionnalité.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Use Cases
+      description: Liste des cas d'utilisation ou scénarios où cette fonctionnalité serait bénéfique
+      placeholder: |
+        1. En tant que <type d'utilisateur>, je veux <objectif> afin de <bénéfice>.
+        2. En tant que <type d'utilisateur>, je veux <objectif> afin de <bénéfice>.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Deprecated Behaviors (optional)
+      description: Liste des comportements actuels qui seraient modifiés ou supprimés par cette fonctionnalité
+      placeholder: |
+        - Actuellement, les utilisateurs doivent faire X pour accomplir Y, ce qui est inefficace.
+        - Actuellement, il n'est pas possible de faire Z, ce qui limite l'expérience utilisateur.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Expected Changes (optional)
+      description: Description des changements attendus, notamment en termes de modèle de données ou d'interface utilisateur
+      placeholder: |
+        - Modèle de données: Ajouter une table "FeatureRequest" avec les champs "title", "description", "use_cases", etc.
+        - Interface utilisateur: Ajouter un formulaire de soumission de fonctionnalité dans la section "Feedback".
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Acceptance Criteria (optional)
+      description: Liste des critères d'acceptation qui définissent les conditions de succès pour la mise en œuvre de cette fonctionnalité
+      placeholder: |
+        - [ ] Les utilisateurs peuvent soumettre une nouvelle fonctionnalité via le formulaire dédié.
+        - [ ] Les administrateurs peuvent voir et gérer les demandes de fonctionnalités dans le tableau de bord.
+    validations:
+      required: false

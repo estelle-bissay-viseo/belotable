@@ -1,0 +1,55 @@
+name: Bug
+description: File a bug/issue
+title: "[BUG] <title>"
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Comportement constaté
+      description: Description concise du comportement que vous avez constaté.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Comportement attendu
+      description: Description concise du comportement que vous attendiez.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Etapes pour reproduire
+      description: Etapes précises pour reproduire le bug.
+      placeholder: |
+        1. Avec la configuration...
+        1. Cliquer sur '...'
+        1. Une erreur apparaît...
+    validations:
+      required: false
+  - type: dropdown
+    id: environments
+    attributes:
+      label: Sur quel(s) environnement(s) avez-vous rencontré ce bug?
+      multiple: true
+      options:
+        - Application Windows
+        - Web - Firefox
+        - Web - Chrome
+        - Web - Chromium
+        - Web - Safari
+        - Web - Microsoft Edge
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Contexte additionnel
+      description: |
+        Liens? Références? Tout ce qui peut nous donner plus de contexte sur le problème que vous rencontrez.
+    validations:
+      required: false
+  - type: upload
+    id: screenshots
+    attributes:
+      label: Upload screenshots
+      description: Si possible, ajoutez des captures d'écran pour illustrer le bug.
+    validations:
+      required: false
