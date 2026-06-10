@@ -203,7 +203,7 @@ Si vous souhaitez éditer la documentation utilisateur avec MkDocs :
 
 ```bash
 python -m pip install --upgrade pip
-pip install mkdocs mkdocs-material mkdocs-pdf-export-plugin
+pip install "mkdocs>=1.5,<2.0" mkdocs-material mkdocs-with-pdf
 ```
 
 Il est possible qu'il soit nécessaire d'ajouter le répertoire des scripts python dans votre PATH et de redémarrer votre terminal pour prendre en compte la mise à jour du PATH.
