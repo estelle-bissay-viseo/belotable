@@ -26,6 +26,7 @@ nav:
   - Accueil: index.md
   - Installation: installation.md
   - Utilisation: utilisation.md
+  - Annexes: annexes.md
 
 markdown_extensions:
   - admonition

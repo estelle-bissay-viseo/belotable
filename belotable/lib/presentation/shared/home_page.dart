@@ -1,6 +1,7 @@
 import 'dart:math' show pi;
 
 import 'package:belotable/gen/assets.gen.dart';
+import 'package:belotable/presentation/shared/app_info_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
 import 'package:flutter/material.dart';
 
@@ -42,6 +43,15 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            key: const Key('home_info_button'),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppInfoPage.routeName),
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Informations',
+          ),
+        ],
       ),
       body: Center(
         child: Column(
