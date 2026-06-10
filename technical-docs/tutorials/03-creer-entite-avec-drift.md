@@ -33,12 +33,12 @@ class JoueurTable extends Table {
 **Explication:**
 - `TextColumn` : type texte (identifiants, noms, clés étrangères).
 - `DateTimeColumn` : timestamp (date et heure).
-- `()()` : syntaxe Drift qui rend les colonnes nullables par défaut. Pour limiter la taille, utilisez `text().withLength(max: 100)`.
+- `text()()` / `dateTime()()` : colonnes **non-nullables**. Pour les rendre nullables, utilisez `.nullable()` (ex: `text().nullable()()`). Pour limiter la taille, utilisez `text().withLength(max: 100)`.
 - `primaryKey` : identifiant unique par ligne.
 
 ## Étape 2: Créer le DAO (Data Access Object)
 
-Le DAO encapsule toutes les requêtes (insert, select, update, delete). Ajoutez le code suivant dans le même fichier `joueur_table.dart`, après la définition de la Table:
+Le DAO encapsule toutes les requêtes (insert, select, update, delete). Dans un fichier Dart, les `import` doivent être en tête de fichier : placez donc le DAO dans un fichier dédié (ex: `belotable/lib/data/database/joueur_dao.dart`) ou dans `app_database.dart`, puis ajoutez le code suivant :
 
 ```dart
 import 'package:belotable/domain/joueur/joueur.dart';
@@ -61,10 +61,10 @@ class JoueurDao extends DatabaseAccessor<AppDatabase> with _$JoueurDaoMixin {
   }
 
   // Query: Récupérer tous joueurs
-  Future<List<JoueurTable>> getAllJoueurs() => select(joueurTable).get();
+  Future<List<JoueurTableData>> getAllJoueurs() => select(joueurTable).get();
 
   // Query: Récupérer joueurs par concours
-  Future<List<JoueurTable>> getJoueursByConcoursId(String concoursId) {
+  Future<List<JoueurTableData>> getJoueursByConcoursId(String concoursId) {
     return (select(joueurTable)..where((t) => t.concoursId.equals(concoursId))).get();
   }
 

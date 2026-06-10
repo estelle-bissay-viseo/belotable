@@ -203,14 +203,15 @@ Future<List<(Concours, List<Joueur>)>> getConcoursWithJoueurs() async {
   final rows = await query.get();
   
   // Grouper par concours
-  Map<String, List<Joueur>> grouped = {};
-  for (var row in rows) {
+  final grouped = <String, (Concours, List<Joueur>)>{};
+  for (final row in rows) {
     final concours = row.readTable(concoursTable);
     final joueur = row.readTable(joueurTable);
-    grouped.putIfAbsent(concours.id, () => []).add(joueur);
+    final entry = grouped.putIfAbsent(concours.id, () => (concours, <Joueur>[]));
+    entry.$2.add(joueur);
   }
 
-  return grouped.entries.map((e) => (concoursTable, e.value)).toList();
+  return grouped.values.toList();
 }
 ```
 

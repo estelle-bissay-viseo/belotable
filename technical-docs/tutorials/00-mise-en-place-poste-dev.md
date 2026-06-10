@@ -13,7 +13,7 @@ Si votre poste de développeur est sous Windows, vous devez activer le mode dév
 1. Dans la fenêtre des paramètres qui s'ouvre, activez le **Mode développeur**.
 1. Redémarrez votre IDE s'il était ouvert pendant cette opération.
 
-### 1.1 Installer winget (gestionnaire de paquets Windows natif)
+### 1.2 Installer winget (gestionnaire de paquets Windows natif)
 
 **winget** est le gestionnaire de paquets natif de Windows. Consultez la [documentation officielle d'installation de winget](https://learn.microsoft.com/fr-fr/windows/package-manager/winget/) pour l'installer.
 
@@ -23,7 +23,7 @@ Vérifiez l'installation :
 winget --version
 ```
 
-### 1.2 Installer Chocolatey (gestionnaire de paquets)
+### 1.3 Installer Chocolatey (gestionnaire de paquets)
 
 Consultez la [documentation officielle d'installation de Chocolatey](https://chocolatey.org/install) pour installer le gestionnaire de paquets (exécutez PowerShell en tant qu'administrateur).
 
@@ -33,7 +33,7 @@ Vérifiez l'installation :
 choco --version
 ```
 
-### 1.3 Installer les paquets de base
+### 1.4 Installer les paquets de base
 
 Toujours en PowerShell administrateur :
 

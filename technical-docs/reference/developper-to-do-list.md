@@ -46,6 +46,6 @@ docker compose -f build/docker/docker-compose.yml down
 
 1. Relire le code et les tests pour s'assurer de la qualité du code et de la pertinence des tests.
 2. Regénérer le glossaire de la documentation technique (si nécessaire) avec le script `dev-scripts/technical-doc-tags-page.sh`.
-3. (optionnel mais recommendé) squash les commits en un seul commit clair et descriptif. Le script `dev-scripts/github/prepare-pr.sh --parent-branch dev` (qui utilise le markdown créé à l'étape 2 de l'initialisation) peut être utilisé pour cela.
+3. (optionnel mais recommandé) squash les commits en un seul commit clair et descriptif. Le script `dev-scripts/github/prepare-pr.sh --parent-branch dev` (qui utilise le markdown créé à l'étape 2 de l'initialisation) peut être utilisé pour cela.
 4. Créer/Mettre à jour la PR sur GitHub en utilisant le script `dev-scripts/github/sync-remote-pr.sh --parent-branch dev` (qui utilise le markdown créé à l'étape 2 de l'initialisation).
 5. Vérifier la PR sur GitHub, lui ajouter des labels, et retirer le statut "draft" si la PR est prête à être compilée et revue.

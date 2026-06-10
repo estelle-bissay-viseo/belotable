@@ -11,7 +11,7 @@ Exemple de changement : remplacer `Bienvenue !` par un texte explicite du contex
 
 ## Étape 2: adapter le test widget
 
-Fichier cible : `belotable/test/widget_test.dart`.
+Fichier cible : `belotable/test/widgets/widget_test.dart`.
 
 Le test doit vérifier le nouveau texte affiché.
 

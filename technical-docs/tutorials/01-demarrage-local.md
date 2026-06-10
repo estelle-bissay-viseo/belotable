@@ -57,5 +57,5 @@ Voir aussi : [tutorials/02-premiere-modification-ui.md](02-premiere-modification
 
 - `belotable/lib/main.dart`
 - `belotable/lib/presentation/shared/home_page.dart`
-- `belotable/test/widget_test.dart`
+- `belotable/test/widgets/widget_test.dart`
 - `.fvmrc`

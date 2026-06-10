@@ -22,6 +22,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('home_body_title')), findsOneWidget);
+      expect(await db.concoursDao.countConcours(), 0);
     },
   );
 
@@ -47,6 +48,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('home_body_title')), findsOneWidget);
+      expect(await db.concoursDao.countConcours(), 1);
     },
   );
 }
