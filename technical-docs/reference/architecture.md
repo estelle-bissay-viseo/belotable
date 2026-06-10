@@ -1,3 +1,4 @@
+<!-- tags: architecture -->
 # Référence: Architecture logicielle
 
 ## Aperçu
@@ -20,9 +21,22 @@ belotable/lib/
 
 `belotable/lib/main.dart` :
 
+- démarre l'application dans un `ProviderScope` (Riverpod).
 - crée `MyApp`.
 - configure un `MaterialApp` avec un theme base sur `ColorScheme.fromSeed`.
 - utilise `MyHomePage` comme écran initial.
+
+## Injection de dépendances (Riverpod)
+
+`belotable/lib/utils/providers.dart` centralise les providers d'infrastructure et d'application :
+
+Exemples de providers :
+
+- `databaseProvider` : expose une instance `AppDatabase`.
+- `concoursRepositoryProvider` : construit `DriftConcoursRepository` à partir de `databaseProvider`.
+- `createConcoursUseCaseProvider` : construit `CreateConcoursUseCase` à partir de `concoursRepositoryProvider`.
+
+Cette chaîne permet de brancher les dépendances via Riverpod et de les surcharger facilement dans les tests.
 
 ## Ecran principal actuel
 
@@ -49,6 +63,7 @@ Les autres plateformes seront disponibles dans une prochaine version.
 ## Sources (dépôt)
 
 - `belotable/lib/main.dart`
+- `belotable/lib/utils/providers.dart`
 - `belotable/lib/presentation/shared/home_page.dart`
 - `belotable/lib/gen/assets.gen.dart`
 - `belotable/pubspec.yaml`

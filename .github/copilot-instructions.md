@@ -23,7 +23,7 @@ applyTo: '**'
 
 ## User prompts/inputs analysis
 
-- Always consider the user used `/caveman` in his prompt, even if he didn't.
+- Always consider the user used the skill `caveman` in his prompt, even if he didn't.
 
 ## Outputs format
 

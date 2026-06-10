@@ -1,0 +1,169 @@
+import 'package:belotable/utils/providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Page for creating a new Concours
+class ConcoursCreationPage extends ConsumerStatefulWidget {
+  /// Constructor
+  const ConcoursCreationPage({super.key});
+
+  /// Route name for navigation to this page
+  static const routeName = '/concours/create';
+
+  @override
+  ConsumerState<ConcoursCreationPage> createState() =>
+      _ConcoursCreationPageState();
+}
+
+class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _lieuController = TextEditingController();
+  final _organisateurController = TextEditingController();
+
+  late DateTime _selectedDate;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+  }
+
+  @override
+  void dispose() {
+    _lieuController.dispose();
+    _organisateurController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedDate = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+      );
+    });
+  }
+
+  Future<void> _saveConcours() async {
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final createConcoursUseCase = ref.read(createConcoursUseCaseProvider);
+
+      await createConcoursUseCase(
+        date: _selectedDate,
+        lieu: _lieuController.text,
+        organisateur: _organisateurController.text,
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Créer un concours'),
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          key: const Key('concours_creation_form'),
+          padding: const EdgeInsets.all(16),
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Date'),
+              subtitle: Text(
+                '${_selectedDate.year.toString().padLeft(4, '0')}-'
+                '${_selectedDate.month.toString().padLeft(2, '0')}-'
+                '${_selectedDate.day.toString().padLeft(2, '0')}',
+              ),
+              trailing: TextButton(
+                key: const Key('concours_date_button'),
+                onPressed: _pickDate,
+                child: const Text('Choisir une date'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('concours_lieu_field'),
+              controller: _lieuController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Lieu',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Lieu obligatoire';
+                }
+
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('concours_organisateur_field'),
+              controller: _organisateurController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Organisateur',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Organisateur obligatoire';
+                }
+
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              key: const Key('concours_validate_button'),
+              onPressed: _isSaving ? null : _saveConcours,
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Valider'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              key: const Key('concours_cancel_button'),
+              onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+              child: const Text('Annuler'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

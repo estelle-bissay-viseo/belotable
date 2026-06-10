@@ -1,3 +1,4 @@
+<!-- tags: architecture, développement -->
 # Référence: Structure du répertoire
 
 ## Racine du dépôt
@@ -10,6 +11,8 @@
 - `trivy.yaml` : configuration centralisée des scans Trivy.
 - `.trivyignore` : liste d'exceptions Trivy.
 - `resources/` : ressources projet.
+- `.github/` : configuration GitHub (actions, issue templates, CI/CD, ...) et GitHub Copilot.
+- `dev-scripts/` : scripts de développement et maintenance.
 
 ## Sous-projet Flutter
 

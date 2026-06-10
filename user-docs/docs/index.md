@@ -7,6 +7,7 @@ Belotable permet d'organiser un concours de belote, de saisir les scores et de v
 ## Ce que vous trouverez ici
 
 - Comment installer l'application
+- Comment utiliser l'application pour gérer un concours
 
 ## Public cible
 

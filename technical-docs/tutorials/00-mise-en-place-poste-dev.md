@@ -1,8 +1,17 @@
+<!-- tags: développement -->
 # Mise en place du poste de développement (windows)
 
 Ce tutoriel vous guidera pour configurer votre environnement de développement local afin de contribuer à Belotable.
 
 ## Étape 1 : Installer les dépendances système
+
+### 1.1 Windows - mode développeur
+
+Si votre poste de développeur est sous Windows, vous devez activer le mode développeur pour permettre l'exécution de l'application Windows en mode debug.
+
+1. Dans powershell (en tant qu'administrateur), exécutez la commande suivante pour ouvrir la fenêtre gérant le mode développeur : `start ms-settings:developers`
+1. Dans la fenêtre des paramètres qui s'ouvre, activez le **Mode développeur**.
+1. Redémarrez votre IDE s'il était ouvert pendant cette opération.
 
 ### 1.1 Installer winget (gestionnaire de paquets Windows natif)
 

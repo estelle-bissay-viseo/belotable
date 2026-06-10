@@ -1,3 +1,4 @@
+<!-- tags:  flutter, build, cicd, windows -->
 # How-to: Générer un installeur Windows
 
 Objectif : générer un installeur `.exe` distribuable pour Windows.

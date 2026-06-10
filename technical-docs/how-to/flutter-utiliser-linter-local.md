@@ -1,3 +1,4 @@
+<!-- tags: flutter, développement -->
 # How-to: Utiliser le linter Flutter en local
 
 ## Objectif

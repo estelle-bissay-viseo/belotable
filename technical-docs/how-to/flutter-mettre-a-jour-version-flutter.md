@@ -1,3 +1,4 @@
+<!-- tags: flutter, architecture -->
 # How-to: Mettre à jour la version Flutter
 
 Objectif : changer la version Flutter de référence de façon cohérente entre local, CI et Docker.

@@ -1,3 +1,4 @@
+<!-- tags: architecture -->
 # Explanation: Choix techniques
 
 ## Pourquoi Flutter

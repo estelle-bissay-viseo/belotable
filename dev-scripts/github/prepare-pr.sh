@@ -78,7 +78,8 @@ if [[ -z "$CURRENT_BRANCH" ]]; then
 fi
 
 if [[ -z "$DESCRIPTION" && -z "$DESCRIPTION_FILE" ]]; then
-  DESCRIPTION_FILE=".github/pr_descriptions/${CURRENT_BRANCH}.md"
+  SANITIZED_BRANCH="$(sanitize_branch_for_filename "$CURRENT_BRANCH")"
+  DESCRIPTION_FILE=".github/pr_descriptions/${SANITIZED_BRANCH}.md"
   AUTO_DESCRIPTION_FILE="true"
 fi
 

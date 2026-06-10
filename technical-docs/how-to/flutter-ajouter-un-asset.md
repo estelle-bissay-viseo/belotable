@@ -1,3 +1,4 @@
+<!-- tags: flutter, développement -->
 # How-to : Ajouter un asset dans le projet Flutter
 
 **Objectif** : Intégrer un nouveau fichier image, icône ou ressource dans l'application Flutter de manière cohérente avec le système de génération de code existant.

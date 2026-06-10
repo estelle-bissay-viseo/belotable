@@ -1,10 +1,18 @@
-import 'dart:math';
+import 'dart:math' show pi;
 
 import 'package:belotable/gen/assets.gen.dart';
+import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
 import 'package:flutter/material.dart';
 
+const double _appBarIconRotationDegrees = -15;
+
+/// Displays home page with option to create new concours.
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({required this.title, super.key});
+  /// Creates a home page widget.
+  const MyHomePage({
+    required this.title,
+    super.key,
+  });
 
   /// The title displayed in the application bar.
   final String title;
@@ -24,8 +32,8 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Transform.rotate(
               key: const Key('app_bar_icon'),
-              angle: -15 * pi / 180,
-              child: Assets.icon.image(width: 32, height: 32)
+              angle: _appBarIconRotationDegrees * pi / 180,
+              child: Assets.icon.image(width: 32, height: 32),
             ),
             const SizedBox(width: 8),
             Text(
@@ -42,7 +50,15 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Bienvenue !',
               style: Theme.of(context).textTheme.headlineMedium,
-              key: const Key('home_body_title')
+              key: const Key('home_body_title'),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              key: const Key('home_create_concours_button'),
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamed(ConcoursCreationPage.routeName),
+              child: const Text('Créer un nouveau concours'),
             ),
           ],
         ),
