@@ -1,10 +1,19 @@
+<!-- tags: développement -->
 # Mise en place du poste de développement (windows)
 
 Ce tutoriel vous guidera pour configurer votre environnement de développement local afin de contribuer à Belotable.
 
 ## Étape 1 : Installer les dépendances système
 
-### 1.1 Installer winget (gestionnaire de paquets Windows natif)
+### 1.1 Windows - mode développeur
+
+Si votre poste de développeur est sous Windows, vous devez activer le mode développeur pour permettre l'exécution de l'application Windows en mode debug.
+
+1. Dans powershell (en tant qu'administrateur), exécutez la commande suivante pour ouvrir la fenêtre gérant le mode développeur : `start ms-settings:developers`
+1. Dans la fenêtre des paramètres qui s'ouvre, activez le **Mode développeur**.
+1. Redémarrez votre IDE s'il était ouvert pendant cette opération.
+
+### 1.2 Installer winget (gestionnaire de paquets Windows natif)
 
 **winget** est le gestionnaire de paquets natif de Windows. Consultez la [documentation officielle d'installation de winget](https://learn.microsoft.com/fr-fr/windows/package-manager/winget/) pour l'installer.
 
@@ -14,7 +23,7 @@ Vérifiez l'installation :
 winget --version
 ```
 
-### 1.2 Installer Chocolatey (gestionnaire de paquets)
+### 1.3 Installer Chocolatey (gestionnaire de paquets)
 
 Consultez la [documentation officielle d'installation de Chocolatey](https://chocolatey.org/install) pour installer le gestionnaire de paquets (exécutez PowerShell en tant qu'administrateur).
 
@@ -24,7 +33,7 @@ Vérifiez l'installation :
 choco --version
 ```
 
-### 1.3 Installer les paquets de base
+### 1.4 Installer les paquets de base
 
 Toujours en PowerShell administrateur :
 
@@ -194,7 +203,7 @@ Si vous souhaitez éditer la documentation utilisateur avec MkDocs :
 
 ```bash
 python -m pip install --upgrade pip
-pip install mkdocs mkdocs-material mkdocs-pdf-export-plugin
+pip install "mkdocs>=1.5,<2.0" mkdocs-material mkdocs-with-pdf
 ```
 
 Il est possible qu'il soit nécessaire d'ajouter le répertoire des scripts python dans votre PATH et de redémarrer votre terminal pour prendre en compte la mise à jour du PATH.

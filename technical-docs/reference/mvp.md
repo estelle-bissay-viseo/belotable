@@ -1,3 +1,4 @@
+<!-- tags: fonctionnalités -->
 # MVP - Minimum Viable Product
 
 ## Vue d'ensemble

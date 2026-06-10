@@ -1,3 +1,4 @@
+<!-- tags: documentation-utilisateur -->
 # How-to: Générer la documentation MkDocs en local
 
 Objectif : construire localement la documentation utilisateur avec les mêmes règles strictes que la CI.

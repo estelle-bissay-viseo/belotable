@@ -1,3 +1,4 @@
+<!-- tags: git, développement, méthodes -->
 # Référence: TBD (Trunk-Based Development)
 
 ## Définition rapide

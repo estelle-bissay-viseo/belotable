@@ -12,10 +12,15 @@ theme:
 
 plugins:
   - search
-  - pdf-export:
-      combined: true
-      combined_output_path: pdf/belotable-documentation.pdf
+  - with-pdf:
       enabled_if_env: ENABLE_PDF_EXPORT
+      output_path: pdf/belotable-documentation.pdf
+      cover_title: Belotable
+      cover_subtitle: Documentation utilisateur
+      cover_logo: assets/images/logo.png
+      author: Belotable Team
+      copyright: "2026"
+      toc_title: Sommaire
 
 nav:
   - Accueil: index.md

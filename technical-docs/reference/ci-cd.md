@@ -1,3 +1,4 @@
+<!-- tags: cicd -->
 # Référence: CI/CD
 
 ## Workflows actifs

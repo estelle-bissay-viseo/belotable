@@ -1,3 +1,4 @@
+<!-- tags: flutter, build, docker, cicd, webserver -->
 # How-to: Lancer la webapp avec Docker
 
 Objectif : construire et exécuter la version web dans un conteneur nginx.

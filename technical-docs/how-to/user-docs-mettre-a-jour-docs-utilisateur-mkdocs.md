@@ -1,3 +1,4 @@
+<!-- tags: documentation-utilisateur -->
 # How-to: Mettre à jour la documentation utilisateur avec MkDocs
 
 Objectif : modifier la documentation utilisateur dans `user-docs/` et vérifier le rendu localement en direct avec `mkdocs serve`.

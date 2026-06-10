@@ -1,3 +1,4 @@
+<!-- tags: développement, flutter -->
 # Tutorial: Démarrage local de Belotable
 
 Objectif : lancer l'application Flutter en local et vérifier que l'écran d'accueil s'affiche.
@@ -22,20 +23,16 @@ Résultat attendu : les dépendances sont résolues sans erreur.
 ## Étape 2: lancer l'application
 
 ```bash
+# pour application desktop (Windows)
 fvm flutter run -d windows
+# pour application web (Chrome)
+fvm flutter run -d chrome
 ```
 
 L'application démarre en mode debug. Utilisez le menu de debug de Flutter pour :
 - ♻️ **Hot Reload** : Recharger le code sans redémarrer l'app
 - 🔄 **Hot Restart** : Redémarrer l'app complètement
 - 🐛 **Debugger** : Inspecter variables, ajouter breakpoints
-
-Alternative pour une autre cible desktop disponible :
-
-```bash
-fvm flutter devices
-fvm flutter run -d <device-id>
-```
 
 Résultat attendu : une fenêtre Belotable s'ouvre avec le message `Bienvenue !`.
 
@@ -60,5 +57,5 @@ Voir aussi : [tutorials/02-premiere-modification-ui.md](02-premiere-modification
 
 - `belotable/lib/main.dart`
 - `belotable/lib/presentation/shared/home_page.dart`
-- `belotable/test/widget_test.dart`
+- `belotable/test/widgets/widget_test.dart`
 - `.fvmrc`

@@ -30,10 +30,11 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    - avoid_print
-    - prefer_const_constructors
-    - always_use_package_imports
-    - avoid_unnecessary_containers
+    one_member_abstracts: false
+    avoid_print: true
+    prefer_const_constructors: true
+    always_use_package_imports: true
+    avoid_unnecessary_containers: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

@@ -1,3 +1,4 @@
+<!-- tags: git, méthodes, cicd -->
 # Explanation: Stratégie de release
 
 ## Intentions du flux de branches

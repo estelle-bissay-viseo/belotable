@@ -1,3 +1,4 @@
+<!-- tags: architecture, cicd, sécurité -->
 # How-to: Analyser la sécurité du code avec Trivy et Semgrep
 
 Objectif : exécuter localement les scans de sécurité alignés avec la CI.

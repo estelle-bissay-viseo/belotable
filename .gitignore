@@ -5,6 +5,7 @@
 # Fichiers de spécifications des PR du projets (structure custom, ce n'est pas un standard github)
 .github/pr_code_review/
 .github/pr_descriptions/
+.github/feature_analyze/
 
 # Génération mkdocs
 user-docs/site/

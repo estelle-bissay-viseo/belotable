@@ -1,3 +1,4 @@
+<!-- tags: flutter, développement, tests-end-to-end -->
 # Comment : Lancer les tests d'intégration en local
 
 ## Intérêt
