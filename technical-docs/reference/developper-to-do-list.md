@@ -16,6 +16,8 @@ Vérifier régulièrement, et en particulier en fin de développement, les comma
 
 ```bash
 cd belotable
+# vérifier que les dépendances sont à jour
+fvm flutter pub get
 # regénérer les fichiers générés (si nécessaire)
 fvm dart run build_runner build --delete-conflicting-outputs
 # vérifier que le code est correctement formaté

@@ -92,9 +92,9 @@ Apply MVC intent without breaking existing layering:
 8. Run Quality Gates
    - Run static analysis and tests relevant to touched code.
    - Required validation before finalizing:
-     - `flutter analyze`
-     - `flutter test`
-     - `flutter test integration_test/all_tests.dart` (or documented subset if full run is too expensive)
+     - `fvm flutter analyze`
+     - `fvm flutter test`
+     - `fvm flutter test integration_test/all_tests.dart -d windows` (or documented subset if full run is too expensive)
 
 9. Produce Delivery Summary
    - Report what was implemented by layer (Model, Controller, View).
