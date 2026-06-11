@@ -1,5 +1,6 @@
 import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_detail_page.dart';
 import 'package:belotable/presentation/shared/concours/delete_concours_confirmation_dialog.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
@@ -117,9 +118,18 @@ class ConcoursListPage extends ConsumerWidget {
                           DataCell(
                             Row(
                               children: [
-                                const IconButton(
-                                  onPressed: null,
-                                  icon: Icon(Icons.settings_outlined),
+                                IconButton(
+                                  key: ValueKey<String>(
+                                    'concours_manage_button_${concours.id}',
+                                  ),
+                                  onPressed: () async {
+                                    await Navigator.of(context).pushNamed(
+                                      ConcoursDetailPage.routeName,
+                                      arguments: concours.id,
+                                    );
+                                    ref.invalidate(concoursListProvider);
+                                  },
+                                  icon: const Icon(Icons.settings_outlined),
                                   tooltip: 'Gérer',
                                 ),
                                 IconButton(

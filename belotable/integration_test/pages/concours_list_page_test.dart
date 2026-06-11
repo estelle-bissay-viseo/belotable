@@ -31,7 +31,7 @@ void main() {
 
   e2eTest(
     'Concours list page',
-    'Concours are displayed in descending date order with disabled actions',
+    'Concours are displayed in descending date order with enabled actions',
     (tester, db) async {
       await pumpTestApp(
         tester,
@@ -80,7 +80,7 @@ void main() {
             .first,
       );
 
-      expect(gererButton.onPressed, isNull);
+      expect(gererButton.onPressed, isNotNull);
       expect(supprimerButton.onPressed, isNotNull);
     },
   );

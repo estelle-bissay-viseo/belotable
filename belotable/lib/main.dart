@@ -1,5 +1,6 @@
 import 'package:belotable/presentation/shared/app_info_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_detail_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_list_page.dart';
 import 'package:belotable/presentation/shared/home_page.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,19 @@ class MyApp extends StatelessWidget {
         AppInfoPage.routeName: (_) => const AppInfoPage(),
         ConcoursCreationPage.routeName: (_) => const ConcoursCreationPage(),
         ConcoursListPage.routeName: (_) => const ConcoursListPage(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == ConcoursDetailPage.routeName) {
+          final concoursId = settings.arguments;
+          if (concoursId is String) {
+            return MaterialPageRoute<void>(
+              builder: (_) => ConcoursDetailPage(concoursId: concoursId),
+              settings: settings,
+            );
+          }
+        }
+
+        return null;
       },
       home: const MyHomePage(
         title: 'Belotable',

@@ -24,6 +24,35 @@ void main() {
   );
 
   repositoryDbTest<DriftConcoursRepository>(
+    'findById returns concours when id exists',
+    factory: DriftConcoursRepository.new,
+    body: (database, repository) async {
+      final concours = Concours(
+        id: 'id-find',
+        date: DateTime(2026, 6, 8),
+        lieu: 'Salle C',
+        organisateur: 'Club C',
+      );
+
+      await repository.save(concours);
+
+      final found = await repository.findById('id-find');
+
+      expect(found, concours);
+    },
+  );
+
+  repositoryDbTest<DriftConcoursRepository>(
+    'findById returns null when id does not exist',
+    factory: DriftConcoursRepository.new,
+    body: (database, repository) async {
+      final found = await repository.findById('unknown-id');
+
+      expect(found, isNull);
+    },
+  );
+
+  repositoryDbTest<DriftConcoursRepository>(
     'findAllByDateDesc returns empty list when no concours exists',
     factory: DriftConcoursRepository.new,
     body: (database, repository) async {

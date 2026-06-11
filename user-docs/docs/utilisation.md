@@ -65,3 +65,13 @@ Depuis la page de liste des concours, cliquez sur le bouton **Supprimer** associ
 ![Bouton Supprimer depuis la Liste des concours](./assets/images/page-liste-concours-btn-supprimer.png)
 
 Une pop-up de confirmation de suppression s'affichera pour éviter les suppressions accidentelles.
+
+## Gestion d'un concours
+
+Après la création d'un concours, vous pouvez gérer les informations de ce concours depuis la page de liste des concours en cliquant sur le bouton **Gérer** associé au concours.
+
+![Bouton Gérer depuis la Liste des concours](./assets/images/page-liste-concours-btn-gerer.png)
+
+Vous pourrez alors consulter les informations du concours et les modifier.
+
+![Informations d'un concours](./assets/images/page-infos-concours.png)

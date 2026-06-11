@@ -46,6 +46,24 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Returns concours by id or null when absent.
+  Future<Concours?> findConcoursById(String id) async {
+    final row = await (select(
+      concoursTable,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+
+    if (row == null) {
+      return null;
+    }
+
+    return Concours(
+      id: row.id,
+      date: row.date,
+      lieu: row.lieu,
+      organisateur: row.organisateur,
+    );
+  }
+
   /// Returns all concours sorted from most recent to oldest date.
   Future<List<Concours>> findAllConcoursByDateDesc() async {
     final query = select(concoursTable)

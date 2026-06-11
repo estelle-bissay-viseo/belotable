@@ -16,6 +16,11 @@ class DriftConcoursRepository implements ConcoursRepository {
   }
 
   @override
+  Future<Concours?> findById(String id) {
+    return _concoursDao.findConcoursById(id);
+  }
+
+  @override
   Future<List<Concours>> findAllByDateDesc() {
     return _concoursDao.findAllConcoursByDateDesc();
   }
