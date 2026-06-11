@@ -52,8 +52,6 @@ Si aucun concours n'est disponible, le message **Aucun concours disponible** est
 
 ![Liste des concours vide](./assets/images/page-liste-concours-vide.png)
 
-Chaque ligne contient aussi des boutons d'action (**Consulter**, **Modifier**, **Supprimer**) actuellement inactifs.
-
 La page de liste propose un bouton **+** pour créer un nouveau concours. Ce bouton ouvre directement l'écran *Créer un concours*.
 
 ![Bouton créer un nouveau concours sur la liste des concours](./assets/images/page-liste-concours-btn-creer-concours.png)
