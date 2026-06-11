@@ -70,4 +70,37 @@ void main() {
       );
     },
   );
+
+  repositoryDbTest<DriftConcoursRepository>(
+    'delete removes concours and returns true',
+    factory: DriftConcoursRepository.new,
+    body: (database, repository) async {
+      final concours = Concours(
+        id: 'id-to-delete',
+        date: DateTime(2026, 6, 8),
+        lieu: 'Salle A',
+        organisateur: 'Club A',
+      );
+
+      await repository.save(concours);
+      var rowCount = await database.concoursDao.countConcours();
+      expect(rowCount, 1);
+
+      final result = await repository.delete('id-to-delete');
+
+      expect(result, isTrue);
+      rowCount = await database.concoursDao.countConcours();
+      expect(rowCount, 0);
+    },
+  );
+
+  repositoryDbTest<DriftConcoursRepository>(
+    'delete returns false when concours not found',
+    factory: DriftConcoursRepository.new,
+    body: (database, repository) async {
+      final result = await repository.delete('nonexistent-id');
+
+      expect(result, isFalse);
+    },
+  );
 }

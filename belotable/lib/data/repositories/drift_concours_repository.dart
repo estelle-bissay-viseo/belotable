@@ -19,4 +19,9 @@ class DriftConcoursRepository implements ConcoursRepository {
   Future<List<Concours>> findAllByDateDesc() {
     return _concoursDao.findAllConcoursByDateDesc();
   }
+
+  @override
+  Future<bool> delete(String id) {
+    return _concoursDao.deleteCourseById(id);
+  }
 }

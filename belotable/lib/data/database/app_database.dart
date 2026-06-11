@@ -75,6 +75,15 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
 
     return row.read(countExpression) ?? 0;
   }
+
+  /// Deletes a concours by id and cascades delete to related data.
+  /// Returns true if deletion was successful, false if concours not found.
+  Future<bool> deleteCourseById(String id) async {
+    final result = await (delete(
+      concoursTable,
+    )..where((tbl) => tbl.id.equals(id))).go();
+    return result > 0;
+  }
 }
 
 /// Drift database instance for managing all application data.

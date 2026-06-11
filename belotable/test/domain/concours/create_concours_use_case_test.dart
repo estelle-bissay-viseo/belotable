@@ -1,26 +1,11 @@
-import 'package:belotable/domain/concours/concours.dart';
-import 'package:belotable/domain/concours/concours_repository.dart';
 import 'package:belotable/domain/concours/create_concours_use_case.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/in_memory_concours_repository.dart';
 import '../../helpers/test_utils.dart';
 
-class _InMemoryConcoursRepository implements ConcoursRepository {
-  final savedConcours = <Concours>[];
-
-  @override
-  Future<void> save(Concours concours) async {
-    savedConcours.add(concours);
-  }
-
-  @override
-  Future<List<Concours>> findAllByDateDesc() async {
-    return [...savedConcours]..sort((a, b) => b.date.compareTo(a.date));
-  }
-}
-
 typedef _CreateConcoursTestDeps = ({
-  _InMemoryConcoursRepository repository,
+  InMemoryConcoursRepository repository,
 });
 
 void main() {
@@ -28,7 +13,7 @@ void main() {
     useCaseTest<_CreateConcoursTestDeps, CreateConcoursUseCase>(
       'creates concours and persists trimmed values',
       dependenciesFactory: () => (
-        repository: _InMemoryConcoursRepository(),
+        repository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateConcoursUseCase(deps.repository),
       body: (deps, useCase) async {
@@ -51,7 +36,7 @@ void main() {
     useCaseTest<_CreateConcoursTestDeps, CreateConcoursUseCase>(
       'throws when lieu is empty',
       dependenciesFactory: () => (
-        repository: _InMemoryConcoursRepository(),
+        repository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateConcoursUseCase(deps.repository),
       body: (deps, useCase) async {
@@ -72,7 +57,7 @@ void main() {
     useCaseTest<_CreateConcoursTestDeps, CreateConcoursUseCase>(
       'throws when organisateur is empty',
       dependenciesFactory: () => (
-        repository: _InMemoryConcoursRepository(),
+        repository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateConcoursUseCase(deps.repository),
       body: (deps, useCase) async {

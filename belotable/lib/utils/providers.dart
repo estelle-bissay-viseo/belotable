@@ -3,6 +3,7 @@ import 'package:belotable/data/repositories/drift_concours_repository.dart';
 import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/domain/concours/concours_repository.dart';
 import 'package:belotable/domain/concours/create_concours_use_case.dart';
+import 'package:belotable/domain/concours/delete_concours_use_case.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Dependency injection providers for database, repositories, and use cases.
@@ -22,6 +23,12 @@ final concoursRepositoryProvider = Provider<ConcoursRepository>((ref) {
 final createConcoursUseCaseProvider = Provider<CreateConcoursUseCase>((ref) {
   final repo = ref.watch(concoursRepositoryProvider);
   return CreateConcoursUseCase(repo);
+});
+
+/// Provides DeleteConcoursUseCase with repository dependency.
+final deleteConcoursUseCaseProvider = Provider<DeleteConcoursUseCase>((ref) {
+  final repo = ref.watch(concoursRepositoryProvider);
+  return DeleteConcoursUseCase(repo);
 });
 
 /// Provides concours list sorted by date desc for list screen.

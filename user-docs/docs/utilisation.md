@@ -57,3 +57,11 @@ Chaque ligne contient aussi des boutons d'action (**Consulter**, **Modifier**, *
 La page de liste propose un bouton **+** pour créer un nouveau concours. Ce bouton ouvre directement l'écran *Créer un concours*.
 
 ![Bouton créer un nouveau concours sur la liste des concours](./assets/images/page-liste-concours-btn-creer-concours.png)
+
+## Suppression d'un concours
+
+Depuis la page de liste des concours, cliquez sur le bouton **Supprimer** associé au concours que vous souhaitez supprimer.
+
+![Bouton Supprimer depuis la Liste des concours](./assets/images/page-liste-concours-btn-supprimer.png)
+
+Une pop-up de confirmation de suppression s'affichera pour éviter les suppressions accidentelles.

@@ -81,7 +81,7 @@ void main() {
       );
 
       expect(gererButton.onPressed, isNull);
-      expect(supprimerButton.onPressed, isNull);
+      expect(supprimerButton.onPressed, isNotNull);
     },
   );
 
