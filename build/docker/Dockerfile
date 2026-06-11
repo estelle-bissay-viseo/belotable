@@ -7,6 +7,8 @@ ARG FLUTTER_VERSION
 ENV FLUTTER_HOME=/usr/local/flutter
 ENV PATH="${FLUTTER_HOME}/bin:${PATH}"
 ENV PUB_CACHE=/root/.pub-cache
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
 
 COPY .fvmrc /tmp/.fvmrc
 
@@ -50,6 +52,14 @@ RUN flutter build web --release
 FROM nginxinc/nginx-unprivileged:stable-alpine AS runtime
 USER root
 ARG DOCROOT=/usr/share/nginx/html
+
+RUN --mount=type=secret,id=ca_cert,required=false \
+    if [ -s /run/secrets/ca_cert ] && grep -q "BEGIN CERTIFICATE" /run/secrets/ca_cert; then \
+      mkdir -p /usr/local/share/ca-certificates; \
+      cat /run/secrets/ca_cert >> /etc/ssl/cert.pem; \
+    fi
+
+RUN apk --no-cache upgrade
 
 COPY --from=builder /app/build/web ${DOCROOT}
 COPY build/docker/nginx.conf /etc/nginx/conf.d/default.conf
