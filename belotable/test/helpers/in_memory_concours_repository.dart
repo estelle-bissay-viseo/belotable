@@ -6,7 +6,24 @@ class InMemoryConcoursRepository implements ConcoursRepository {
 
   @override
   Future<void> save(Concours concours) async {
-    savedConcours.add(concours);
+    final index = savedConcours.indexWhere((entry) => entry.id == concours.id);
+    if (index == -1) {
+      savedConcours.add(concours);
+      return;
+    }
+
+    savedConcours[index] = concours;
+  }
+
+  @override
+  Future<Concours?> findById(String id) async {
+    for (final concours in savedConcours) {
+      if (concours.id == id) {
+        return concours;
+      }
+    }
+
+    return null;
   }
 
   @override

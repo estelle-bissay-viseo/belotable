@@ -75,7 +75,7 @@ void main() {
     expect(supprimerButtons, hasLength(2));
 
     for (final button in gererButtons) {
-      expect(button.onPressed, isNull);
+      expect(button.onPressed, isNotNull);
     }
     for (final button in supprimerButtons) {
       expect(button.onPressed, isNotNull);

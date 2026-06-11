@@ -5,6 +5,9 @@ abstract interface class ConcoursRepository {
   /// Saves a Concours entity to the repository.
   Future<void> save(Concours concours);
 
+  /// Returns concours by id when it exists, otherwise null.
+  Future<Concours?> findById(String id);
+
   /// Returns all saved Concours sorted from most recent to oldest.
   Future<List<Concours>> findAllByDateDesc();
 
