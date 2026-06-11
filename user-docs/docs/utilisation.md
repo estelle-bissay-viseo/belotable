@@ -31,3 +31,29 @@ La date du concours est initialisée à la date du jour, mais vous pouvez la mod
 Valider la création du concours en sélectionnant **Valider**. Vous serez redirigé vers la page d'accueil avec le nouveau concours enregistré.
 
 Annuler la création du concours en sélectionnant **Annuler**. Vous serez redirigé vers la page d'accueil sans enregistrer de nouveau concours.
+
+## Liste des concours
+
+Depuis la page d'accueil, sélectionnez **Liste des concours**.
+
+![Bouton Liste des concours sur la page d'accueil](./assets/images/page-home-btn-liste-concours.png)
+
+La page *Liste des concours* affiche tous les concours enregistrés, triés du plus récent au plus ancien.
+
+Chaque ligne affiche :
+
+- La **Date** du concours
+- Le **Lieu** du concours
+- L'**Organisateur** du concours
+
+![Liste des concours](./assets/images/page-liste-concours.png)
+
+Si aucun concours n'est disponible, le message **Aucun concours disponible** est affiché.
+
+![Liste des concours vide](./assets/images/page-liste-concours-vide.png)
+
+Chaque ligne contient aussi des boutons d'action (**Consulter**, **Modifier**, **Supprimer**) actuellement inactifs.
+
+La page de liste propose un bouton **+** pour créer un nouveau concours. Ce bouton ouvre directement l'écran *Créer un concours*.
+
+![Bouton créer un nouveau concours sur la liste des concours](./assets/images/page-liste-concours-btn-creer-concours.png)

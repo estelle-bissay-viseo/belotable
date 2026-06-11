@@ -19,5 +19,6 @@ void main() {
     );
 
     expect(titleWidget.data, 'Bienvenue !');
+    expect(find.byKey(const Key('home_list_concours_button')), findsOneWidget);
   });
 }

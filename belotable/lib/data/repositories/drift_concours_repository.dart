@@ -14,4 +14,9 @@ class DriftConcoursRepository implements ConcoursRepository {
   Future<void> save(Concours concours) {
     return _concoursDao.insertConcours(concours);
   }
+
+  @override
+  Future<List<Concours>> findAllByDateDesc() {
+    return _concoursDao.findAllConcoursByDateDesc();
+  }
 }

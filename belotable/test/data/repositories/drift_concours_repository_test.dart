@@ -22,4 +22,52 @@ void main() {
       expect(rowCount, 1);
     },
   );
+
+  repositoryDbTest<DriftConcoursRepository>(
+    'findAllByDateDesc returns empty list when no concours exists',
+    factory: DriftConcoursRepository.new,
+    body: (database, repository) async {
+      final concoursList = await repository.findAllByDateDesc();
+
+      expect(concoursList, isEmpty);
+    },
+  );
+
+  repositoryDbTest<DriftConcoursRepository>(
+    'findAllByDateDesc returns concours sorted by descending date',
+    factory: DriftConcoursRepository.new,
+    body: (database, repository) async {
+      await repository.save(
+        Concours(
+          id: 'id-oldest',
+          date: DateTime(2024, 1, 10),
+          lieu: 'Salle A',
+          organisateur: 'Club A',
+        ),
+      );
+      await repository.save(
+        Concours(
+          id: 'id-latest',
+          date: DateTime(2026, 6, 8),
+          lieu: 'Salle B',
+          organisateur: 'Club B',
+        ),
+      );
+      await repository.save(
+        Concours(
+          id: 'id-middle',
+          date: DateTime(2025, 3, 20),
+          lieu: 'Salle C',
+          organisateur: 'Club C',
+        ),
+      );
+
+      final concoursList = await repository.findAllByDateDesc();
+
+      expect(
+        concoursList.map((concours) => concours.id).toList(growable: false),
+        ['id-latest', 'id-middle', 'id-oldest'],
+      );
+    },
+  );
 }

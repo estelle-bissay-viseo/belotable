@@ -12,6 +12,11 @@ class _InMemoryConcoursRepository implements ConcoursRepository {
   Future<void> save(Concours concours) async {
     savedConcours.add(concours);
   }
+
+  @override
+  Future<List<Concours>> findAllByDateDesc() async {
+    return [...savedConcours]..sort((a, b) => b.date.compareTo(a.date));
+  }
 }
 
 typedef _CreateConcoursTestDeps = ({
