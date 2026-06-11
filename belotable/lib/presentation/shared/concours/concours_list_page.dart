@@ -1,4 +1,6 @@
+import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
+import 'package:belotable/presentation/shared/concours/delete_concours_confirmation_dialog.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +12,50 @@ class ConcoursListPage extends ConsumerWidget {
 
   /// Route name for navigation to this page.
   static const routeName = '/concours/list';
+
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Concours concours,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DeleteConcoursConfirmationDialog(
+        concours: concours,
+        onConfirm: () async {
+          final deleteUseCase = ref.read(deleteConcoursUseCaseProvider);
+          try {
+            final success = await deleteUseCase(concours.id);
+            if (!context.mounted) return;
+            if (success) {
+              ref.invalidate(concoursListProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Concours supprimé avec succès'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Erreur lors de la suppression'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          } on Exception catch (e) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Erreur : $e'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,35 +102,44 @@ class ConcoursListPage extends ConsumerWidget {
               ],
               rows: concoursList
                   .map(
-                    (concours) => DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            '${concours.date.year.toString().padLeft(4, '0')}-'
-                            '${concours.date.month.toString().padLeft(2, '0')}-'
-                            '${concours.date.day.toString().padLeft(2, '0')}',
+                    (concours) {
+                      final formattedDate =
+                          '${concours.date.year.toString().padLeft(4, '0')}-'
+                          '${concours.date.month.toString().padLeft(2, '0')}-'
+                          '${concours.date.day.toString().padLeft(2, '0')}';
+
+                      return DataRow(
+                        key: ValueKey<String>('concours_row_${concours.id}'),
+                        cells: [
+                          DataCell(Text(formattedDate)),
+                          DataCell(Text(concours.lieu)),
+                          DataCell(Text(concours.organisateur)),
+                          DataCell(
+                            Row(
+                              children: [
+                                const IconButton(
+                                  onPressed: null,
+                                  icon: Icon(Icons.settings_outlined),
+                                  tooltip: 'Gérer',
+                                ),
+                                IconButton(
+                                  key: ValueKey<String>(
+                                    'concours_delete_button_${concours.id}',
+                                  ),
+                                  onPressed: () => _showDeleteConfirmation(
+                                    context,
+                                    ref,
+                                    concours,
+                                  ),
+                                  icon: const Icon(Icons.delete_outline),
+                                  tooltip: 'Supprimer',
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        DataCell(Text(concours.lieu)),
-                        DataCell(Text(concours.organisateur)),
-                        const DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                onPressed: null,
-                                icon: Icon(Icons.settings_outlined),
-                                tooltip: 'Gérer',
-                              ),
-                              IconButton(
-                                onPressed: null,
-                                icon: Icon(Icons.delete_outline),
-                                tooltip: 'Supprimer',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    },
                   )
                   .toList(growable: false),
             ),

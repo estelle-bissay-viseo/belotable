@@ -22,7 +22,7 @@ void main() {
     expect(find.byKey(const Key('concours_list_add_button')), findsOneWidget);
   });
 
-  widgetDbTest('Concours list displays sorted rows and disabled actions', (
+  widgetDbTest('Concours list displays sorted rows and action states', (
     tester,
     db,
   ) async {
@@ -78,7 +78,7 @@ void main() {
       expect(button.onPressed, isNull);
     }
     for (final button in supprimerButtons) {
-      expect(button.onPressed, isNull);
+      expect(button.onPressed, isNotNull);
     }
   });
 }
