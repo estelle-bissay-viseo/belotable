@@ -19,6 +19,7 @@ void main() {
     expect(find.text('Bienvenue !'), findsOneWidget);
     expect(find.text('Belotable'), findsOneWidget);
     expect(find.text('Créer un nouveau concours'), findsOneWidget);
+    expect(find.text('Liste des concours'), findsOneWidget);
     expect(find.byKey(const Key('home_info_button')), findsOneWidget);
   });
 }

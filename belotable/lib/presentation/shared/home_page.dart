@@ -3,6 +3,7 @@ import 'dart:math' show pi;
 import 'package:belotable/gen/assets.gen.dart';
 import 'package:belotable/presentation/shared/app_info_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_list_page.dart';
 import 'package:flutter/material.dart';
 
 const double _appBarIconRotationDegrees = -15;
@@ -69,6 +70,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 context,
               ).pushNamed(ConcoursCreationPage.routeName),
               child: const Text('Créer un nouveau concours'),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonal(
+              key: const Key('home_list_concours_button'),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(ConcoursListPage.routeName),
+              child: const Text('Liste des concours'),
             ),
           ],
         ),

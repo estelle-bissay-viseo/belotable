@@ -46,6 +46,27 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Returns all concours sorted from most recent to oldest date.
+  Future<List<Concours>> findAllConcoursByDateDesc() async {
+    final query = select(concoursTable)
+      ..orderBy([
+        (table) => OrderingTerm.desc(table.date),
+      ]);
+
+    final rows = await query.get();
+
+    return rows
+        .map(
+          (row) => Concours(
+            id: row.id,
+            date: row.date,
+            lieu: row.lieu,
+            organisateur: row.organisateur,
+          ),
+        )
+        .toList(growable: false);
+  }
+
   /// Returns the count of all concours entries in the database.
   Future<int> countConcours() async {
     final countExpression = concoursTable.id.count();
