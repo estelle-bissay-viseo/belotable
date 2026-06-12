@@ -46,6 +46,18 @@ void main() {
             organisateur: 'Club B',
           ),
         );
+        await database.doublettesDao.createDoublette(
+          concoursId: 'id-latest',
+          joueurA: 'Alice',
+          joueurB: 'Bob',
+          nomEquipe: 'Les As',
+        );
+        await database.doublettesDao.createDoublette(
+          concoursId: 'id-latest',
+          joueurA: 'Eve',
+          joueurB: 'Max',
+          nomEquipe: 'Les Rois',
+        );
       },
     );
 
@@ -53,6 +65,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('concours_list_table')), findsOneWidget);
+    expect(find.text('Doublettes'), findsOneWidget);
+    expect(
+      find.byKey(const Key('concours_doublettes_count_id-latest')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('concours_doublettes_count_id-oldest')),
+      findsOneWidget,
+    );
+    expect(find.text('2'), findsWidgets);
 
     final latestDateTop = tester.getTopLeft(find.text('2026-06-08')).dy;
     final oldestDateTop = tester.getTopLeft(find.text('2024-01-10')).dy;

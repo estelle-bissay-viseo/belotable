@@ -6,6 +6,14 @@ argument-hint: 'Path to read-feature analysis markdown file (for example: .githu
 
 # Implement Feature Skill
 
+## Token Efficiency (Default)
+
+- Default mode: `compact`.
+- Start with minimal context: touched module files only.
+- First-pass read budget: max 8 file reads before first edit.
+- Expand scope only on blocker or failing validation.
+- Progress updates: delta only, no repeated plan blocks.
+
 ## When to Use
 
 - Implement a feature after requirement analysis is already completed with `read-feature`
@@ -124,3 +132,9 @@ Return:
 - 1 short implementation summary
 - validation command results
 - open questions or follow-up tasks
+
+Compact output format (default):
+- `Summary:` <=2 lines
+- `Changed:` paths only
+- `Validation:` command + pass/fail only
+- `Open:` <=3 bullets

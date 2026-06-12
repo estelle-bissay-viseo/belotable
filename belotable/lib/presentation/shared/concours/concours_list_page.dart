@@ -99,6 +99,7 @@ class ConcoursListPage extends ConsumerWidget {
                 DataColumn(label: Text('Date')),
                 DataColumn(label: Text('Lieu')),
                 DataColumn(label: Text('Organisateur')),
+                DataColumn(label: Text('Doublettes')),
                 DataColumn(label: Text('Actions')),
               ],
               rows: concoursList
@@ -115,6 +116,14 @@ class ConcoursListPage extends ConsumerWidget {
                           DataCell(Text(formattedDate)),
                           DataCell(Text(concours.lieu)),
                           DataCell(Text(concours.organisateur)),
+                          DataCell(
+                            Text(
+                              concours.nombreDoublettes.toString(),
+                              key: ValueKey<String>(
+                                'concours_doublettes_count_${concours.id}',
+                              ),
+                            ),
+                          ),
                           DataCell(
                             Row(
                               children: [

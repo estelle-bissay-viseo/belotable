@@ -1,4 +1,5 @@
 import 'package:belotable/domain/concours/concours.dart';
+import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -27,8 +28,35 @@ class ConcoursTable extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Table schema for storing registered doublettes per concours.
+class DoublettesTable extends Table {
+  /// Owning concours id.
+  TextColumn get concoursId =>
+      text().references(ConcoursTable, #id, onDelete: KeyAction.cascade)();
+
+  /// Registration order id scoped to concours.
+  IntColumn get doubletteId => integer()();
+
+  /// Player A full name.
+  TextColumn get joueurA => text()();
+
+  /// Player B full name.
+  TextColumn get joueurB => text()();
+
+  /// Team name unique per concours.
+  TextColumn get nomEquipe => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {concoursId, doubletteId};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {concoursId, nomEquipe},
+  ];
+}
+
 /// Data Access Object for Concours table operations.
-@DriftAccessor(tables: [ConcoursTable])
+@DriftAccessor(tables: [ConcoursTable, DoublettesTable])
 class ConcoursDao extends DatabaseAccessor<AppDatabase>
     with _$ConcoursDaoMixin {
   /// Creates DAO bound to the given database.
@@ -66,20 +94,40 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
 
   /// Returns all concours sorted from most recent to oldest date.
   Future<List<Concours>> findAllConcoursByDateDesc() async {
-    final query = select(concoursTable)
-      ..orderBy([
-        (table) => OrderingTerm.desc(table.date),
-      ]);
+    final joinedRows =
+        await (select(concoursTable)..orderBy([
+              (table) => OrderingTerm.desc(table.date),
+            ]))
+            .join([
+              leftOuterJoin(
+                doublettesTable,
+                doublettesTable.concoursId.equalsExp(concoursTable.id),
+              ),
+            ])
+            .get();
 
-    final rows = await query.get();
+    final groupedCounts = <String, int>{};
+    final concoursById = <String, ConcoursTableData>{};
 
-    return rows
+    for (final row in joinedRows) {
+      final concoursRow = row.readTable(concoursTable);
+      concoursById[concoursRow.id] = concoursRow;
+
+      final doubletteRow = row.readTableOrNull(doublettesTable);
+      if (doubletteRow != null) {
+        groupedCounts[concoursRow.id] =
+            (groupedCounts[concoursRow.id] ?? 0) + 1;
+      }
+    }
+
+    return concoursById.values
         .map(
           (row) => Concours(
             id: row.id,
             date: row.date,
             lieu: row.lieu,
             organisateur: row.organisateur,
+            nombreDoublettes: groupedCounts[row.id] ?? 0,
           ),
         )
         .toList(growable: false);
@@ -96,7 +144,7 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
 
   /// Deletes a concours by id and cascades delete to related data.
   /// Returns true if deletion was successful, false if concours not found.
-  Future<bool> deleteCourseById(String id) async {
+  Future<bool> deleteConcoursById(String id) async {
     final result = await (delete(
       concoursTable,
     )..where((tbl) => tbl.id.equals(id))).go();
@@ -104,8 +152,156 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
   }
 }
 
+/// Data Access Object for Doublettes table operations.
+@DriftAccessor(tables: [DoublettesTable])
+class DoublettesDao extends DatabaseAccessor<AppDatabase>
+    with _$DoublettesDaoMixin {
+  /// Creates DAO bound to the given database.
+  DoublettesDao(super.attachedDatabase);
+
+  /// Inserts a new doublette with next id in concours.
+  Future<Doublette> createDoublette({
+    required String concoursId,
+    required String joueurA,
+    required String joueurB,
+    required String nomEquipe,
+  }) async {
+    return transaction(() async {
+      final maxIdExpr = doublettesTable.doubletteId.max();
+      final maxIdRow =
+          await (selectOnly(doublettesTable)
+                ..addColumns([maxIdExpr])
+                ..where(doublettesTable.concoursId.equals(concoursId)))
+              .getSingle();
+      final nextId = (maxIdRow.read(maxIdExpr) ?? 0) + 1;
+
+      await into(doublettesTable).insert(
+        DoublettesTableCompanion.insert(
+          concoursId: concoursId,
+          doubletteId: nextId,
+          joueurA: joueurA,
+          joueurB: joueurB,
+          nomEquipe: nomEquipe,
+        ),
+      );
+
+      return Doublette(
+        concoursId: concoursId,
+        doubletteId: nextId,
+        joueurA: joueurA,
+        joueurB: joueurB,
+        nomEquipe: nomEquipe,
+      );
+    });
+  }
+
+  /// Updates one doublette by composite key.
+  Future<Doublette> updateDoublette(Doublette doublette) async {
+    await (update(doublettesTable)..where(
+          (tbl) =>
+              tbl.concoursId.equals(doublette.concoursId) &
+              tbl.doubletteId.equals(doublette.doubletteId),
+        ))
+        .write(
+          DoublettesTableCompanion(
+            joueurA: Value(doublette.joueurA),
+            joueurB: Value(doublette.joueurB),
+            nomEquipe: Value(doublette.nomEquipe),
+          ),
+        );
+
+    return doublette;
+  }
+
+  /// Returns one doublette by composite key.
+  Future<Doublette?> findDoubletteById({
+    required String concoursId,
+    required int doubletteId,
+  }) async {
+    final row =
+        await (select(doublettesTable)..where(
+              (tbl) =>
+                  tbl.concoursId.equals(concoursId) &
+                  tbl.doubletteId.equals(doubletteId),
+            ))
+            .getSingleOrNull();
+
+    if (row == null) {
+      return null;
+    }
+
+    return Doublette(
+      concoursId: row.concoursId,
+      doubletteId: row.doubletteId,
+      joueurA: row.joueurA,
+      joueurB: row.joueurB,
+      nomEquipe: row.nomEquipe,
+    );
+  }
+
+  /// Lists all doublettes for one concours ordered by id.
+  Future<List<Doublette>> findDoublettesByConcoursId(String concoursId) async {
+    final rows =
+        await (select(doublettesTable)
+              ..where((tbl) => tbl.concoursId.equals(concoursId))
+              ..orderBy([(tbl) => OrderingTerm.asc(tbl.doubletteId)]))
+            .get();
+
+    return rows
+        .map(
+          (row) => Doublette(
+            concoursId: row.concoursId,
+            doubletteId: row.doubletteId,
+            joueurA: row.joueurA,
+            joueurB: row.joueurB,
+            nomEquipe: row.nomEquipe,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Returns true when team name already exists in concours.
+  Future<bool> teamNameExists({
+    required String concoursId,
+    required String nomEquipe,
+    int? excludingDoubletteId,
+  }) async {
+    final normalizedTeamName = nomEquipe.toLowerCase();
+    final query = selectOnly(doublettesTable)
+      ..addColumns([doublettesTable.doubletteId.count()])
+      ..where(doublettesTable.concoursId.equals(concoursId))
+      ..where(doublettesTable.nomEquipe.lower().equals(normalizedTeamName));
+
+    if (excludingDoubletteId != null) {
+      query.where(doublettesTable.doubletteId.isNotValue(excludingDoubletteId));
+    }
+
+    final row = await query.getSingle();
+    return (row.read(doublettesTable.doubletteId.count()) ?? 0) > 0;
+  }
+
+  /// Deletes one doublette by composite key.
+  Future<bool> deleteDoublette({
+    required String concoursId,
+    required int doubletteId,
+  }) async {
+    final result =
+        await (delete(doublettesTable)..where(
+              (tbl) =>
+                  tbl.concoursId.equals(concoursId) &
+                  tbl.doubletteId.equals(doubletteId),
+            ))
+            .go();
+
+    return result > 0;
+  }
+}
+
 /// Drift database instance for managing all application data.
-@DriftDatabase(tables: [ConcoursTable], daos: [ConcoursDao])
+@DriftDatabase(
+  tables: [ConcoursTable, DoublettesTable],
+  daos: [ConcoursDao, DoublettesDao],
+)
 class AppDatabase extends _$AppDatabase {
   /// Creates database with optional custom executor for testing.
   AppDatabase([QueryExecutor? e])
@@ -135,5 +331,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(doublettesTable);
+      }
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }

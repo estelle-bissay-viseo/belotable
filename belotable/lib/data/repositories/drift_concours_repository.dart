@@ -27,6 +27,6 @@ class DriftConcoursRepository implements ConcoursRepository {
 
   @override
   Future<bool> delete(String id) {
-    return _concoursDao.deleteCourseById(id);
+    return _concoursDao.deleteConcoursById(id);
   }
 }
