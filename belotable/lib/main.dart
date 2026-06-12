@@ -7,6 +7,8 @@ import 'package:belotable/presentation/shared/doublettes/doublette_detail_page.d
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
 import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
 import 'package:belotable/presentation/shared/home_page.dart';
+import 'package:belotable/presentation/shared/manches/manche_navigation_args.dart';
+import 'package:belotable/presentation/shared/manches/manche_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,6 +87,19 @@ class MyApp extends StatelessWidget {
               builder: (_) => DoubletteDetailPage(
                 concoursId: args.concoursId,
                 doubletteId: args.doubletteId,
+              ),
+              settings: settings,
+            );
+          }
+        }
+
+        if (settings.name == ManchePage.routeName) {
+          final args = settings.arguments;
+          if (args is ManchePageArgs) {
+            return MaterialPageRoute<void>(
+              builder: (_) => ManchePage(
+                mancheId: args.mancheId,
+                mancheNumero: args.mancheNumero,
               ),
               settings: settings,
             );
