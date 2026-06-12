@@ -15,6 +15,14 @@ Review the current git branch against its parent branch and produce a complete r
 4. Test update coverage (or clear justification when not needed).
 5. Explicit references to impacted files and precise code locations/hunks.
 
+## Token Efficiency Mode (default)
+- Use `compact` mode by default.
+- Focus only on blocking/risky findings first (Critical/High/Medium).
+- Skip low-signal commentary unless user asks.
+- Keep user-facing summary <= 8 lines.
+- Read budget before first findings: max 8 file reads beyond git diff outputs.
+- Expand read scope only when evidence is insufficient.
+
 ## Inputs
 - Optional user-provided PR description file path.
 - Optional parent branch.
@@ -81,6 +89,11 @@ The report must include these sections in order:
 8. Risks and Suggested Follow-ups
 9. Final Verdict
 
+When running in `compact` mode, keep section prose minimal and evidence-focused:
+- No long introductions.
+- One short paragraph per section max.
+- Findings use terse bullets with exact evidence.
+
 For each finding, include:
 - ID
 - severity
@@ -108,6 +121,7 @@ For each finding, include:
 - Intermediary/thinking updates must be in English and very concise.
 - Use one short sentence per progress update.
 - Keep final summary concise unless user asks for details.
+- Do not repeat unchanged context in subsequent updates.
 
 ## Example command sequence
 1. Resolve current branch and PR description.

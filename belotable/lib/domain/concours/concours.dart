@@ -11,6 +11,7 @@ class Concours {
     required this.date,
     required this.lieu,
     required this.organisateur,
+    this.nombreDoublettes = 0,
   });
 
   /// Unique identifier.
@@ -25,6 +26,9 @@ class Concours {
   /// Organizing entity.
   final String organisateur;
 
+  /// Number of doublettes registered for this concours.
+  final int nombreDoublettes;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -35,9 +39,11 @@ class Concours {
         other.id == id &&
         other.date == date &&
         other.lieu == lieu &&
-        other.organisateur == organisateur;
+        other.organisateur == organisateur &&
+        other.nombreDoublettes == nombreDoublettes;
   }
 
   @override
-  int get hashCode => Object.hash(id, date, lieu, organisateur);
+  int get hashCode =>
+      Object.hash(id, date, lieu, organisateur, nombreDoublettes);
 }

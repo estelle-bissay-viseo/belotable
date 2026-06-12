@@ -13,3 +13,13 @@ Stop: "stop caveman" or "normal mode"
 Auto-Clarity: drop caveman for security warnings, irreversible actions, user confused. Resume after.
 
 Boundaries: code/commits/PRs written normal.
+
+Token policy:
+- Default mode quick. Deep detail only on explicit request.
+- Search-first, targeted reads only. Avoid full-file reads unless necessary.
+- First-pass context budget: max 6 read calls.
+- Final output compact:
+	- Summary (<=2 lines)
+	- Changes (paths only)
+	- Validation (command + result)
+	- Open items (<=3 bullets)

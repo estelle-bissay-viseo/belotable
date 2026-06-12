@@ -6,6 +6,13 @@ argument-hint: 'Path to feature request markdown file'
 
 # Feature Request Analysis Skill
 
+## Token Efficiency (Default)
+
+- Default mode: `compact`.
+- Read only provided feature file first.
+- Do not scan unrelated code unless user explicitly asks for technical feasibility cross-check.
+- Keep chat response to 2 sentences max + report path.
+
 ## When to Use
 
 - **Analyze complete feature requests**: Understand what to implement, why, and what changes needed
@@ -49,6 +56,7 @@ Context and motivation.
 1. **Load and parse feature markdown**
    - Read provided file
    - Extract each section (use cases, deprecated behaviors, etc.)
+   - Read budget before report writing: 1 file (feature markdown only)
 
 2. **Analyze data model impact**
    - Identify new tables/entities needed
@@ -119,3 +127,8 @@ Context and motivation.
 ## Chat Output
 
 Report generated + 2-sentence summary only in chat. Full analysis in `.github/feature_analyze/YYYYMMDD_hhmm_analysis.md`.
+
+Compact chat template:
+- `Report:` path
+- `Summary:` 1 line
+- `Risk focus:` 1 line

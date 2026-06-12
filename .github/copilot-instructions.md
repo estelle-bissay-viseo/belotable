@@ -43,6 +43,26 @@ applyTo: '**'
 - Yes: "Bug in auth middleware. Fix:"
 - Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
+## Token Budget Rules
+
+- Default response mode: `quick` (minimal).
+- Use `deep` detail only if user explicitly asks.
+- Prefer delta-only updates: never repeat unchanged plan/todo blocks.
+- Keep final response structure fixed and short:
+	- `Summary` (max 2 lines)
+	- `Changed` (paths only)
+	- `Validation` (command + pass/fail)
+	- `Open` (max 3 bullets)
+- Avoid narrative reasoning unless user asks.
+- Avoid listing commands/results already reported in previous turn unless status changed.
+
+## Context Loading Rules
+
+- Search first, read later: use targeted file search before file reads.
+- Read only required line ranges when possible.
+- First pass budget: max 6 file reads before making first concrete action.
+- Expand context only when blocker found.
+
 ## Specifics for Code Development
 
 - Provide code examples, detailed explanations, and practical advice for developing with these tools.

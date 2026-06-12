@@ -1,4 +1,6 @@
 import 'package:belotable/domain/concours/concours.dart';
+import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
+import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -297,6 +299,37 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  Card(
+                    key: const Key('concours_detail_jour_j_section'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Le jour J',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton.tonalIcon(
+                            key: const Key('concours_detail_doublettes_button'),
+                            onPressed: _isSaving
+                                ? null
+                                : () => Navigator.of(context).pushNamed(
+                                    DoublettesListPage.routeName,
+                                    arguments: DoublettesListArgs(
+                                      concoursId: widget.concoursId,
+                                    ),
+                                  ),
+                            label: const Text('Doublettes'),
+                            icon: const Icon(Icons.group),
+                            iconAlignment: .start,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   FilledButton(
                     key: const Key('concours_detail_validate_button'),
                     onPressed: _isSaving ? null : _save,

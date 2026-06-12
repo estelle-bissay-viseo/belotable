@@ -27,6 +27,10 @@ void main() {
     await tester.tap(find.byKey(const Key('home_list_concours_button')));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.byKey(const Key('concours_manage_button_id-manage')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const Key('concours_manage_button_id-manage')),
     );
@@ -38,6 +42,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Informations générales'), findsOneWidget);
+    expect(
+      find.byKey(const Key('concours_detail_jour_j_section')),
+      findsOneWidget,
+    );
+    expect(find.text('Le jour J'), findsOneWidget);
+    expect(
+      find.byKey(const Key('concours_detail_doublettes_button')),
+      findsOneWidget,
+    );
 
     final idFieldEditable = tester.widget<EditableText>(
       find.descendant(
@@ -70,6 +83,10 @@ void main() {
     await tester.tap(find.byKey(const Key('home_list_concours_button')));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.byKey(const Key('concours_manage_button_id-update')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const Key('concours_manage_button_id-update')),
     );
@@ -84,6 +101,11 @@ void main() {
       'Club Modifie',
     );
 
+    await tester.drag(
+      find.byKey(const Key('concours_detail_form')),
+      const Offset(0, -500),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('concours_detail_validate_button')));
     await tester.pumpAndSettle();
 
@@ -114,6 +136,10 @@ void main() {
     await tester.tap(find.byKey(const Key('home_list_concours_button')));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.byKey(const Key('concours_manage_button_id-cancel')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const Key('concours_manage_button_id-cancel')),
     );
@@ -124,6 +150,11 @@ void main() {
       'Salle Temporaire',
     );
 
+    await tester.drag(
+      find.byKey(const Key('concours_detail_form')),
+      const Offset(0, -500),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('concours_detail_cancel_button')));
     await tester.pumpAndSettle();
 
@@ -136,6 +167,11 @@ void main() {
 
     expect(find.byKey(const Key('concours_detail_form')), findsOneWidget);
 
+    await tester.drag(
+      find.byKey(const Key('concours_detail_form')),
+      const Offset(0, -500),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('concours_detail_cancel_button')));
     await tester.pumpAndSettle();
 

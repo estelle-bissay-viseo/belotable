@@ -2,6 +2,10 @@ import 'package:belotable/presentation/shared/app_info_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_detail_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_list_page.dart';
+import 'package:belotable/presentation/shared/doublettes/doublette_creation_page.dart';
+import 'package:belotable/presentation/shared/doublettes/doublette_detail_page.dart';
+import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
+import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
 import 'package:belotable/presentation/shared/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -48,6 +52,40 @@ class MyApp extends StatelessWidget {
           if (concoursId is String) {
             return MaterialPageRoute<void>(
               builder: (_) => ConcoursDetailPage(concoursId: concoursId),
+              settings: settings,
+            );
+          }
+        }
+
+        if (settings.name == DoublettesListPage.routeName) {
+          final args = settings.arguments;
+          if (args is DoublettesListArgs) {
+            return MaterialPageRoute<void>(
+              builder: (_) => DoublettesListPage(concoursId: args.concoursId),
+              settings: settings,
+            );
+          }
+        }
+
+        if (settings.name == DoubletteCreationPage.routeName) {
+          final args = settings.arguments;
+          if (args is DoubletteCreationArgs) {
+            return MaterialPageRoute<void>(
+              builder: (_) =>
+                  DoubletteCreationPage(concoursId: args.concoursId),
+              settings: settings,
+            );
+          }
+        }
+
+        if (settings.name == DoubletteDetailPage.routeName) {
+          final args = settings.arguments;
+          if (args is DoubletteDetailArgs) {
+            return MaterialPageRoute<void>(
+              builder: (_) => DoubletteDetailPage(
+                concoursId: args.concoursId,
+                doubletteId: args.doubletteId,
+              ),
               settings: settings,
             );
           }
