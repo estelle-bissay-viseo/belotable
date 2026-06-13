@@ -1,6 +1,9 @@
 import 'package:belotable/domain/concours/concours.dart';
+import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
 import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
+import 'package:belotable/presentation/shared/manches/manche_navigation_args.dart';
+import 'package:belotable/presentation/shared/manches/manche_page.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -325,6 +328,65 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                             icon: const Icon(Icons.group),
                             iconAlignment: .start,
                           ),
+                          const SizedBox(height: 8),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final manchesAsync = ref.watch(
+                                manchesByConcoursProvider(widget.concoursId),
+                              );
+                              return manchesAsync.when(
+                                loading: () => const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                error: (_, _) => const Text(
+                                  'Erreur chargement manches',
+                                ),
+                                data: (manches) => Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (manches.isEmpty)
+                                      FilledButton.tonalIcon(
+                                        key: const Key(
+                                          // ignore: lines_longer_than_80_chars because identation
+                                          'concours_detail_prepare_manche_button',
+                                        ),
+                                        onPressed: _isSaving
+                                            ? null
+                                            : () =>
+                                                  // ignore: lines_longer_than_80_chars because identation
+                                                  showCreatePremiereMancheDialog(
+                                                    context,
+                                                    ref,
+                                                    widget.concoursId,
+                                                  ),
+                                        label: const Text(
+                                          'Préparer la première manche',
+                                        ),
+                                        icon: const Icon(Icons.sports_score),
+                                        iconAlignment: .start,
+                                      )
+                                    else
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: manches
+                                            .map(
+                                              (m) => _MancheButton(
+                                                manche: m,
+                                                isSaving: _isSaving,
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -353,6 +415,33 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Button navigating to a manche management page.
+class _MancheButton extends StatelessWidget {
+  const _MancheButton({required this.manche, required this.isSaving});
+
+  final Manche manche;
+  final bool isSaving;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonalIcon(
+      key: Key('concours_detail_manche_button_${manche.id}'),
+      onPressed: isSaving
+          ? null
+          : () => Navigator.of(context).pushNamed(
+              ManchePage.routeName,
+              arguments: ManchePageArgs(
+                mancheId: manche.id,
+                mancheNumero: manche.numero,
+              ),
+            ),
+      label: Text('Manche ${manche.numero}'),
+      icon: const Icon(Icons.table_chart),
+      iconAlignment: .start,
     );
   }
 }

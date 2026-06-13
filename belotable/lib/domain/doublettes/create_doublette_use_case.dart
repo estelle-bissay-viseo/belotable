@@ -2,13 +2,20 @@ import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/doublettes/doublette_exceptions.dart';
 import 'package:belotable/domain/doublettes/doublette_repository.dart';
 import 'package:belotable/domain/doublettes/team_name_dictionary.dart';
+import 'package:belotable/domain/manches/manche_repository.dart';
 
 /// Creates a new doublette in a contest.
 class CreateDoubletteUseCase {
-  /// Creates use case with repository dependency.
-  CreateDoubletteUseCase(this._repository);
+  /// Creates use case with required repository and optional manche repository.
+  CreateDoubletteUseCase(
+    this._repository, {
+    this.mancheRepository,
+  });
 
   final DoubletteRepository _repository;
+
+  /// Optional manche repository for auto-assignment when manche exists.
+  final MancheRepository? mancheRepository;
 
   /// Creates and persists new doublette.
   Future<Doublette> call({
@@ -48,12 +55,36 @@ class CreateDoubletteUseCase {
       throw DuplicateTeamNameException(teamName);
     }
 
-    return _repository.create(
+    return _createAndAssign(
       concoursId: trimmedConcoursId,
       joueurA: trimmedJoueurA,
       joueurB: trimmedJoueurB,
       nomEquipe: teamName,
     );
+  }
+
+  Future<Doublette> _createAndAssign({
+    required String concoursId,
+    required String joueurA,
+    required String joueurB,
+    required String nomEquipe,
+  }) async {
+    final doublette = await _repository.create(
+      concoursId: concoursId,
+      joueurA: joueurA,
+      joueurB: joueurB,
+      nomEquipe: nomEquipe,
+    );
+
+    final mancheRepo = mancheRepository;
+    if (mancheRepo != null) {
+      await mancheRepo.assignDoubletteToLatestManche(
+        concoursId: concoursId,
+        doubletteId: doublette.doubletteId,
+      );
+    }
+
+    return doublette;
   }
 
   /// Returns first available team name from dictionary or fallback.

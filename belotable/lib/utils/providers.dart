@@ -1,6 +1,7 @@
 import 'package:belotable/data/database/app_database.dart';
 import 'package:belotable/data/repositories/drift_concours_repository.dart';
 import 'package:belotable/data/repositories/drift_doublette_repository.dart';
+import 'package:belotable/data/repositories/drift_manche_repository.dart';
 import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/domain/concours/concours_repository.dart';
 import 'package:belotable/domain/concours/create_concours_use_case.dart';
@@ -11,6 +12,10 @@ import 'package:belotable/domain/doublettes/delete_doublette_use_case.dart';
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/doublettes/doublette_repository.dart';
 import 'package:belotable/domain/doublettes/update_doublette_use_case.dart';
+import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
+import 'package:belotable/domain/manches/manche.dart';
+import 'package:belotable/domain/manches/manche_repository.dart';
+import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Dependency injection providers for database, repositories, and use cases.
@@ -32,6 +37,12 @@ final doubletteRepositoryProvider = Provider<DoubletteRepository>((ref) {
   return DriftDoubletteRepository(db);
 });
 
+/// Provides MancheRepository bound to database.
+final mancheRepositoryProvider = Provider<MancheRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftMancheRepository(db);
+});
+
 /// Provides CreateConcoursUseCase with repository dependency.
 final createConcoursUseCaseProvider = Provider<CreateConcoursUseCase>((ref) {
   final repo = ref.watch(concoursRepositoryProvider);
@@ -50,10 +61,11 @@ final updateConcoursUseCaseProvider = Provider<UpdateConcoursUseCase>((ref) {
   return UpdateConcoursUseCase(repo);
 });
 
-/// Provides CreateDoubletteUseCase with repository dependency.
+/// Provides CreateDoubletteUseCase with repository dependencies.
 final createDoubletteUseCaseProvider = Provider<CreateDoubletteUseCase>((ref) {
   final repo = ref.watch(doubletteRepositoryProvider);
-  return CreateDoubletteUseCase(repo);
+  final mancheRepo = ref.watch(mancheRepositoryProvider);
+  return CreateDoubletteUseCase(repo, mancheRepository: mancheRepo);
 });
 
 /// Provides UpdateDoubletteUseCase with repository dependency.
@@ -62,10 +74,11 @@ final updateDoubletteUseCaseProvider = Provider<UpdateDoubletteUseCase>((ref) {
   return UpdateDoubletteUseCase(repo);
 });
 
-/// Provides DeleteDoubletteUseCase with repository dependency.
+/// Provides DeleteDoubletteUseCase with repository dependencies.
 final deleteDoubletteUseCaseProvider = Provider<DeleteDoubletteUseCase>((ref) {
   final repo = ref.watch(doubletteRepositoryProvider);
-  return DeleteDoubletteUseCase(repo);
+  final mancheRepo = ref.watch(mancheRepositoryProvider);
+  return DeleteDoubletteUseCase(repo, mancheRepository: mancheRepo);
 });
 
 /// Provides concours list sorted by date desc for list screen.
@@ -82,4 +95,28 @@ final doublettesByConcoursProvider = FutureProvider.autoDispose
     .family<List<Doublette>, String>((ref, concoursId) {
       final repo = ref.watch(doubletteRepositoryProvider);
       return repo.findByConcoursId(concoursId);
+    });
+
+/// Provides CreatePremiereMancheUseCase with repository dependencies.
+final createPremiereMancheUseCaseProvider =
+    Provider<CreatePremiereMancheUseCase>((ref) {
+      final doubletteRepo = ref.watch(doubletteRepositoryProvider);
+      final mancheRepo = ref.watch(mancheRepositoryProvider);
+      return CreatePremiereMancheUseCase(doubletteRepo, mancheRepo);
+    });
+
+/// Provides manches list for a concours.
+// ignore: specify_nonobvious_property_types
+final manchesByConcoursProvider = FutureProvider.autoDispose
+    .family<List<Manche>, String>((ref, concoursId) {
+      final repo = ref.watch(mancheRepositoryProvider);
+      return repo.findManchesByConcoursId(concoursId);
+    });
+
+/// Provides tables de jeu for a manche.
+// ignore: specify_nonobvious_property_types
+final tablesDeJeuByMancheProvider = FutureProvider.autoDispose
+    .family<List<TableDeJeu>, int>((ref, mancheId) {
+      final repo = ref.watch(mancheRepositoryProvider);
+      return repo.findTablesDeJeuByMancheId(mancheId);
     });

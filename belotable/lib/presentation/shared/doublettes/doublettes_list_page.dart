@@ -67,6 +67,14 @@ class DoublettesListPage extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Doublette supprimée avec succès')),
       );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Suppression impossible: doublette passée en Abandon',
+          ),
+        ),
+      );
     }
   }
 
