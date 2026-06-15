@@ -49,6 +49,14 @@ Si aucun concours n'est disponible, le message **Aucun concours disponible** est
 
 La page de liste propose un bouton **+** pour créer un nouveau concours. Ce bouton ouvre directement l'écran *Créer un concours*.
 
+### Modification d'un concours
+
+Depuis la page de liste des concours, cliquez sur le bouton **Modifier** associé au concours que vous souhaitez modifier.
+
+Vous serez redirigé vers l'écran *Modifier un concours*, qui affiche les informations du concours et vous permet de les modifier.
+
+![Page de modification d'un concours](./assets/images/page-modifier-concours.png)
+
 ### Suppression d'un concours
 
 Depuis la page de liste des concours, cliquez sur le bouton **Supprimer** associé au concours que vous souhaitez supprimer.
@@ -67,7 +75,7 @@ La page de gestion d'un concours affiche les informations du concours et propose
 
 ![Page de gestion d'un concours](./assets/images/page-gestion-concours.png)
 
-Vous pouvez gérer ici les règles du concours, les doublettes inscrites au concours, le déroulement du concours et les résultats.
+Vous pouvez gérer ici les doublettes inscrites au concours, le déroulement du concours et les résultats.
 
 ### Gestion des doublettes
 
@@ -80,3 +88,24 @@ La page *Liste des doublettes* affiche les équipes inscrites au concours.
 Cette liste vous permet de visualiser les doublettes déjà inscrites, d'en ajouter de nouvelles, de modifier les inscriptions existantes, ou de supprimer des doublettes.
 
 A la création d'une doublette, un nom d'équipe est automatiquement proposé par l'application, mais vous pouvez le modifier. Le nom d'équipe doit rester unique dans le concours.
+
+### Gestion des manches
+
+Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(uniquement la première manche pour le moment)*.
+
+Lorsque vous avez enregistrer toutes les doublettes du concours, cliquez sur **Préparer la première manche** pour démarrer le concours.
+
+Vous pouvez voir la répartition des doublettes sur les tables de la première manche, et inscrire les résultats des parties jouées en cliquant sur le bouton **Manche 1**.
+
+![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
+
+#### Première manche (manche 1)
+
+La liste des tables de la **première manche** est générée automatiquement, en répartissant les doublettes sur les tables **par ordre d'inscription**.
+
+Dès que la manche est créée, les **modifications des doublettes ont des impacts sur la répartition des tables** de la manche 1 :
+
+- si une doublette est supprimée, cela libèrera une place sur la table où elle était prévue, mais ne réorganisera pas les autres tables.
+- si une doublette est ajoutée après la préparation de la manche, elle sera placée sur une table libre si possible, sinon elle sera placée sur une nouvelle table en attente d'une autre doublette pour compléter la table.
+- si une doublette est supprimée alors qu'elle a déjà joué une partie, la doublette ne sera pas supprimée mais sera marquée comme "Abandon" sur sa partie, et son adversaire sera marquée comme "Gagné".
+- si deux tables attendent une doublette pour compléter la table, les 2 tables seront fusionnées.

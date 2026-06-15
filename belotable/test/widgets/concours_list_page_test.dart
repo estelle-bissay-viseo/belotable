@@ -80,6 +80,12 @@ void main() {
     final oldestDateTop = tester.getTopLeft(find.text('2024-01-10')).dy;
     expect(latestDateTop, lessThan(oldestDateTop));
 
+    final modifierButtons = tester.widgetList<IconButton>(
+      find.ancestor(
+        of: find.byIcon(Icons.edit_outlined),
+        matching: find.byType(IconButton),
+      ),
+    );
     final gererButtons = tester.widgetList<IconButton>(
       find.ancestor(
         of: find.byIcon(Icons.settings_outlined),
@@ -93,9 +99,13 @@ void main() {
       ),
     );
 
+    expect(modifierButtons, hasLength(2));
     expect(gererButtons, hasLength(2));
     expect(supprimerButtons, hasLength(2));
 
+    for (final button in modifierButtons) {
+      expect(button.onPressed, isNotNull);
+    }
     for (final button in gererButtons) {
       expect(button.onPressed, isNotNull);
     }

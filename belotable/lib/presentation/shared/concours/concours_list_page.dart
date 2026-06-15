@@ -1,6 +1,7 @@
 import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
-import 'package:belotable/presentation/shared/concours/concours_detail_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_edit_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_manage_page.dart';
 import 'package:belotable/presentation/shared/concours/delete_concours_confirmation_dialog.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
@@ -129,11 +130,25 @@ class ConcoursListPage extends ConsumerWidget {
                               children: [
                                 IconButton(
                                   key: ValueKey<String>(
+                                    'concours_edit_button_${concours.id}',
+                                  ),
+                                  onPressed: () async {
+                                    await Navigator.of(context).pushNamed(
+                                      ConcoursEditPage.routeName,
+                                      arguments: concours.id,
+                                    );
+                                    ref.invalidate(concoursListProvider);
+                                  },
+                                  icon: const Icon(Icons.edit_outlined),
+                                  tooltip: 'Modifier',
+                                ),
+                                IconButton(
+                                  key: ValueKey<String>(
                                     'concours_manage_button_${concours.id}',
                                   ),
                                   onPressed: () async {
                                     await Navigator.of(context).pushNamed(
-                                      ConcoursDetailPage.routeName,
+                                      ConcoursManagePage.routeName,
                                       arguments: concours.id,
                                     );
                                     ref.invalidate(concoursListProvider);
