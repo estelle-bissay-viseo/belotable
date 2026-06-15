@@ -71,6 +71,14 @@ void main() {
             )
             .first,
       );
+      final modifierButton = tester.widget<IconButton>(
+        find
+            .ancestor(
+              of: find.byIcon(Icons.edit_outlined),
+              matching: find.byType(IconButton),
+            )
+            .first,
+      );
       final supprimerButton = tester.widget<IconButton>(
         find
             .ancestor(
@@ -80,6 +88,7 @@ void main() {
             .first,
       );
 
+      expect(modifierButton.onPressed, isNotNull);
       expect(gererButton.onPressed, isNotNull);
       expect(supprimerButton.onPressed, isNotNull);
     },

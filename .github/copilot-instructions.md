@@ -63,6 +63,16 @@ applyTo: '**'
 - First pass budget: max 6 file reads before making first concrete action.
 - Expand context only when blocker found.
 
+## Session-History Improvements (Belotable)
+
+- For PR/review/spec requests, if inline user payload is very large (about >8,000 chars), do not process full paste directly. Ask for file path (or repository reference) and work from that source.
+- Default to summary-first review output. Keep quoted code excerpts short and evidence-only (hard cap: 120 total quoted lines unless user asks for full dump).
+- For review/docs investigations, use diff-first workflow:
+  1. identify changed files from git diff
+  2. read only targeted ranges in impacted files
+  3. avoid full-file dumps unless strictly required to resolve uncertainty
+- Add clarification checkpoint for long autonomous loops: if ~10 tool calls happen without concrete finding/deliverable, stop and ask user to narrow scope or set priority.
+
 ## Specifics for Code Development
 
 - Provide code examples, detailed explanations, and practical advice for developing with these tools.

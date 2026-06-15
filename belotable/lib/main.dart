@@ -1,7 +1,8 @@
 import 'package:belotable/presentation/shared/app_info_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_creation_page.dart';
-import 'package:belotable/presentation/shared/concours/concours_detail_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_edit_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_list_page.dart';
+import 'package:belotable/presentation/shared/concours/concours_manage_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_creation_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_detail_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
@@ -49,11 +50,21 @@ class MyApp extends StatelessWidget {
         ConcoursListPage.routeName: (_) => const ConcoursListPage(),
       },
       onGenerateRoute: (settings) {
-        if (settings.name == ConcoursDetailPage.routeName) {
+        if (settings.name == ConcoursManagePage.routeName) {
           final concoursId = settings.arguments;
           if (concoursId is String) {
             return MaterialPageRoute<void>(
-              builder: (_) => ConcoursDetailPage(concoursId: concoursId),
+              builder: (_) => ConcoursManagePage(concoursId: concoursId),
+              settings: settings,
+            );
+          }
+        }
+
+        if (settings.name == ConcoursEditPage.routeName) {
+          final concoursId = settings.arguments;
+          if (concoursId is String) {
+            return MaterialPageRoute<void>(
+              builder: (_) => ConcoursEditPage(concoursId: concoursId),
               settings: settings,
             );
           }

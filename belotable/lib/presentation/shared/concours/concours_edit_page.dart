@@ -1,32 +1,28 @@
 import 'package:belotable/domain/concours/concours.dart';
-import 'package:belotable/domain/manches/manche.dart';
-import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
-import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
-import 'package:belotable/presentation/shared/manches/manche_navigation_args.dart';
-import 'package:belotable/presentation/shared/manches/manche_page.dart';
+import 'package:belotable/presentation/shared/utils/info_field.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Page for viewing and editing one concours.
-class ConcoursDetailPage extends ConsumerStatefulWidget {
-  /// Creates detail page for the given concours id.
-  const ConcoursDetailPage({
+/// Page for editing concours general information.
+class ConcoursEditPage extends ConsumerStatefulWidget {
+  /// Creates edit page for given concours id.
+  const ConcoursEditPage({
     required this.concoursId,
     super.key,
   });
 
   /// Route name for navigation to this page.
-  static const routeName = '/concours/detail';
+  static const routeName = '/concours/edit';
 
   /// Target concours id.
   final String concoursId;
 
   @override
-  ConsumerState<ConcoursDetailPage> createState() => _ConcoursDetailPageState();
+  ConsumerState<ConcoursEditPage> createState() => _ConcoursEditPageState();
 }
 
-class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
+class _ConcoursEditPageState extends ConsumerState<ConcoursEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _idController = TextEditingController();
   final _lieuController = TextEditingController();
@@ -113,12 +109,12 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
           ),
           actions: [
             TextButton(
-              key: const Key('concours_detail_discard_keep_editing_button'),
+              key: const Key('concours_edit_discard_keep_editing_button'),
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Continuer édition'),
             ),
             FilledButton(
-              key: const Key('concours_detail_discard_confirm_button'),
+              key: const Key('concours_edit_discard_confirm_button'),
               onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Annuler les modifications'),
             ),
@@ -187,7 +183,7 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
         final concours = snapshot.data;
         if (concours == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Informations concours')),
+            appBar: AppBar(title: const Text('Modifier un concours')),
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -195,7 +191,7 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                   const Text('Concours introuvable'),
                   const SizedBox(height: 12),
                   TextButton(
-                    key: const Key('concours_detail_back_button'),
+                    key: const Key('concours_edit_back_button'),
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('Retour à la liste'),
                   ),
@@ -223,16 +219,16 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
           },
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Informations concours'),
+              title: const Text('Modifier un concours'),
             ),
             body: Form(
               key: _formKey,
               child: ListView(
-                key: const Key('concours_detail_form'),
+                key: const Key('concours_edit_form'),
                 padding: const EdgeInsets.all(16),
                 children: [
                   Card(
-                    key: const Key('concours_detail_general_section'),
+                    key: const Key('concours_edit_general_section'),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -243,14 +239,10 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            key: const Key('concours_detail_id_field'),
-                            controller: _idController,
-                            readOnly: true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Id',
-                            ),
+                          InfoField(
+                            key: const Key('concours_edit_id_field'),
+                            label: 'Id',
+                            value: _idController.text,
                           ),
                           const SizedBox(height: 12),
                           ListTile(
@@ -258,14 +250,14 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                             title: const Text('Date'),
                             subtitle: Text(_formatDate(_selectedDate)),
                             trailing: TextButton(
-                              key: const Key('concours_detail_date_button'),
+                              key: const Key('concours_edit_date_button'),
                               onPressed: _isSaving ? null : _pickDate,
                               child: const Text('Choisir une date'),
                             ),
                           ),
                           const SizedBox(height: 12),
                           TextFormField(
-                            key: const Key('concours_detail_lieu_field'),
+                            key: const Key('concours_edit_lieu_field'),
                             controller: _lieuController,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
@@ -281,9 +273,7 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                           ),
                           const SizedBox(height: 12),
                           TextFormField(
-                            key: const Key(
-                              'concours_detail_organisateur_field',
-                            ),
+                            key: const Key('concours_edit_organisateur_field'),
                             controller: _organisateurController,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
@@ -301,99 +291,9 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Card(
-                    key: const Key('concours_detail_jour_j_section'),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Le jour J',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 16),
-                          FilledButton.tonalIcon(
-                            key: const Key('concours_detail_doublettes_button'),
-                            onPressed: _isSaving
-                                ? null
-                                : () => Navigator.of(context).pushNamed(
-                                    DoublettesListPage.routeName,
-                                    arguments: DoublettesListArgs(
-                                      concoursId: widget.concoursId,
-                                    ),
-                                  ),
-                            label: const Text('Doublettes'),
-                            icon: const Icon(Icons.group),
-                            iconAlignment: .start,
-                          ),
-                          const SizedBox(height: 8),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              final manchesAsync = ref.watch(
-                                manchesByConcoursProvider(widget.concoursId),
-                              );
-                              return manchesAsync.when(
-                                loading: () => const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                error: (_, _) => const Text(
-                                  'Erreur chargement manches',
-                                ),
-                                data: (manches) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (manches.isEmpty)
-                                      FilledButton.tonalIcon(
-                                        key: const Key(
-                                          // ignore: lines_longer_than_80_chars because identation
-                                          'concours_detail_prepare_manche_button',
-                                        ),
-                                        onPressed: _isSaving
-                                            ? null
-                                            : () =>
-                                                  // ignore: lines_longer_than_80_chars because identation
-                                                  showCreatePremiereMancheDialog(
-                                                    context,
-                                                    ref,
-                                                    widget.concoursId,
-                                                  ),
-                                        label: const Text(
-                                          'Préparer la première manche',
-                                        ),
-                                        icon: const Icon(Icons.sports_score),
-                                        iconAlignment: .start,
-                                      )
-                                    else
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: manches
-                                            .map(
-                                              (m) => _MancheButton(
-                                                manche: m,
-                                                isSaving: _isSaving,
-                                              ),
-                                            )
-                                            .toList(),
-                                      ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 8),
                   FilledButton(
-                    key: const Key('concours_detail_validate_button'),
+                    key: const Key('concours_edit_validate_button'),
                     onPressed: _isSaving ? null : _save,
                     child: _isSaving
                         ? const SizedBox(
@@ -405,7 +305,7 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    key: const Key('concours_detail_cancel_button'),
+                    key: const Key('concours_edit_cancel_button'),
                     onPressed: _isSaving ? null : () => _cancel(concours),
                     child: const Text('Annuler les modifications'),
                   ),
@@ -415,33 +315,6 @@ class _ConcoursDetailPageState extends ConsumerState<ConcoursDetailPage> {
           ),
         );
       },
-    );
-  }
-}
-
-/// Button navigating to a manche management page.
-class _MancheButton extends StatelessWidget {
-  const _MancheButton({required this.manche, required this.isSaving});
-
-  final Manche manche;
-  final bool isSaving;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton.tonalIcon(
-      key: Key('concours_detail_manche_button_${manche.id}'),
-      onPressed: isSaving
-          ? null
-          : () => Navigator.of(context).pushNamed(
-              ManchePage.routeName,
-              arguments: ManchePageArgs(
-                mancheId: manche.id,
-                mancheNumero: manche.numero,
-              ),
-            ),
-      label: Text('Manche ${manche.numero}'),
-      icon: const Icon(Icons.table_chart),
-      iconAlignment: .start,
     );
   }
 }

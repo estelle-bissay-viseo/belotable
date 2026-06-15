@@ -5,8 +5,9 @@ import 'flows/manches_flow_test.dart' as manches_flow;
 import 'pages/app_common_page_test.dart' as app_common_page;
 import 'pages/concours_creation_page_test.dart' as concours_creation_page;
 import 'pages/concours_deletion_test.dart' as concours_deletion;
-import 'pages/concours_detail_page_test.dart' as concours_detail_page;
+import 'pages/concours_edit_page_test.dart' as concours_edit_page;
 import 'pages/concours_list_page_test.dart' as concours_list_page;
+import 'pages/concours_manage_page_test.dart' as concours_manage_page;
 import 'pages/home_info_page_test.dart' as home_info_page;
 import 'pages/home_page_test.dart' as home_page;
 
@@ -21,8 +22,9 @@ void main() {
 
   app_common_page.main();
   concours_creation_page.main();
-  concours_detail_page.main();
+  concours_edit_page.main();
   concours_list_page.main();
+  concours_manage_page.main();
   concours_deletion.main();
   home_info_page.main();
   home_page.main();
