@@ -143,6 +143,58 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
               ),
               const SizedBox(height: 24),
               Card(
+                key: const Key('concours_detail_parametres_section'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Paramètres du concours',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      InfoField(
+                        key: const Key('concours_detail_donnes_field'),
+                        label: 'Nombre de donnes par manche',
+                        value: concours.nombreDonnesParManche.toString(),
+                      ),
+                      const SizedBox(height: 12),
+                      InfoField(
+                        key: const Key('concours_detail_max_points_field'),
+                        label: 'Nombre maximum de points par donne',
+                        value: concours.nombreMaxPointsParDonne.toString(),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Règles de jeu :',
+                        key: Key('concours_detail_regles_field'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          concours.reglesJeu,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Card(
                 key: const Key('concours_detail_jour_j_section'),
                 child: Padding(
                   padding: const EdgeInsets.all(16),

@@ -23,6 +23,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
         },
@@ -124,6 +126,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle B',
               organisateur: 'Club B',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
         },

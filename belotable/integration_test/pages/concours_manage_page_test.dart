@@ -23,6 +23,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
         },
@@ -59,6 +61,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
 
@@ -125,6 +129,84 @@ void main() {
         find.text(
           // ignore: lines_longer_than_80_chars because test content
           'Attention: toute modification réalisée sur cet écran est immédiatement enregistrée.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  e2eTest(
+    'Concours detail page',
+    'Contest parameters are displayed in manage page',
+    (tester, db) async {
+      await pumpTestApp(
+        tester,
+        db,
+        seed: (database) async {
+          await database.concoursDao.insertConcours(
+            Concours(
+              id: 'id-params-display',
+              date: DateTime(2026, 6, 8),
+              lieu: 'Salle B',
+              organisateur: 'Club B',
+              nombreDonnesParManche: 12,
+              nombreMaxPointsParDonne: 180,
+              reglesJeu: 'Règles spéciales du concours',
+            ),
+          );
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('concours_manage_button_id-params-display')),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify parameters are displayed
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('concours_detail_parametres_section')),
+          matching: find.byKey(const Key('concours_detail_donnes_field')),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('concours_detail_donnes_field')),
+          matching: find.text('12'),
+        ),
+        findsOneWidget,
+      );
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('concours_detail_parametres_section')),
+          matching: find.byKey(const Key('concours_detail_max_points_field')),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('concours_detail_max_points_field')),
+          matching: find.text('180'),
+        ),
+        findsOneWidget,
+      );
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('concours_detail_parametres_section')),
+          matching: find.text('Règles de jeu :'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('concours_detail_parametres_section')),
+          matching: find.text('Règles spéciales du concours'),
         ),
         findsOneWidget,
       );

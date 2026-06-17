@@ -20,11 +20,12 @@ Les informations obligatoires sont :
 - Le **Lieu** du concours (de préférence une adresse postale complète)
 - L'**Organisateur** du concours (le nom de la personne ou de l'entité responsable)
 
-La date du concours est initialisée à la date du jour, mais vous pouvez la modifier.
+Certaines informations sont pré-remplies par défaut, mais vous pouvez les modifier si nécessaire :
 
-![Créer un nouveau concours modifier date](./assets/images/page-creer-concours-modifier-date.png)
-
-![Créer un nouveau concours exemple](./assets/images/page-creer-concours-exemple.png)
+ - La date du concours
+ - Le nombre de donnes par manche
+ - Le nombre de points maximum par donne (noter 0 pour un nombre illimité de points)
+ - La définition des règles de jeu (cette définition sera inclue dans le fichier PDF de saisie des points des donnes)
 
 Valider la création du concours en sélectionnant **Valider**. Vous serez redirigé vers la page d'accueil avec le nouveau concours enregistré.
 
@@ -41,6 +42,7 @@ Chaque ligne affiche :
 - La **Date** du concours
 - Le **Lieu** du concours
 - L'**Organisateur** du concours
+- Le **Statut** du concours (Initialisation, En cours, Terminé)
 - Le nombre de **Doublettes** inscrites au concours
 
 ![Liste des concours](./assets/images/page-liste-concours.png)
@@ -52,6 +54,8 @@ La page de liste propose un bouton **+** pour créer un nouveau concours. Ce bou
 ### Modification d'un concours
 
 Depuis la page de liste des concours, cliquez sur le bouton **Modifier** associé au concours que vous souhaitez modifier.
+
+La modification d'un concours n'est possible que si le concours est en statut *Initialisation*. Le concours change de statut dès qu'une manche est préparée. Il faut donc saisir toutes les informations du concours avant de préparer la première manche.
 
 Vous serez redirigé vers l'écran *Modifier un concours*, qui affiche les informations du concours et vous permet de les modifier.
 
@@ -67,11 +71,11 @@ Une pop-up de confirmation de suppression s'affichera pour éviter les suppressi
 
 Après la création d'un concours, vous pouvez gérer les informations de ce concours depuis la page de liste des concours en cliquant sur le bouton **Gérer** associé au concours.
 
-Vous serez redirigé vers la page de gestion du concours, qui affiche les informations du concours et propose des actions de gestion.
+Vous serez redirigé vers la page de gestion du concours, qui affiche les informations du concours et propose des actions de gestion du concours le jour J.
 
 ## Gestion d'un concours
 
-La page de gestion d'un concours affiche les informations du concours et propose des actions de gestion.
+La page de gestion d'un concours affiche les informations du concours et propose des actions de gestion du concours le jour J.
 
 ![Page de gestion d'un concours](./assets/images/page-gestion-concours.png)
 
@@ -93,7 +97,7 @@ A la création d'une doublette, un nom d'équipe est automatiquement proposé pa
 
 Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(uniquement la première manche pour le moment)*.
 
-Lorsque vous avez enregistrer toutes les doublettes du concours, cliquez sur **Préparer la première manche** pour démarrer le concours.
+Lorsque vous avez enregistré toutes les doublettes du concours, cliquez sur **Préparer la première manche** pour démarrer le concours.
 
 Vous pouvez voir la répartition des doublettes sur les tables de la première manche, et inscrire les résultats des parties jouées en cliquant sur le bouton **Manche 1**.
 

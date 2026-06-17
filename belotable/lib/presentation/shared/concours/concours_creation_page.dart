@@ -1,5 +1,7 @@
+import 'package:belotable/domain/concours/default_game_rules.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Page for creating a new Concours
@@ -19,6 +21,9 @@ class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
   final _formKey = GlobalKey<FormState>();
   final _lieuController = TextEditingController();
   final _organisateurController = TextEditingController();
+  final _reglesJeuController = TextEditingController();
+  final _nombreDonnesController = TextEditingController();
+  final _nombreMaxPointsController = TextEditingController();
 
   late DateTime _selectedDate;
   bool _isSaving = false;
@@ -28,12 +33,18 @@ class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
     super.initState();
     final now = DateTime.now();
     _selectedDate = DateTime(now.year, now.month, now.day);
+    _reglesJeuController.text = defaultGameRules;
+    _nombreDonnesController.text = '10';
+    _nombreMaxPointsController.text = '162';
   }
 
   @override
   void dispose() {
     _lieuController.dispose();
     _organisateurController.dispose();
+    _reglesJeuController.dispose();
+    _nombreDonnesController.dispose();
+    _nombreMaxPointsController.dispose();
     super.dispose();
   }
 
@@ -73,6 +84,10 @@ class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
         date: _selectedDate,
         lieu: _lieuController.text,
         organisateur: _organisateurController.text,
+        nombreDonnesParManche: int.tryParse(_nombreDonnesController.text) ?? 10,
+        nombreMaxPointsParDonne:
+            int.tryParse(_nombreMaxPointsController.text) ?? 162,
+        reglesJeu: _reglesJeuController.text,
       );
 
       if (!mounted) return;
@@ -140,6 +155,68 @@ class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
                   return 'Organisateur obligatoire';
                 }
 
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('concours_nombre_donnes_field'),
+              controller: _nombreDonnesController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Nombre de donnes par manche',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Nombre de donnes obligatoire';
+                }
+                final parsed = int.tryParse(value);
+                if (parsed == null || parsed < 1) {
+                  return 'Doit être un nombre >= 1';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('concours_nombre_max_points_field'),
+              controller: _nombreMaxPointsController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Nombre maximum de points par donne',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Nombre maximum de points obligatoire';
+                }
+                final parsed = int.tryParse(value);
+                if (parsed == null || parsed < 0) {
+                  return 'Doit être un nombre >= 0';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('concours_regles_jeu_field'),
+              controller: _reglesJeuController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Règles de jeu',
+              ),
+              maxLines: 6,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Règles de jeu obligatoires';
+                }
                 return null;
               },
             ),

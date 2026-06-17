@@ -42,3 +42,10 @@ fvm dart run build_runner build --delete-conflicting-outputs
 | Integration tests | `belotable/integration_test/` |
 | Assets | `belotable/assets/` |
 | pubspec | `belotable/pubspec.yaml` |
+
+## Behaviour
+
+- Do not care about messages about line length in flutter analyze output (like `info - The line length exceeds 80-character limit`).
+- Do not prepare git commit at all.
+- Do `fvm flutter test integration_test/all_tests.dart -d windows -r expanded` to run all integration tests.
+- Do `fvm flutter test` to run other tests.

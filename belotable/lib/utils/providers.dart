@@ -102,7 +102,12 @@ final createPremiereMancheUseCaseProvider =
     Provider<CreatePremiereMancheUseCase>((ref) {
       final doubletteRepo = ref.watch(doubletteRepositoryProvider);
       final mancheRepo = ref.watch(mancheRepositoryProvider);
-      return CreatePremiereMancheUseCase(doubletteRepo, mancheRepo);
+      final concoursRepo = ref.watch(concoursRepositoryProvider);
+      return CreatePremiereMancheUseCase(
+        doubletteRepo,
+        mancheRepo,
+        concoursRepo,
+      );
     });
 
 /// Provides manches list for a concours.

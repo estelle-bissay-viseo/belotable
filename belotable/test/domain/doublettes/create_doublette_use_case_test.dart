@@ -3,6 +3,7 @@ import 'package:belotable/domain/doublettes/doublette_exceptions.dart';
 import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/in_memory_concours_repository.dart';
 import '../../helpers/in_memory_doublette_repository.dart';
 import '../../helpers/in_memory_manche_repository.dart';
 import '../../helpers/test_utils.dart';
@@ -10,6 +11,7 @@ import '../../helpers/test_utils.dart';
 typedef _CreateDoubletteDeps = ({
   InMemoryDoubletteRepository repository,
   InMemoryMancheRepository mancheRepository,
+  InMemoryConcoursRepository concoursRepository,
 });
 
 void main() {
@@ -19,6 +21,7 @@ void main() {
       dependenciesFactory: () => (
         repository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
@@ -44,6 +47,7 @@ void main() {
       dependenciesFactory: () => (
         repository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
@@ -74,6 +78,7 @@ void main() {
       dependenciesFactory: () => (
         repository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
@@ -104,6 +109,7 @@ void main() {
       dependenciesFactory: () => (
         repository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
@@ -132,6 +138,7 @@ void main() {
         final createManche = CreatePremiereMancheUseCase(
           deps.repository,
           deps.mancheRepository,
+          deps.concoursRepository,
         );
         final manche = await createManche('concours-1');
 
@@ -156,6 +163,7 @@ void main() {
       dependenciesFactory: () => (
         repository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
@@ -178,6 +186,7 @@ void main() {
         final createManche = CreatePremiereMancheUseCase(
           deps.repository,
           deps.mancheRepository,
+          deps.concoursRepository,
         );
         final manche = await createManche('concours-2');
 

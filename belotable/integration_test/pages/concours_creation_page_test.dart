@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -42,6 +43,18 @@ void main() {
       await tester.enterText(
         find.byKey(const Key('concours_organisateur_field')),
         'Association Belote',
+      );
+      await tester.enterText(
+        find.byKey(const Key('concours_nombre_donnes_field')),
+        '8',
+      );
+      await tester.enterText(
+        find.byKey(const Key('concours_nombre_max_points_field')),
+        '180',
+      );
+      await tester.enterText(
+        find.byKey(const Key('concours_regles_jeu_field')),
+        'Règles de jeu du concours',
       );
 
       await tester.tap(find.byKey(const Key('concours_validate_button')));

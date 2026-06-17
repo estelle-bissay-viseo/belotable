@@ -25,6 +25,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
 
@@ -101,6 +103,11 @@ void main() {
       );
 
       // Wait a moment for navigation
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_manche_button_1')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
       await tester.pumpAndSettle();
 
       // Click on the first manche button to view it
@@ -158,6 +165,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
 
@@ -234,6 +243,11 @@ void main() {
       );
 
       // Wait a moment for navigation
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_manche_button_1')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
       await tester.pumpAndSettle();
 
       // Click on the first manche button to view it
