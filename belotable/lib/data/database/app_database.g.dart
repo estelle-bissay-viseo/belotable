@@ -118,8 +118,63 @@ class $ConcoursTableTable extends ConcoursTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _nombreDonnesParMancheMeta =
+      const VerificationMeta('nombreDonnesParManche');
   @override
-  List<GeneratedColumn> get $columns => [id, date, lieu, organisateur];
+  late final GeneratedColumn<int> nombreDonnesParManche = GeneratedColumn<int>(
+    'nombre_donnes_par_manche',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(10),
+  );
+  static const VerificationMeta _nombreMaxPointsParDonneMeta =
+      const VerificationMeta('nombreMaxPointsParDonne');
+  @override
+  late final GeneratedColumn<int> nombreMaxPointsParDonne =
+      GeneratedColumn<int>(
+        'nombre_max_points_par_donne',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(162),
+      );
+  static const VerificationMeta _reglesJeuMeta = const VerificationMeta(
+    'reglesJeu',
+  );
+  @override
+  late final GeneratedColumn<String> reglesJeu = GeneratedColumn<String>(
+    'regles_jeu',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statutConcoursMeta = const VerificationMeta(
+    'statutConcours',
+  );
+  @override
+  late final GeneratedColumn<String> statutConcours = GeneratedColumn<String>(
+    'statut_concours',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('initialisation'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    date,
+    lieu,
+    organisateur,
+    nombreDonnesParManche,
+    nombreMaxPointsParDonne,
+    reglesJeu,
+    statutConcours,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -164,6 +219,41 @@ class $ConcoursTableTable extends ConcoursTable
     } else if (isInserting) {
       context.missing(_organisateurMeta);
     }
+    if (data.containsKey('nombre_donnes_par_manche')) {
+      context.handle(
+        _nombreDonnesParMancheMeta,
+        nombreDonnesParManche.isAcceptableOrUnknown(
+          data['nombre_donnes_par_manche']!,
+          _nombreDonnesParMancheMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nombre_max_points_par_donne')) {
+      context.handle(
+        _nombreMaxPointsParDonneMeta,
+        nombreMaxPointsParDonne.isAcceptableOrUnknown(
+          data['nombre_max_points_par_donne']!,
+          _nombreMaxPointsParDonneMeta,
+        ),
+      );
+    }
+    if (data.containsKey('regles_jeu')) {
+      context.handle(
+        _reglesJeuMeta,
+        reglesJeu.isAcceptableOrUnknown(data['regles_jeu']!, _reglesJeuMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reglesJeuMeta);
+    }
+    if (data.containsKey('statut_concours')) {
+      context.handle(
+        _statutConcoursMeta,
+        statutConcours.isAcceptableOrUnknown(
+          data['statut_concours']!,
+          _statutConcoursMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -189,6 +279,22 @@ class $ConcoursTableTable extends ConcoursTable
         DriftSqlType.string,
         data['${effectivePrefix}organisateur'],
       )!,
+      nombreDonnesParManche: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}nombre_donnes_par_manche'],
+      )!,
+      nombreMaxPointsParDonne: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}nombre_max_points_par_donne'],
+      )!,
+      reglesJeu: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}regles_jeu'],
+      )!,
+      statutConcours: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}statut_concours'],
+      )!,
     );
   }
 
@@ -211,11 +317,27 @@ class ConcoursTableData extends DataClass
 
   /// Organizing entity.
   final String organisateur;
+
+  /// Number of deals per round.
+  final int nombreDonnesParManche;
+
+  /// Maximum points per deal.
+  final int nombreMaxPointsParDonne;
+
+  /// Game rules text.
+  final String reglesJeu;
+
+  /// Contest status: Initialisation, EnCours, Termine.
+  final String statutConcours;
   const ConcoursTableData({
     required this.id,
     required this.date,
     required this.lieu,
     required this.organisateur,
+    required this.nombreDonnesParManche,
+    required this.nombreMaxPointsParDonne,
+    required this.reglesJeu,
+    required this.statutConcours,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -224,6 +346,10 @@ class ConcoursTableData extends DataClass
     map['date'] = Variable<DateTime>(date);
     map['lieu'] = Variable<String>(lieu);
     map['organisateur'] = Variable<String>(organisateur);
+    map['nombre_donnes_par_manche'] = Variable<int>(nombreDonnesParManche);
+    map['nombre_max_points_par_donne'] = Variable<int>(nombreMaxPointsParDonne);
+    map['regles_jeu'] = Variable<String>(reglesJeu);
+    map['statut_concours'] = Variable<String>(statutConcours);
     return map;
   }
 
@@ -233,6 +359,10 @@ class ConcoursTableData extends DataClass
       date: Value(date),
       lieu: Value(lieu),
       organisateur: Value(organisateur),
+      nombreDonnesParManche: Value(nombreDonnesParManche),
+      nombreMaxPointsParDonne: Value(nombreMaxPointsParDonne),
+      reglesJeu: Value(reglesJeu),
+      statutConcours: Value(statutConcours),
     );
   }
 
@@ -246,6 +376,14 @@ class ConcoursTableData extends DataClass
       date: serializer.fromJson<DateTime>(json['date']),
       lieu: serializer.fromJson<String>(json['lieu']),
       organisateur: serializer.fromJson<String>(json['organisateur']),
+      nombreDonnesParManche: serializer.fromJson<int>(
+        json['nombreDonnesParManche'],
+      ),
+      nombreMaxPointsParDonne: serializer.fromJson<int>(
+        json['nombreMaxPointsParDonne'],
+      ),
+      reglesJeu: serializer.fromJson<String>(json['reglesJeu']),
+      statutConcours: serializer.fromJson<String>(json['statutConcours']),
     );
   }
   @override
@@ -256,6 +394,12 @@ class ConcoursTableData extends DataClass
       'date': serializer.toJson<DateTime>(date),
       'lieu': serializer.toJson<String>(lieu),
       'organisateur': serializer.toJson<String>(organisateur),
+      'nombreDonnesParManche': serializer.toJson<int>(nombreDonnesParManche),
+      'nombreMaxPointsParDonne': serializer.toJson<int>(
+        nombreMaxPointsParDonne,
+      ),
+      'reglesJeu': serializer.toJson<String>(reglesJeu),
+      'statutConcours': serializer.toJson<String>(statutConcours),
     };
   }
 
@@ -264,11 +408,20 @@ class ConcoursTableData extends DataClass
     DateTime? date,
     String? lieu,
     String? organisateur,
+    int? nombreDonnesParManche,
+    int? nombreMaxPointsParDonne,
+    String? reglesJeu,
+    String? statutConcours,
   }) => ConcoursTableData(
     id: id ?? this.id,
     date: date ?? this.date,
     lieu: lieu ?? this.lieu,
     organisateur: organisateur ?? this.organisateur,
+    nombreDonnesParManche: nombreDonnesParManche ?? this.nombreDonnesParManche,
+    nombreMaxPointsParDonne:
+        nombreMaxPointsParDonne ?? this.nombreMaxPointsParDonne,
+    reglesJeu: reglesJeu ?? this.reglesJeu,
+    statutConcours: statutConcours ?? this.statutConcours,
   );
   ConcoursTableData copyWithCompanion(ConcoursTableCompanion data) {
     return ConcoursTableData(
@@ -278,6 +431,16 @@ class ConcoursTableData extends DataClass
       organisateur: data.organisateur.present
           ? data.organisateur.value
           : this.organisateur,
+      nombreDonnesParManche: data.nombreDonnesParManche.present
+          ? data.nombreDonnesParManche.value
+          : this.nombreDonnesParManche,
+      nombreMaxPointsParDonne: data.nombreMaxPointsParDonne.present
+          ? data.nombreMaxPointsParDonne.value
+          : this.nombreMaxPointsParDonne,
+      reglesJeu: data.reglesJeu.present ? data.reglesJeu.value : this.reglesJeu,
+      statutConcours: data.statutConcours.present
+          ? data.statutConcours.value
+          : this.statutConcours,
     );
   }
 
@@ -287,13 +450,26 @@ class ConcoursTableData extends DataClass
           ..write('id: $id, ')
           ..write('date: $date, ')
           ..write('lieu: $lieu, ')
-          ..write('organisateur: $organisateur')
+          ..write('organisateur: $organisateur, ')
+          ..write('nombreDonnesParManche: $nombreDonnesParManche, ')
+          ..write('nombreMaxPointsParDonne: $nombreMaxPointsParDonne, ')
+          ..write('reglesJeu: $reglesJeu, ')
+          ..write('statutConcours: $statutConcours')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, date, lieu, organisateur);
+  int get hashCode => Object.hash(
+    id,
+    date,
+    lieu,
+    organisateur,
+    nombreDonnesParManche,
+    nombreMaxPointsParDonne,
+    reglesJeu,
+    statutConcours,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -301,7 +477,11 @@ class ConcoursTableData extends DataClass
           other.id == this.id &&
           other.date == this.date &&
           other.lieu == this.lieu &&
-          other.organisateur == this.organisateur);
+          other.organisateur == this.organisateur &&
+          other.nombreDonnesParManche == this.nombreDonnesParManche &&
+          other.nombreMaxPointsParDonne == this.nombreMaxPointsParDonne &&
+          other.reglesJeu == this.reglesJeu &&
+          other.statutConcours == this.statutConcours);
 }
 
 class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
@@ -309,12 +489,20 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
   final Value<DateTime> date;
   final Value<String> lieu;
   final Value<String> organisateur;
+  final Value<int> nombreDonnesParManche;
+  final Value<int> nombreMaxPointsParDonne;
+  final Value<String> reglesJeu;
+  final Value<String> statutConcours;
   final Value<int> rowid;
   const ConcoursTableCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
     this.lieu = const Value.absent(),
     this.organisateur = const Value.absent(),
+    this.nombreDonnesParManche = const Value.absent(),
+    this.nombreMaxPointsParDonne = const Value.absent(),
+    this.reglesJeu = const Value.absent(),
+    this.statutConcours = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ConcoursTableCompanion.insert({
@@ -322,16 +510,25 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
     required DateTime date,
     required String lieu,
     required String organisateur,
+    this.nombreDonnesParManche = const Value.absent(),
+    this.nombreMaxPointsParDonne = const Value.absent(),
+    required String reglesJeu,
+    this.statutConcours = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        date = Value(date),
        lieu = Value(lieu),
-       organisateur = Value(organisateur);
+       organisateur = Value(organisateur),
+       reglesJeu = Value(reglesJeu);
   static Insertable<ConcoursTableData> custom({
     Expression<String>? id,
     Expression<DateTime>? date,
     Expression<String>? lieu,
     Expression<String>? organisateur,
+    Expression<int>? nombreDonnesParManche,
+    Expression<int>? nombreMaxPointsParDonne,
+    Expression<String>? reglesJeu,
+    Expression<String>? statutConcours,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -339,6 +536,12 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
       if (date != null) 'date': date,
       if (lieu != null) 'lieu': lieu,
       if (organisateur != null) 'organisateur': organisateur,
+      if (nombreDonnesParManche != null)
+        'nombre_donnes_par_manche': nombreDonnesParManche,
+      if (nombreMaxPointsParDonne != null)
+        'nombre_max_points_par_donne': nombreMaxPointsParDonne,
+      if (reglesJeu != null) 'regles_jeu': reglesJeu,
+      if (statutConcours != null) 'statut_concours': statutConcours,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -348,6 +551,10 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
     Value<DateTime>? date,
     Value<String>? lieu,
     Value<String>? organisateur,
+    Value<int>? nombreDonnesParManche,
+    Value<int>? nombreMaxPointsParDonne,
+    Value<String>? reglesJeu,
+    Value<String>? statutConcours,
     Value<int>? rowid,
   }) {
     return ConcoursTableCompanion(
@@ -355,6 +562,12 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
       date: date ?? this.date,
       lieu: lieu ?? this.lieu,
       organisateur: organisateur ?? this.organisateur,
+      nombreDonnesParManche:
+          nombreDonnesParManche ?? this.nombreDonnesParManche,
+      nombreMaxPointsParDonne:
+          nombreMaxPointsParDonne ?? this.nombreMaxPointsParDonne,
+      reglesJeu: reglesJeu ?? this.reglesJeu,
+      statutConcours: statutConcours ?? this.statutConcours,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -374,6 +587,22 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
     if (organisateur.present) {
       map['organisateur'] = Variable<String>(organisateur.value);
     }
+    if (nombreDonnesParManche.present) {
+      map['nombre_donnes_par_manche'] = Variable<int>(
+        nombreDonnesParManche.value,
+      );
+    }
+    if (nombreMaxPointsParDonne.present) {
+      map['nombre_max_points_par_donne'] = Variable<int>(
+        nombreMaxPointsParDonne.value,
+      );
+    }
+    if (reglesJeu.present) {
+      map['regles_jeu'] = Variable<String>(reglesJeu.value);
+    }
+    if (statutConcours.present) {
+      map['statut_concours'] = Variable<String>(statutConcours.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -387,6 +616,10 @@ class ConcoursTableCompanion extends UpdateCompanion<ConcoursTableData> {
           ..write('date: $date, ')
           ..write('lieu: $lieu, ')
           ..write('organisateur: $organisateur, ')
+          ..write('nombreDonnesParManche: $nombreDonnesParManche, ')
+          ..write('nombreMaxPointsParDonne: $nombreMaxPointsParDonne, ')
+          ..write('reglesJeu: $reglesJeu, ')
+          ..write('statutConcours: $statutConcours, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1802,6 +2035,10 @@ typedef $$ConcoursTableTableCreateCompanionBuilder =
       required DateTime date,
       required String lieu,
       required String organisateur,
+      Value<int> nombreDonnesParManche,
+      Value<int> nombreMaxPointsParDonne,
+      required String reglesJeu,
+      Value<String> statutConcours,
       Value<int> rowid,
     });
 typedef $$ConcoursTableTableUpdateCompanionBuilder =
@@ -1810,6 +2047,10 @@ typedef $$ConcoursTableTableUpdateCompanionBuilder =
       Value<DateTime> date,
       Value<String> lieu,
       Value<String> organisateur,
+      Value<int> nombreDonnesParManche,
+      Value<int> nombreMaxPointsParDonne,
+      Value<String> reglesJeu,
+      Value<String> statutConcours,
       Value<int> rowid,
     });
 
@@ -1896,6 +2137,26 @@ class $$ConcoursTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get nombreDonnesParManche => $composableBuilder(
+    column: $table.nombreDonnesParManche,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nombreMaxPointsParDonne => $composableBuilder(
+    column: $table.nombreMaxPointsParDonne,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reglesJeu => $composableBuilder(
+    column: $table.reglesJeu,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statutConcours => $composableBuilder(
+    column: $table.statutConcours,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> doublettesTableRefs(
     Expression<bool> Function($$DoublettesTableTableFilterComposer f) f,
   ) {
@@ -1975,6 +2236,26 @@ class $$ConcoursTableTableOrderingComposer
     column: $table.organisateur,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get nombreDonnesParManche => $composableBuilder(
+    column: $table.nombreDonnesParManche,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nombreMaxPointsParDonne => $composableBuilder(
+    column: $table.nombreMaxPointsParDonne,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reglesJeu => $composableBuilder(
+    column: $table.reglesJeu,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statutConcours => $composableBuilder(
+    column: $table.statutConcours,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ConcoursTableTableAnnotationComposer
@@ -1997,6 +2278,24 @@ class $$ConcoursTableTableAnnotationComposer
 
   GeneratedColumn<String> get organisateur => $composableBuilder(
     column: $table.organisateur,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get nombreDonnesParManche => $composableBuilder(
+    column: $table.nombreDonnesParManche,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get nombreMaxPointsParDonne => $composableBuilder(
+    column: $table.nombreMaxPointsParDonne,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get reglesJeu =>
+      $composableBuilder(column: $table.reglesJeu, builder: (column) => column);
+
+  GeneratedColumn<String> get statutConcours => $composableBuilder(
+    column: $table.statutConcours,
     builder: (column) => column,
   );
 
@@ -2086,12 +2385,20 @@ class $$ConcoursTableTableTableManager
                 Value<DateTime> date = const Value.absent(),
                 Value<String> lieu = const Value.absent(),
                 Value<String> organisateur = const Value.absent(),
+                Value<int> nombreDonnesParManche = const Value.absent(),
+                Value<int> nombreMaxPointsParDonne = const Value.absent(),
+                Value<String> reglesJeu = const Value.absent(),
+                Value<String> statutConcours = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConcoursTableCompanion(
                 id: id,
                 date: date,
                 lieu: lieu,
                 organisateur: organisateur,
+                nombreDonnesParManche: nombreDonnesParManche,
+                nombreMaxPointsParDonne: nombreMaxPointsParDonne,
+                reglesJeu: reglesJeu,
+                statutConcours: statutConcours,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2100,12 +2407,20 @@ class $$ConcoursTableTableTableManager
                 required DateTime date,
                 required String lieu,
                 required String organisateur,
+                Value<int> nombreDonnesParManche = const Value.absent(),
+                Value<int> nombreMaxPointsParDonne = const Value.absent(),
+                required String reglesJeu,
+                Value<String> statutConcours = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConcoursTableCompanion.insert(
                 id: id,
                 date: date,
                 lieu: lieu,
                 organisateur: organisateur,
+                nombreDonnesParManche: nombreDonnesParManche,
+                nombreMaxPointsParDonne: nombreMaxPointsParDonne,
+                reglesJeu: reglesJeu,
+                statutConcours: statutConcours,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

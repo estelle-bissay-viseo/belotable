@@ -4,6 +4,7 @@ import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/in_memory_concours_repository.dart';
 import '../../helpers/in_memory_doublette_repository.dart';
 import '../../helpers/in_memory_manche_repository.dart';
 import '../../helpers/test_utils.dart';
@@ -11,6 +12,7 @@ import '../../helpers/test_utils.dart';
 typedef _Deps = ({
   InMemoryDoubletteRepository doubletteRepository,
   InMemoryMancheRepository mancheRepository,
+  InMemoryConcoursRepository concoursRepository,
 });
 
 void main() {
@@ -20,6 +22,7 @@ void main() {
       dependenciesFactory: () => (
         doubletteRepository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => DeleteDoubletteUseCase(
         deps.doubletteRepository,
@@ -45,6 +48,7 @@ void main() {
         final createManche = CreatePremiereMancheUseCase(
           deps.doubletteRepository,
           deps.mancheRepository,
+          deps.concoursRepository,
         );
         await createManche('c-1');
 
@@ -63,6 +67,7 @@ void main() {
       dependenciesFactory: () => (
         doubletteRepository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => DeleteDoubletteUseCase(
         deps.doubletteRepository,
@@ -88,6 +93,7 @@ void main() {
         final createManche = CreatePremiereMancheUseCase(
           deps.doubletteRepository,
           deps.mancheRepository,
+          deps.concoursRepository,
         );
         final manche = await createManche('c-1');
         final table = (await deps.mancheRepository.findTablesDeJeuByMancheId(
@@ -125,6 +131,7 @@ void main() {
       dependenciesFactory: () => (
         doubletteRepository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
+        concoursRepository: InMemoryConcoursRepository(),
       ),
       useCaseFactory: (deps) => DeleteDoubletteUseCase(
         deps.doubletteRepository,
@@ -163,6 +170,7 @@ void main() {
         final createManche = CreatePremiereMancheUseCase(
           deps.doubletteRepository,
           deps.mancheRepository,
+          deps.concoursRepository,
         );
         final manche = await createManche('c-1');
 

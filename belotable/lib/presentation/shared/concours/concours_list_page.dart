@@ -100,6 +100,7 @@ class ConcoursListPage extends ConsumerWidget {
                 DataColumn(label: Text('Date')),
                 DataColumn(label: Text('Lieu')),
                 DataColumn(label: Text('Organisateur')),
+                DataColumn(label: Text('Statut')),
                 DataColumn(label: Text('Doublettes')),
                 DataColumn(label: Text('Actions')),
               ],
@@ -119,6 +120,14 @@ class ConcoursListPage extends ConsumerWidget {
                           DataCell(Text(concours.organisateur)),
                           DataCell(
                             Text(
+                              concours.statutConcours.displayName,
+                              key: ValueKey<String>(
+                                'concours_status_${concours.id}',
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
                               concours.nombreDoublettes.toString(),
                               key: ValueKey<String>(
                                 'concours_doublettes_count_${concours.id}',
@@ -132,13 +141,15 @@ class ConcoursListPage extends ConsumerWidget {
                                   key: ValueKey<String>(
                                     'concours_edit_button_${concours.id}',
                                   ),
-                                  onPressed: () async {
-                                    await Navigator.of(context).pushNamed(
-                                      ConcoursEditPage.routeName,
-                                      arguments: concours.id,
-                                    );
-                                    ref.invalidate(concoursListProvider);
-                                  },
+                                  onPressed: concours.canEditInfo()
+                                      ? () async {
+                                          await Navigator.of(context).pushNamed(
+                                            ConcoursEditPage.routeName,
+                                            arguments: concours.id,
+                                          );
+                                          ref.invalidate(concoursListProvider);
+                                        }
+                                      : null,
                                   icon: const Icon(Icons.edit_outlined),
                                   tooltip: 'Modifier',
                                 ),

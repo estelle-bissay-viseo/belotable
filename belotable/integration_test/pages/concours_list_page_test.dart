@@ -1,4 +1,5 @@
 import 'package:belotable/domain/concours/concours.dart';
+import 'package:belotable/domain/concours/concours_statut.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -43,6 +44,8 @@ void main() {
               date: DateTime(2024, 1, 10),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
           await database.concoursDao.insertConcours(
@@ -51,6 +54,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle B',
               organisateur: 'Club B',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
         },
@@ -159,6 +164,85 @@ void main() {
       expect(find.byKey(const Key('concours_list_table')), findsOneWidget);
       expect(find.text('Gymnase Municipal'), findsOneWidget);
       expect(find.text('Club Nord'), findsOneWidget);
+    },
+  );
+
+  e2eTest(
+    'Concours list page',
+    'Edit button disabled for non-Initialisation concours',
+    (tester, db) async {
+      await pumpTestApp(
+        tester,
+        db,
+        seed: (database) async {
+          await database.concoursDao.insertConcours(
+            Concours(
+              id: 'id-en-cours',
+              date: DateTime(2026, 6, 8),
+              lieu: 'Salle B',
+              organisateur: 'Club B',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
+              statutConcours: ConcoursStatut.enCours,
+            ),
+          );
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.pumpAndSettle();
+
+      // Find edit button for this concours
+      final editButton = tester.widget<IconButton>(
+        find.byKey(const Key('concours_edit_button_id-en-cours')).first,
+      );
+
+      // Button should be disabled when status is EnCours
+      expect(editButton.onPressed, isNull);
+    },
+  );
+
+  e2eTest(
+    'Concours list page',
+    'Status column displays concours status values',
+    (tester, db) async {
+      await pumpTestApp(
+        tester,
+        db,
+        seed: (database) async {
+          await database.concoursDao.insertConcours(
+            Concours(
+              id: 'id-initialisation',
+              date: DateTime(2026, 6, 8),
+              lieu: 'Salle Init',
+              organisateur: 'Club Init',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles',
+              // ignore: avoid_redundant_argument_values because test data
+              statutConcours: ConcoursStatut.initialisation,
+            ),
+          );
+          await database.concoursDao.insertConcours(
+            Concours(
+              id: 'id-en-cours',
+              date: DateTime(2026, 6, 9),
+              lieu: 'Salle Cours',
+              organisateur: 'Club Cours',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles',
+              statutConcours: ConcoursStatut.enCours,
+            ),
+          );
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.pumpAndSettle();
+
+      // Verify status column exists and shows correct values
+      expect(find.text('Statut'), findsOneWidget);
+      expect(find.text('Initialisation'), findsOneWidget);
+      expect(find.text('En cours'), findsOneWidget);
     },
   );
 }

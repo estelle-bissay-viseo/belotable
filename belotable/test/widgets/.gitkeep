@@ -1,0 +1,3 @@
+Les widgets sont testés par les tests end-to-end (integration_test).
+
+Exception faite pour la page d'information pour avoir la possibilité de mocker le numéro de version de l'application.

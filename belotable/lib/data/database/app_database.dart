@@ -1,4 +1,5 @@
 import 'package:belotable/domain/concours/concours.dart';
+import 'package:belotable/domain/concours/concours_statut.dart';
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
@@ -25,6 +26,21 @@ class ConcoursTable extends Table {
 
   /// Organizing entity.
   TextColumn get organisateur => text()();
+
+  /// Number of deals per round.
+  IntColumn get nombreDonnesParManche =>
+      integer().withDefault(const Constant(10))();
+
+  /// Maximum points per deal.
+  IntColumn get nombreMaxPointsParDonne =>
+      integer().withDefault(const Constant(162))();
+
+  /// Game rules text.
+  TextColumn get reglesJeu => text()();
+
+  /// Contest status: Initialisation, EnCours, Termine.
+  TextColumn get statutConcours =>
+      text().withDefault(const Constant('initialisation'))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -121,11 +137,15 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
   /// Inserts or updates concours in database.
   Future<void> insertConcours(Concours concours) async {
     await into(concoursTable).insertOnConflictUpdate(
-      ConcoursTableCompanion.insert(
-        id: concours.id,
-        date: concours.date,
-        lieu: concours.lieu,
-        organisateur: concours.organisateur,
+      ConcoursTableCompanion(
+        id: Value(concours.id),
+        date: Value(concours.date),
+        lieu: Value(concours.lieu),
+        organisateur: Value(concours.organisateur),
+        nombreDonnesParManche: Value(concours.nombreDonnesParManche),
+        nombreMaxPointsParDonne: Value(concours.nombreMaxPointsParDonne),
+        reglesJeu: Value(concours.reglesJeu),
+        statutConcours: Value(concours.statutConcours.name),
       ),
     );
   }
@@ -145,6 +165,10 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
       date: row.date,
       lieu: row.lieu,
       organisateur: row.organisateur,
+      nombreDonnesParManche: row.nombreDonnesParManche,
+      nombreMaxPointsParDonne: row.nombreMaxPointsParDonne,
+      reglesJeu: row.reglesJeu,
+      statutConcours: ConcoursStatut.fromString(row.statutConcours),
     );
   }
 
@@ -184,6 +208,10 @@ class ConcoursDao extends DatabaseAccessor<AppDatabase>
             lieu: row.lieu,
             organisateur: row.organisateur,
             nombreDoublettes: groupedCounts[row.id] ?? 0,
+            nombreDonnesParManche: row.nombreDonnesParManche,
+            nombreMaxPointsParDonne: row.nombreMaxPointsParDonne,
+            reglesJeu: row.reglesJeu,
+            statutConcours: ConcoursStatut.fromString(row.statutConcours),
           ),
         )
         .toList(growable: false);

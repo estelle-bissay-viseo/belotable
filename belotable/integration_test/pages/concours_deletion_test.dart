@@ -22,6 +22,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle des Fêtes',
               organisateur: 'Club Belote',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
           await database.concoursDao.insertConcours(
@@ -30,6 +32,8 @@ void main() {
               date: DateTime(2025, 3, 15),
               lieu: 'Gymnase Municipal',
               organisateur: 'Association Belote',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
         },
@@ -90,6 +94,8 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
             ),
           );
         },
