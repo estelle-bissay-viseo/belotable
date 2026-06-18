@@ -42,7 +42,7 @@ class MockPdfExportService implements PdfExportService {
   Future<void> cleanup() async {
     if (lastSavedPath != null) {
       final file = File(lastSavedPath!);
-      if (await file.exists()) {
+      if (file.existsSync()) {
         await file.delete();
       }
     }

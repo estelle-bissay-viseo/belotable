@@ -87,7 +87,7 @@ void main() {
 
       final file = File(mockPdfService.lastSavedPath!);
       expect(
-        await file.exists(),
+        file.existsSync(),
         isTrue,
         reason: 'PDF file should exist on disk',
       );
