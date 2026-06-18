@@ -1,4 +1,5 @@
 import 'package:belotable/domain/concours/default_game_rules.dart';
+import 'package:belotable/utils/date_format.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -116,9 +117,7 @@ class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
               contentPadding: EdgeInsets.zero,
               title: const Text('Date'),
               subtitle: Text(
-                '${_selectedDate.year.toString().padLeft(4, '0')}-'
-                '${_selectedDate.month.toString().padLeft(2, '0')}-'
-                '${_selectedDate.day.toString().padLeft(2, '0')}',
+                formatDateFrLettres(_selectedDate),
               ),
               trailing: TextButton(
                 key: const Key('concours_date_button'),
