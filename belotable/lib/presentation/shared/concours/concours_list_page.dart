@@ -3,6 +3,7 @@ import 'package:belotable/presentation/shared/concours/concours_creation_page.da
 import 'package:belotable/presentation/shared/concours/concours_edit_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_manage_page.dart';
 import 'package:belotable/presentation/shared/concours/delete_concours_confirmation_dialog.dart';
+import 'package:belotable/utils/date_format.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -107,10 +108,9 @@ class ConcoursListPage extends ConsumerWidget {
               rows: concoursList
                   .map(
                     (concours) {
-                      final formattedDate =
-                          '${concours.date.year.toString().padLeft(4, '0')}-'
-                          '${concours.date.month.toString().padLeft(2, '0')}-'
-                          '${concours.date.day.toString().padLeft(2, '0')}';
+                      final formattedDate = formatDateFrNumerique(
+                        concours.date,
+                      );
 
                       return DataRow(
                         key: ValueKey<String>('concours_row_${concours.id}'),

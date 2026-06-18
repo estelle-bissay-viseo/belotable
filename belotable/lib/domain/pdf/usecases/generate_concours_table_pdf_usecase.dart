@@ -39,11 +39,11 @@ class GenerateConcoursTablePdfUseCase {
     }
 
     final pdfModel = ConcoursTablePdfModel(
-      title: concours.lieu,
       date: concours.date,
       lieu: concours.lieu,
       organisateur: concours.organisateur,
-      nombreDoublettes: concours.nombreDoublettes,
+      reglesJeu: concours.reglesJeu,
+      nombreDonnesParManche: concours.nombreDonnesParManche,
     );
 
     return pdfRepository.generateConcoursTablePdf(pdfModel);

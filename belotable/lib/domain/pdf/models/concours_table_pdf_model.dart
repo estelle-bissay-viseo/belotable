@@ -7,15 +7,12 @@ import 'package:flutter/foundation.dart';
 class ConcoursTablePdfModel {
   /// Creates instance for PDF rendering.
   const ConcoursTablePdfModel({
-    required this.title,
     required this.date,
     required this.lieu,
     required this.organisateur,
-    required this.nombreDoublettes,
+    required this.reglesJeu,
+    required this.nombreDonnesParManche,
   });
-
-  /// Concours title/identifier.
-  final String title;
 
   /// Concours date.
   final DateTime date;
@@ -26,8 +23,11 @@ class ConcoursTablePdfModel {
   /// Organizing entity.
   final String organisateur;
 
-  /// Number of registered doublettes.
-  final int nombreDoublettes;
+  /// Game rules text.
+  final String reglesJeu;
+
+  /// Number of deals per round.
+  final int nombreDonnesParManche;
 
   @override
   bool operator ==(Object other) {
@@ -36,19 +36,19 @@ class ConcoursTablePdfModel {
     }
 
     return other is ConcoursTablePdfModel &&
-        other.title == title &&
         other.date == date &&
         other.lieu == lieu &&
         other.organisateur == organisateur &&
-        other.nombreDoublettes == nombreDoublettes;
+        other.reglesJeu == reglesJeu &&
+        other.nombreDonnesParManche == nombreDonnesParManche;
   }
 
   @override
   int get hashCode => Object.hash(
-    title,
     date,
     lieu,
     organisateur,
-    nombreDoublettes,
+    reglesJeu,
+    nombreDonnesParManche,
   );
 }

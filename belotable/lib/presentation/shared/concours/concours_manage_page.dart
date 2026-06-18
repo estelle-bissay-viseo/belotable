@@ -5,6 +5,7 @@ import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.da
 import 'package:belotable/presentation/shared/manches/manche_navigation_args.dart';
 import 'package:belotable/presentation/shared/manches/manche_page.dart';
 import 'package:belotable/presentation/shared/utils/info_field.dart';
+import 'package:belotable/utils/date_format.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,12 +53,6 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
       return;
     }
     _isInitialized = true;
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year.toString().padLeft(4, '0')}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -123,7 +118,7 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                       InfoField(
                         key: const Key('concours_detail_date_field'),
                         label: 'Date',
-                        value: _formatDate(concours.date),
+                        value: formatDateFrLettres(concours.date),
                       ),
                       const SizedBox(height: 12),
                       InfoField(

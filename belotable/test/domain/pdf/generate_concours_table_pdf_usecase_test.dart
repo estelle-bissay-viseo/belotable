@@ -16,11 +16,11 @@ void main() {
   setUpAll(() {
     registerFallbackValue(
       ConcoursTablePdfModel(
-        title: 'Test',
         date: DateTime.now(),
         lieu: 'Test',
         organisateur: 'Test',
-        nombreDoublettes: 0,
+        reglesJeu: '',
+        nombreDonnesParManche: 10,
       ),
     );
   });
@@ -36,6 +36,8 @@ void main() {
       lieu: 'Paris',
       organisateur: 'Club de Belote',
       nombreDoublettes: 5,
+      reglesJeu: '8 donnes par manche',
+      nombreDonnesParManche: 8,
     );
 
     setUp(() {
@@ -88,7 +90,8 @@ void main() {
       expect(captured.lieu, equals('Paris'));
       expect(captured.organisateur, equals('Club de Belote'));
       expect(captured.date, equals(DateTime(2025, 6, 15)));
-      expect(captured.nombreDoublettes, equals(5));
+      expect(captured.reglesJeu, equals('8 donnes par manche'));
+      expect(captured.nombreDonnesParManche, equals(8));
     });
 
     test('throws when concours not found', () async {
