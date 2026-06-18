@@ -206,17 +206,63 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 16),
-                      FilledButton.tonalIcon(
-                        key: const Key('concours_detail_doublettes_button'),
-                        onPressed: () => Navigator.of(context).pushNamed(
-                          DoublettesListPage.routeName,
-                          arguments: DoublettesListArgs(
-                            concoursId: widget.concoursId,
+                      Row(
+                        children: [
+                          Consumer(
+                            builder: (context, ref, _) {
+                              return FilledButton.tonalIcon(
+                                key: const Key(
+                                  'concours_detail_pdf_table_button',
+                                ),
+                                onPressed: () async {
+                                  final useCase = ref.read(
+                                    generateConcoursTablePdfUseCaseProvider,
+                                  );
+                                  try {
+                                    final bytes = await useCase(
+                                      widget.concoursId,
+                                    );
+                                    final pdfExportService = ref.read(
+                                      pdfExportServiceProvider,
+                                    );
+                                    if (context.mounted) {
+                                      await pdfExportService.saveAndOpen(bytes);
+                                    }
+                                  } on Exception {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            // ignore: lines_longer_than_80_chars because short
+                                            'Erreur: Impossible de générer le PDF',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                label: const Text('PDF pour les tables'),
+                                icon: const Icon(Icons.picture_as_pdf),
+                                iconAlignment: .start,
+                              );
+                            },
                           ),
-                        ),
-                        label: const Text('Doublettes'),
-                        icon: const Icon(Icons.group),
-                        iconAlignment: .start,
+                          const SizedBox(width: 8),
+                          FilledButton.tonalIcon(
+                            key: const Key('concours_detail_doublettes_button'),
+                            onPressed: () => Navigator.of(context).pushNamed(
+                              DoublettesListPage.routeName,
+                              arguments: DoublettesListArgs(
+                                concoursId: widget.concoursId,
+                              ),
+                            ),
+                            label: const Text('Doublettes'),
+                            icon: const Icon(Icons.group),
+                            iconAlignment: .start,
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Consumer(

@@ -9,6 +9,7 @@ import 'pages/concours_list_page_test.dart' as concours_list_page;
 import 'pages/concours_manage_page_test.dart' as concours_manage_page;
 import 'pages/home_info_page_test.dart' as home_info_page;
 import 'pages/home_page_test.dart' as home_page;
+import 'pages/pdf_generation_test.dart' as pdf_generation;
 
 // This file is the entry point for all integration tests because
 // integration_test on desktop device may not support app relaunch.
@@ -26,4 +27,5 @@ void main() {
   concours_deletion.main();
   home_info_page.main();
   home_page.main();
+  pdf_generation.main();
 }

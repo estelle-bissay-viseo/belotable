@@ -54,7 +54,7 @@ Flutter dispose de son propre moteur de rendu (Impeller/Skia), indépendant de l
 | Gestion d'état | Riverpod |
 | Persistance locale | SQLite via `drift` |
 | Sauvegarde / export natif | Fichiers JSON via `path_provider` + `file_picker` |
-| Génération PDF | Package `pdf` + `printing` |
+| Génération PDF | Package `pdf` |
 | Export CSV | Package `csv` |
 | Visualisation bracket | Widget personnalisé (`CustomPainter`) |
 | Packaging desktop | `flutter build windows/linux/macos` |

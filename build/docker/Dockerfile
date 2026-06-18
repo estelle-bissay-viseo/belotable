@@ -56,7 +56,8 @@ ARG DOCROOT=/usr/share/nginx/html
 RUN --mount=type=secret,id=ca_cert,required=false \
     if [ -s /run/secrets/ca_cert ] && grep -q "BEGIN CERTIFICATE" /run/secrets/ca_cert; then \
       mkdir -p /usr/local/share/ca-certificates; \
-      cat /run/secrets/ca_cert >> /etc/ssl/cert.pem; \
+      cp /run/secrets/ca_cert /usr/local/share/ca-certificates/corp.crt; \
+      update-ca-certificates; \
     fi
 
 RUN apk --no-cache upgrade
