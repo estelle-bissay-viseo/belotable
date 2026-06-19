@@ -7,6 +7,8 @@ import 'package:belotable/presentation/shared/doublettes/doublette_creation_page
 import 'package:belotable/presentation/shared/doublettes/doublette_detail_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
 import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
+import 'package:belotable/presentation/shared/doublettes/doublettes_ranking_args.dart';
+import 'package:belotable/presentation/shared/doublettes/doublettes_ranking_page.dart';
 import 'package:belotable/presentation/shared/home_page.dart';
 import 'package:belotable/presentation/shared/manches/manche_navigation_args.dart';
 import 'package:belotable/presentation/shared/manches/manche_page.dart';
@@ -99,6 +101,17 @@ class MyApp extends StatelessWidget {
                 concoursId: args.concoursId,
                 doubletteId: args.doubletteId,
               ),
+              settings: settings,
+            );
+          }
+        }
+
+        if (settings.name == DoublettesRankingPage.routeName) {
+          final args = settings.arguments;
+          if (args is DoublettesRankingArgs) {
+            return MaterialPageRoute<void>(
+              builder: (_) =>
+                  DoublettesRankingPage(concoursId: args.concoursId),
               settings: settings,
             );
           }

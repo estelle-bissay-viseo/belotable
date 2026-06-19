@@ -2,6 +2,8 @@ import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
 import 'package:belotable/presentation/shared/doublettes/doublettes_list_page.dart';
+import 'package:belotable/presentation/shared/doublettes/doublettes_ranking_args.dart';
+import 'package:belotable/presentation/shared/doublettes/doublettes_ranking_page.dart';
 import 'package:belotable/presentation/shared/manches/manche_navigation_args.dart';
 import 'package:belotable/presentation/shared/manches/manche_page.dart';
 import 'package:belotable/presentation/shared/utils/info_field.dart';
@@ -256,6 +258,38 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                             label: const Text('Doublettes'),
                             icon: const Icon(Icons.group),
                             iconAlignment: .start,
+                          ),
+                          const SizedBox(width: 8),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final manchesAsync = ref.watch(
+                                manchesByConcoursProvider(widget.concoursId),
+                              );
+                              return manchesAsync.when(
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, _) => const SizedBox.shrink(),
+                                data: (manches) {
+                                  if (manches.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FilledButton.tonalIcon(
+                                    key: const Key(
+                                      'concours_detail_ranking_button',
+                                    ),
+                                    onPressed: () =>
+                                        Navigator.of(context).pushNamed(
+                                          DoublettesRankingPage.routeName,
+                                          arguments: DoublettesRankingArgs(
+                                            concoursId: widget.concoursId,
+                                          ),
+                                        ),
+                                    label: const Text('Voir le classement'),
+                                    icon: const Icon(Icons.leaderboard),
+                                    iconAlignment: .start,
+                                  );
+                                },
+                              );
+                            },
                           ),
                         ],
                       ),

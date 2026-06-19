@@ -7,6 +7,7 @@ import 'pages/concours_deletion_test.dart' as concours_deletion;
 import 'pages/concours_edit_page_test.dart' as concours_edit_page;
 import 'pages/concours_list_page_test.dart' as concours_list_page;
 import 'pages/concours_manage_page_test.dart' as concours_manage_page;
+import 'pages/doublettes_ranking_page_test.dart' as doublettes_ranking_page;
 import 'pages/home_info_page_test.dart' as home_info_page;
 import 'pages/home_page_test.dart' as home_page;
 import 'pages/pdf_generation_test.dart' as pdf_generation;
@@ -25,6 +26,7 @@ void main() {
   concours_list_page.main();
   concours_manage_page.main();
   concours_deletion.main();
+  doublettes_ranking_page.main();
   home_info_page.main();
   home_page.main();
   pdf_generation.main();
