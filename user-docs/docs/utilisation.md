@@ -81,6 +81,16 @@ La page de gestion d'un concours affiche les informations du concours et propose
 
 Vous pouvez gérer ici les doublettes inscrites au concours, le déroulement du concours et les résultats.
 
+### Génération du fichier PDF de saisie des points des donnes
+
+Vous pouvez générer un fichier PDF de saisie des points des donnes pour le concours en cliquant sur le bouton **PDF pour les tables**. Il est destiné à être imprimé et distribué sur les tables pour saisir les résultats des parties jouées sur les tables.
+
+Ce PDF contient toutes les informations du concours (date, lieu, organisateur et règles de jeu), ainsi que des champs pour écrire qui joue sur la table, et les points de chaque donne. Le tableau de saisie des points est généré automatiquement en fonction du nombre de donnes par manche défini pour le concours.
+
+Exemple de fichier PDF généré :
+
+![Exemple de fichier PDF généré](./assets/images/exemple-pdf-table.png)
+
 ### Gestion des doublettes
 
 Depuis la page de gestion d'un concours, cliquez sur **Doublettes**.

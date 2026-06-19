@@ -1,5 +1,6 @@
 import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/presentation/shared/utils/info_field.dart';
+import 'package:belotable/utils/date_format.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,12 +75,6 @@ class _ConcoursEditPageState extends ConsumerState<ConcoursEditPage> {
         .toString();
     _reglesJeuController.text = concours.reglesJeu;
     _isInitialized = true;
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year.toString().padLeft(4, '0')}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
   }
 
   bool _hasChanges(Concours initial) {
@@ -268,7 +263,7 @@ class _ConcoursEditPageState extends ConsumerState<ConcoursEditPage> {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: const Text('Date'),
-                            subtitle: Text(_formatDate(_selectedDate)),
+                            subtitle: Text(formatDateFrLettres(_selectedDate)),
                             trailing: TextButton(
                               key: const Key('concours_edit_date_button'),
                               onPressed: _isSaving ? null : _pickDate,

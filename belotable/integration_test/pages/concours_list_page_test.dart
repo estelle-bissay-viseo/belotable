@@ -64,8 +64,8 @@ void main() {
       await tester.tap(find.byKey(const Key('home_list_concours_button')));
       await tester.pumpAndSettle();
 
-      final latestDateTop = tester.getTopLeft(find.text('2026-06-08')).dy;
-      final oldestDateTop = tester.getTopLeft(find.text('2024-01-10')).dy;
+      final latestDateTop = tester.getTopLeft(find.text('08/06/2026')).dy;
+      final oldestDateTop = tester.getTopLeft(find.text('10/01/2024')).dy;
       expect(latestDateTop, lessThan(oldestDateTop));
 
       final gererButton = tester.widget<IconButton>(
