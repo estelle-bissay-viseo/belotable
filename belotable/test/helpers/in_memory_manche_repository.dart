@@ -32,7 +32,7 @@ class InMemoryMancheRepository implements MancheRepository {
           tableId: tableId,
           concoursId: concoursId,
           doubletteId: first.doubletteId,
-          score: 0,
+          points: 0,
           statut: TableDoubletteStatut.enAttente,
           nomEquipe: first.nomEquipe,
         ),
@@ -41,7 +41,7 @@ class InMemoryMancheRepository implements MancheRepository {
             tableId: tableId,
             concoursId: concoursId,
             doubletteId: second.doubletteId,
-            score: 0,
+            points: 0,
             statut: TableDoubletteStatut.enAttente,
             nomEquipe: second.nomEquipe,
           ),
@@ -94,7 +94,7 @@ class InMemoryMancheRepository implements MancheRepository {
           tableId: tableId,
           concoursId: concoursId,
           doubletteId: doubletteId,
-          score: 0,
+          points: 0,
           statut: TableDoubletteStatut.enAttente,
           nomEquipe: 'Equipe $doubletteId',
         ),
@@ -156,7 +156,7 @@ class InMemoryMancheRepository implements MancheRepository {
       tableId: nextTableId,
       concoursId: concoursId,
       doubletteId: doubletteId,
-      score: 0,
+      points: 0,
       statut: TableDoubletteStatut.enAttente,
       nomEquipe: 'Equipe $doubletteId',
     );
@@ -212,6 +212,37 @@ class InMemoryMancheRepository implements MancheRepository {
   }
 
   @override
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
+    required String concoursId,
+    required int doubletteId,
+  }) async {
+    final result = <TableDoublette>[];
+    final tablesByMancheNum = <int, List<TableDeJeu>>{};
+
+    for (final entry in _tablesByManche.entries) {
+      final manche = manches.firstWhere((m) => m.id == entry.key);
+      tablesByMancheNum[manche.numero] = entry.value;
+    }
+
+    final sortedMancheNumbers = tablesByMancheNum.keys.toList()..sort();
+    for (final mancheNum in sortedMancheNumbers) {
+      final tables = tablesByMancheNum[mancheNum];
+      if (tables == null) {
+        continue;
+      }
+      for (final table in tables) {
+        for (final td in table.doublettes) {
+          if (td.concoursId == concoursId && td.doubletteId == doubletteId) {
+            result.add(td);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  @override
   Future<List<TableDeJeu>> findTablesDeJeuByMancheId(int mancheId) async {
     return _tablesByManche[mancheId] ?? const [];
   }
@@ -256,17 +287,17 @@ class InMemoryMancheRepository implements MancheRepository {
   }
 
   @override
-  Future<void> updateScore({
+  Future<void> updatePoints({
     required int tableId,
     required String concoursId,
     required int doubletteId,
-    required int score,
+    required int points,
   }) async {
     await _updateTableDoublette(
       tableId: tableId,
       concoursId: concoursId,
       doubletteId: doubletteId,
-      mapper: (td) => td.copyWith(score: score),
+      mapper: (td) => td.copyWith(points: points),
     );
   }
 

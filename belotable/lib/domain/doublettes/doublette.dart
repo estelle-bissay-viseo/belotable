@@ -10,6 +10,7 @@ class Doublette {
     required this.joueurA,
     required this.joueurB,
     required this.nomEquipe,
+    this.totalPoints = 0,
   });
 
   /// Owning contest id.
@@ -27,6 +28,9 @@ class Doublette {
   /// Unique team name within contest.
   final String nomEquipe;
 
+  /// Aggregated points across all manches.
+  final int totalPoints;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -38,7 +42,8 @@ class Doublette {
         other.doubletteId == doubletteId &&
         other.joueurA == joueurA &&
         other.joueurB == joueurB &&
-        other.nomEquipe == nomEquipe;
+        other.nomEquipe == nomEquipe &&
+        other.totalPoints == totalPoints;
   }
 
   @override
@@ -48,5 +53,6 @@ class Doublette {
     joueurA,
     joueurB,
     nomEquipe,
+    totalPoints,
   );
 }

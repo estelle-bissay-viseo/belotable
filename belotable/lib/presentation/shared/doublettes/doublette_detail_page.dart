@@ -1,5 +1,7 @@
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/doublettes/doublette_exceptions.dart';
+import 'package:belotable/domain/manches/points_history_provider.dart';
+import 'package:belotable/presentation/shared/utils/info_field.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -177,6 +179,17 @@ class _DoubletteDetailPageState extends ConsumerState<DoubletteDetailPage> {
                       _validateRequired(value, "Nom d'équipe obligatoire"),
                 ),
                 const SizedBox(height: 24),
+                InfoField(
+                  key: const Key('doublette_points_total'),
+                  label: 'Total des points',
+                  value: doublette.totalPoints.toString(),
+                ),
+                const SizedBox(height: 24),
+                _PointsHistorySection(
+                  concoursId: widget.concoursId,
+                  doubletteId: widget.doubletteId,
+                ),
+                const SizedBox(height: 24),
                 FilledButton(
                   key: const Key('doublette_detail_validate_button'),
                   onPressed: _isSaving ? null : _save,
@@ -201,6 +214,148 @@ class _DoubletteDetailPageState extends ConsumerState<DoubletteDetailPage> {
           ),
         );
       },
+    );
+  }
+}
+
+class _PointsHistorySection extends ConsumerWidget {
+  const _PointsHistorySection({
+    required this.concoursId,
+    required this.doubletteId,
+  });
+
+  final String concoursId;
+  final int doubletteId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pointsAsync = ref.watch(
+      pointsHistoryProvider((concoursId, doubletteId)),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Points par manche',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        pointsAsync.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (_, _) => const Text('Erreur lors du chargement'),
+          data: (points) {
+            if (points.isEmpty) {
+              return const Text('Aucune participation enregistrée');
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Table(
+                  key: const Key('doublette_points_history_table'),
+                  columnWidths: const {
+                    0: FlexColumnWidth(0.6),
+                    1: FlexColumnWidth(0.8),
+                    2: FlexColumnWidth(1.2),
+                  },
+                  border: TableBorder.all(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  children: [
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            'Manche',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            'Points',
+                            style: Theme.of(context).textTheme.labelMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            'Statut',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            'Concurrents',
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ...points.map(
+                      (p) => TableRow(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              'Manche ${p.mancheNum}',
+                              key: Key(
+                                // ignore: lines_longer_than_80_chars because of UI key
+                                'doublette_points_history_manche_${p.mancheNum}',
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              p.points.toString(),
+                              textAlign: TextAlign.center,
+                              key: Key(
+                                // ignore: lines_longer_than_80_chars because of UI key
+                                'doublette_points_history_points_${p.mancheNum}',
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              p.statut,
+                              key: Key(
+                                // ignore: lines_longer_than_80_chars because of UI key
+                                'doublette_points_history_statut_${p.mancheNum}',
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              p.opponentName.isNotEmpty
+                                  ? '${p.opponentName} (#${p.opponentId})'
+                                  : '-',
+                              key: Key(
+                                // ignore: lines_longer_than_80_chars because UI key
+                                'doublette_points_history_opponent_${p.mancheNum}',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }

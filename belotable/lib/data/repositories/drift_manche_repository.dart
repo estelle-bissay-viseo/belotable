@@ -126,17 +126,28 @@ class DriftMancheRepository implements MancheRepository {
   }
 
   @override
-  Future<void> updateScore({
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
+    required String concoursId,
+    required int doubletteId,
+  }) {
+    return _db.manchesDao.findTableDoublettesByDoubletteId(
+      concoursId: concoursId,
+      doubletteId: doubletteId,
+    );
+  }
+
+  @override
+  Future<void> updatePoints({
     required int tableId,
     required String concoursId,
     required int doubletteId,
-    required int score,
+    required int points,
   }) {
-    return _db.manchesDao.updateScore(
+    return _db.manchesDao.updatePoints(
       tableId: tableId,
       concoursId: concoursId,
       doubletteId: doubletteId,
-      score: score,
+      points: points,
     );
   }
 

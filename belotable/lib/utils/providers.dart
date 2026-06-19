@@ -17,6 +17,7 @@ import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
+import 'package:belotable/domain/manches/update_manche_points_use_case.dart';
 import 'package:belotable/domain/pdf/repositories/pdf_repository.dart';
 import 'package:belotable/domain/pdf/usecases/generate_concours_table_pdf_usecase.dart';
 import 'package:belotable/presentation/shared/services/pdf_export_service.dart';
@@ -113,6 +114,15 @@ final createPremiereMancheUseCaseProvider =
         concoursRepo,
       );
     });
+
+/// Provides UpdateManchePointsUseCase with repository dependencies.
+final updateManchePointsUseCaseProvider = Provider<UpdateManchePointsUseCase>(
+  (ref) {
+    final mancheRepo = ref.watch(mancheRepositoryProvider);
+    final doubletteRepo = ref.watch(doubletteRepositoryProvider);
+    return UpdateManchePointsUseCase(mancheRepo, doubletteRepo);
+  },
+);
 
 /// Provides manches list for a concours.
 // ignore: specify_nonobvious_property_types
