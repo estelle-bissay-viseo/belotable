@@ -54,12 +54,19 @@ abstract interface class MancheRepository {
     required int doubletteId,
   });
 
-  /// Updates score for a doublette in a table.
-  Future<void> updateScore({
+  /// Returns all table-doublette records for a doublette across all manches,
+  /// ordered by manche numero ascending.
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
+    required String concoursId,
+    required int doubletteId,
+  });
+
+  /// Updates points for a doublette in a table.
+  Future<void> updatePoints({
     required int tableId,
     required String concoursId,
     required int doubletteId,
-    required int score,
+    required int points,
   });
 
   /// Updates statut of a doublette in a table and its opponent if applicable.

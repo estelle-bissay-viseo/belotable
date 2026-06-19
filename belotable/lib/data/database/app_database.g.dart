@@ -690,6 +690,18 @@ class $DoublettesTableTable extends DoublettesTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _totalPointsMeta = const VerificationMeta(
+    'totalPoints',
+  );
+  @override
+  late final GeneratedColumn<int> totalPoints = GeneratedColumn<int>(
+    'total_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     concoursId,
@@ -697,6 +709,7 @@ class $DoublettesTableTable extends DoublettesTable
     joueurA,
     joueurB,
     nomEquipe,
+    totalPoints,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -753,6 +766,15 @@ class $DoublettesTableTable extends DoublettesTable
     } else if (isInserting) {
       context.missing(_nomEquipeMeta);
     }
+    if (data.containsKey('total_points')) {
+      context.handle(
+        _totalPointsMeta,
+        totalPoints.isAcceptableOrUnknown(
+          data['total_points']!,
+          _totalPointsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -786,6 +808,10 @@ class $DoublettesTableTable extends DoublettesTable
         DriftSqlType.string,
         data['${effectivePrefix}nom_equipe'],
       )!,
+      totalPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_points'],
+      )!,
     );
   }
 
@@ -811,12 +837,16 @@ class DoublettesTableData extends DataClass
 
   /// Team name unique per concours.
   final String nomEquipe;
+
+  /// Aggregated points across all manches.
+  final int totalPoints;
   const DoublettesTableData({
     required this.concoursId,
     required this.doubletteId,
     required this.joueurA,
     required this.joueurB,
     required this.nomEquipe,
+    required this.totalPoints,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -826,6 +856,7 @@ class DoublettesTableData extends DataClass
     map['joueur_a'] = Variable<String>(joueurA);
     map['joueur_b'] = Variable<String>(joueurB);
     map['nom_equipe'] = Variable<String>(nomEquipe);
+    map['total_points'] = Variable<int>(totalPoints);
     return map;
   }
 
@@ -836,6 +867,7 @@ class DoublettesTableData extends DataClass
       joueurA: Value(joueurA),
       joueurB: Value(joueurB),
       nomEquipe: Value(nomEquipe),
+      totalPoints: Value(totalPoints),
     );
   }
 
@@ -850,6 +882,7 @@ class DoublettesTableData extends DataClass
       joueurA: serializer.fromJson<String>(json['joueurA']),
       joueurB: serializer.fromJson<String>(json['joueurB']),
       nomEquipe: serializer.fromJson<String>(json['nomEquipe']),
+      totalPoints: serializer.fromJson<int>(json['totalPoints']),
     );
   }
   @override
@@ -861,6 +894,7 @@ class DoublettesTableData extends DataClass
       'joueurA': serializer.toJson<String>(joueurA),
       'joueurB': serializer.toJson<String>(joueurB),
       'nomEquipe': serializer.toJson<String>(nomEquipe),
+      'totalPoints': serializer.toJson<int>(totalPoints),
     };
   }
 
@@ -870,12 +904,14 @@ class DoublettesTableData extends DataClass
     String? joueurA,
     String? joueurB,
     String? nomEquipe,
+    int? totalPoints,
   }) => DoublettesTableData(
     concoursId: concoursId ?? this.concoursId,
     doubletteId: doubletteId ?? this.doubletteId,
     joueurA: joueurA ?? this.joueurA,
     joueurB: joueurB ?? this.joueurB,
     nomEquipe: nomEquipe ?? this.nomEquipe,
+    totalPoints: totalPoints ?? this.totalPoints,
   );
   DoublettesTableData copyWithCompanion(DoublettesTableCompanion data) {
     return DoublettesTableData(
@@ -888,6 +924,9 @@ class DoublettesTableData extends DataClass
       joueurA: data.joueurA.present ? data.joueurA.value : this.joueurA,
       joueurB: data.joueurB.present ? data.joueurB.value : this.joueurB,
       nomEquipe: data.nomEquipe.present ? data.nomEquipe.value : this.nomEquipe,
+      totalPoints: data.totalPoints.present
+          ? data.totalPoints.value
+          : this.totalPoints,
     );
   }
 
@@ -898,14 +937,21 @@ class DoublettesTableData extends DataClass
           ..write('doubletteId: $doubletteId, ')
           ..write('joueurA: $joueurA, ')
           ..write('joueurB: $joueurB, ')
-          ..write('nomEquipe: $nomEquipe')
+          ..write('nomEquipe: $nomEquipe, ')
+          ..write('totalPoints: $totalPoints')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(concoursId, doubletteId, joueurA, joueurB, nomEquipe);
+  int get hashCode => Object.hash(
+    concoursId,
+    doubletteId,
+    joueurA,
+    joueurB,
+    nomEquipe,
+    totalPoints,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -914,7 +960,8 @@ class DoublettesTableData extends DataClass
           other.doubletteId == this.doubletteId &&
           other.joueurA == this.joueurA &&
           other.joueurB == this.joueurB &&
-          other.nomEquipe == this.nomEquipe);
+          other.nomEquipe == this.nomEquipe &&
+          other.totalPoints == this.totalPoints);
 }
 
 class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
@@ -923,6 +970,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
   final Value<String> joueurA;
   final Value<String> joueurB;
   final Value<String> nomEquipe;
+  final Value<int> totalPoints;
   final Value<int> rowid;
   const DoublettesTableCompanion({
     this.concoursId = const Value.absent(),
@@ -930,6 +978,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
     this.joueurA = const Value.absent(),
     this.joueurB = const Value.absent(),
     this.nomEquipe = const Value.absent(),
+    this.totalPoints = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DoublettesTableCompanion.insert({
@@ -938,6 +987,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
     required String joueurA,
     required String joueurB,
     required String nomEquipe,
+    this.totalPoints = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : concoursId = Value(concoursId),
        doubletteId = Value(doubletteId),
@@ -950,6 +1000,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
     Expression<String>? joueurA,
     Expression<String>? joueurB,
     Expression<String>? nomEquipe,
+    Expression<int>? totalPoints,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -958,6 +1009,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
       if (joueurA != null) 'joueur_a': joueurA,
       if (joueurB != null) 'joueur_b': joueurB,
       if (nomEquipe != null) 'nom_equipe': nomEquipe,
+      if (totalPoints != null) 'total_points': totalPoints,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -968,6 +1020,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
     Value<String>? joueurA,
     Value<String>? joueurB,
     Value<String>? nomEquipe,
+    Value<int>? totalPoints,
     Value<int>? rowid,
   }) {
     return DoublettesTableCompanion(
@@ -976,6 +1029,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
       joueurA: joueurA ?? this.joueurA,
       joueurB: joueurB ?? this.joueurB,
       nomEquipe: nomEquipe ?? this.nomEquipe,
+      totalPoints: totalPoints ?? this.totalPoints,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -998,6 +1052,9 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
     if (nomEquipe.present) {
       map['nom_equipe'] = Variable<String>(nomEquipe.value);
     }
+    if (totalPoints.present) {
+      map['total_points'] = Variable<int>(totalPoints.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1012,6 +1069,7 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
           ..write('joueurA: $joueurA, ')
           ..write('joueurB: $joueurB, ')
           ..write('nomEquipe: $nomEquipe, ')
+          ..write('totalPoints: $totalPoints, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1625,10 +1683,10 @@ class $TableDoublettesTableTable extends TableDoublettesTable
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
   @override
-  late final GeneratedColumn<int> score = GeneratedColumn<int>(
-    'score',
+  late final GeneratedColumn<int> points = GeneratedColumn<int>(
+    'points',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -1650,7 +1708,7 @@ class $TableDoublettesTableTable extends TableDoublettesTable
     tableId,
     concoursId,
     doubletteId,
-    score,
+    points,
     statut,
   ];
   @override
@@ -1692,10 +1750,10 @@ class $TableDoublettesTableTable extends TableDoublettesTable
     } else if (isInserting) {
       context.missing(_doubletteIdMeta);
     }
-    if (data.containsKey('score')) {
+    if (data.containsKey('points')) {
       context.handle(
-        _scoreMeta,
-        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+        _pointsMeta,
+        points.isAcceptableOrUnknown(data['points']!, _pointsMeta),
       );
     }
     if (data.containsKey('statut')) {
@@ -1728,9 +1786,9 @@ class $TableDoublettesTableTable extends TableDoublettesTable
         DriftSqlType.int,
         data['${effectivePrefix}doublette_id'],
       )!,
-      score: attachedDatabase.typeMapping.read(
+      points: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}score'],
+        data['${effectivePrefix}points'],
       )!,
       statut: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1756,8 +1814,8 @@ class TableDoublettesTableData extends DataClass
   /// Doublette registration id.
   final int doubletteId;
 
-  /// Score achieved in this table.
-  final int score;
+  /// Points achieved in this table.
+  final int points;
 
   /// Team status in this table stored as string.
   final String statut;
@@ -1765,7 +1823,7 @@ class TableDoublettesTableData extends DataClass
     required this.tableId,
     required this.concoursId,
     required this.doubletteId,
-    required this.score,
+    required this.points,
     required this.statut,
   });
   @override
@@ -1774,7 +1832,7 @@ class TableDoublettesTableData extends DataClass
     map['table_id'] = Variable<int>(tableId);
     map['concours_id'] = Variable<String>(concoursId);
     map['doublette_id'] = Variable<int>(doubletteId);
-    map['score'] = Variable<int>(score);
+    map['points'] = Variable<int>(points);
     map['statut'] = Variable<String>(statut);
     return map;
   }
@@ -1784,7 +1842,7 @@ class TableDoublettesTableData extends DataClass
       tableId: Value(tableId),
       concoursId: Value(concoursId),
       doubletteId: Value(doubletteId),
-      score: Value(score),
+      points: Value(points),
       statut: Value(statut),
     );
   }
@@ -1798,7 +1856,7 @@ class TableDoublettesTableData extends DataClass
       tableId: serializer.fromJson<int>(json['tableId']),
       concoursId: serializer.fromJson<String>(json['concoursId']),
       doubletteId: serializer.fromJson<int>(json['doubletteId']),
-      score: serializer.fromJson<int>(json['score']),
+      points: serializer.fromJson<int>(json['points']),
       statut: serializer.fromJson<String>(json['statut']),
     );
   }
@@ -1809,7 +1867,7 @@ class TableDoublettesTableData extends DataClass
       'tableId': serializer.toJson<int>(tableId),
       'concoursId': serializer.toJson<String>(concoursId),
       'doubletteId': serializer.toJson<int>(doubletteId),
-      'score': serializer.toJson<int>(score),
+      'points': serializer.toJson<int>(points),
       'statut': serializer.toJson<String>(statut),
     };
   }
@@ -1818,13 +1876,13 @@ class TableDoublettesTableData extends DataClass
     int? tableId,
     String? concoursId,
     int? doubletteId,
-    int? score,
+    int? points,
     String? statut,
   }) => TableDoublettesTableData(
     tableId: tableId ?? this.tableId,
     concoursId: concoursId ?? this.concoursId,
     doubletteId: doubletteId ?? this.doubletteId,
-    score: score ?? this.score,
+    points: points ?? this.points,
     statut: statut ?? this.statut,
   );
   TableDoublettesTableData copyWithCompanion(
@@ -1838,7 +1896,7 @@ class TableDoublettesTableData extends DataClass
       doubletteId: data.doubletteId.present
           ? data.doubletteId.value
           : this.doubletteId,
-      score: data.score.present ? data.score.value : this.score,
+      points: data.points.present ? data.points.value : this.points,
       statut: data.statut.present ? data.statut.value : this.statut,
     );
   }
@@ -1849,7 +1907,7 @@ class TableDoublettesTableData extends DataClass
           ..write('tableId: $tableId, ')
           ..write('concoursId: $concoursId, ')
           ..write('doubletteId: $doubletteId, ')
-          ..write('score: $score, ')
+          ..write('points: $points, ')
           ..write('statut: $statut')
           ..write(')'))
         .toString();
@@ -1857,7 +1915,7 @@ class TableDoublettesTableData extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(tableId, concoursId, doubletteId, score, statut);
+      Object.hash(tableId, concoursId, doubletteId, points, statut);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1865,7 +1923,7 @@ class TableDoublettesTableData extends DataClass
           other.tableId == this.tableId &&
           other.concoursId == this.concoursId &&
           other.doubletteId == this.doubletteId &&
-          other.score == this.score &&
+          other.points == this.points &&
           other.statut == this.statut);
 }
 
@@ -1874,14 +1932,14 @@ class TableDoublettesTableCompanion
   final Value<int> tableId;
   final Value<String> concoursId;
   final Value<int> doubletteId;
-  final Value<int> score;
+  final Value<int> points;
   final Value<String> statut;
   final Value<int> rowid;
   const TableDoublettesTableCompanion({
     this.tableId = const Value.absent(),
     this.concoursId = const Value.absent(),
     this.doubletteId = const Value.absent(),
-    this.score = const Value.absent(),
+    this.points = const Value.absent(),
     this.statut = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1889,7 +1947,7 @@ class TableDoublettesTableCompanion
     required int tableId,
     required String concoursId,
     required int doubletteId,
-    this.score = const Value.absent(),
+    this.points = const Value.absent(),
     this.statut = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : tableId = Value(tableId),
@@ -1899,7 +1957,7 @@ class TableDoublettesTableCompanion
     Expression<int>? tableId,
     Expression<String>? concoursId,
     Expression<int>? doubletteId,
-    Expression<int>? score,
+    Expression<int>? points,
     Expression<String>? statut,
     Expression<int>? rowid,
   }) {
@@ -1907,7 +1965,7 @@ class TableDoublettesTableCompanion
       if (tableId != null) 'table_id': tableId,
       if (concoursId != null) 'concours_id': concoursId,
       if (doubletteId != null) 'doublette_id': doubletteId,
-      if (score != null) 'score': score,
+      if (points != null) 'points': points,
       if (statut != null) 'statut': statut,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1917,7 +1975,7 @@ class TableDoublettesTableCompanion
     Value<int>? tableId,
     Value<String>? concoursId,
     Value<int>? doubletteId,
-    Value<int>? score,
+    Value<int>? points,
     Value<String>? statut,
     Value<int>? rowid,
   }) {
@@ -1925,7 +1983,7 @@ class TableDoublettesTableCompanion
       tableId: tableId ?? this.tableId,
       concoursId: concoursId ?? this.concoursId,
       doubletteId: doubletteId ?? this.doubletteId,
-      score: score ?? this.score,
+      points: points ?? this.points,
       statut: statut ?? this.statut,
       rowid: rowid ?? this.rowid,
     );
@@ -1943,8 +2001,8 @@ class TableDoublettesTableCompanion
     if (doubletteId.present) {
       map['doublette_id'] = Variable<int>(doubletteId.value);
     }
-    if (score.present) {
-      map['score'] = Variable<int>(score.value);
+    if (points.present) {
+      map['points'] = Variable<int>(points.value);
     }
     if (statut.present) {
       map['statut'] = Variable<String>(statut.value);
@@ -1961,7 +2019,7 @@ class TableDoublettesTableCompanion
           ..write('tableId: $tableId, ')
           ..write('concoursId: $concoursId, ')
           ..write('doubletteId: $doubletteId, ')
-          ..write('score: $score, ')
+          ..write('points: $points, ')
           ..write('statut: $statut, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2513,6 +2571,7 @@ typedef $$DoublettesTableTableCreateCompanionBuilder =
       required String joueurA,
       required String joueurB,
       required String nomEquipe,
+      Value<int> totalPoints,
       Value<int> rowid,
     });
 typedef $$DoublettesTableTableUpdateCompanionBuilder =
@@ -2522,6 +2581,7 @@ typedef $$DoublettesTableTableUpdateCompanionBuilder =
       Value<String> joueurA,
       Value<String> joueurB,
       Value<String> nomEquipe,
+      Value<int> totalPoints,
       Value<int> rowid,
     });
 
@@ -2590,6 +2650,11 @@ class $$DoublettesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get totalPoints => $composableBuilder(
+    column: $table.totalPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ConcoursTableTableFilterComposer get concoursId {
     final $$ConcoursTableTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2643,6 +2708,11 @@ class $$DoublettesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get totalPoints => $composableBuilder(
+    column: $table.totalPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ConcoursTableTableOrderingComposer get concoursId {
     final $$ConcoursTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2689,6 +2759,11 @@ class $$DoublettesTableTableAnnotationComposer
 
   GeneratedColumn<String> get nomEquipe =>
       $composableBuilder(column: $table.nomEquipe, builder: (column) => column);
+
+  GeneratedColumn<int> get totalPoints => $composableBuilder(
+    column: $table.totalPoints,
+    builder: (column) => column,
+  );
 
   $$ConcoursTableTableAnnotationComposer get concoursId {
     final $$ConcoursTableTableAnnotationComposer composer = $composerBuilder(
@@ -2749,6 +2824,7 @@ class $$DoublettesTableTableTableManager
                 Value<String> joueurA = const Value.absent(),
                 Value<String> joueurB = const Value.absent(),
                 Value<String> nomEquipe = const Value.absent(),
+                Value<int> totalPoints = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DoublettesTableCompanion(
                 concoursId: concoursId,
@@ -2756,6 +2832,7 @@ class $$DoublettesTableTableTableManager
                 joueurA: joueurA,
                 joueurB: joueurB,
                 nomEquipe: nomEquipe,
+                totalPoints: totalPoints,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2765,6 +2842,7 @@ class $$DoublettesTableTableTableManager
                 required String joueurA,
                 required String joueurB,
                 required String nomEquipe,
+                Value<int> totalPoints = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DoublettesTableCompanion.insert(
                 concoursId: concoursId,
@@ -2772,6 +2850,7 @@ class $$DoublettesTableTableTableManager
                 joueurA: joueurA,
                 joueurB: joueurB,
                 nomEquipe: nomEquipe,
+                totalPoints: totalPoints,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -3635,7 +3714,7 @@ typedef $$TableDoublettesTableTableCreateCompanionBuilder =
       required int tableId,
       required String concoursId,
       required int doubletteId,
-      Value<int> score,
+      Value<int> points,
       Value<String> statut,
       Value<int> rowid,
     });
@@ -3644,7 +3723,7 @@ typedef $$TableDoublettesTableTableUpdateCompanionBuilder =
       Value<int> tableId,
       Value<String> concoursId,
       Value<int> doubletteId,
-      Value<int> score,
+      Value<int> points,
       Value<String> statut,
       Value<int> rowid,
     });
@@ -3704,8 +3783,8 @@ class $$TableDoublettesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get score => $composableBuilder(
-    column: $table.score,
+  ColumnFilters<int> get points => $composableBuilder(
+    column: $table.points,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3757,8 +3836,8 @@ class $$TableDoublettesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get score => $composableBuilder(
-    column: $table.score,
+  ColumnOrderings<int> get points => $composableBuilder(
+    column: $table.points,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3810,8 +3889,8 @@ class $$TableDoublettesTableTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get score =>
-      $composableBuilder(column: $table.score, builder: (column) => column);
+  GeneratedColumn<int> get points =>
+      $composableBuilder(column: $table.points, builder: (column) => column);
 
   GeneratedColumn<String> get statut =>
       $composableBuilder(column: $table.statut, builder: (column) => column);
@@ -3879,14 +3958,14 @@ class $$TableDoublettesTableTableTableManager
                 Value<int> tableId = const Value.absent(),
                 Value<String> concoursId = const Value.absent(),
                 Value<int> doubletteId = const Value.absent(),
-                Value<int> score = const Value.absent(),
+                Value<int> points = const Value.absent(),
                 Value<String> statut = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TableDoublettesTableCompanion(
                 tableId: tableId,
                 concoursId: concoursId,
                 doubletteId: doubletteId,
-                score: score,
+                points: points,
                 statut: statut,
                 rowid: rowid,
               ),
@@ -3895,14 +3974,14 @@ class $$TableDoublettesTableTableTableManager
                 required int tableId,
                 required String concoursId,
                 required int doubletteId,
-                Value<int> score = const Value.absent(),
+                Value<int> points = const Value.absent(),
                 Value<String> statut = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TableDoublettesTableCompanion.insert(
                 tableId: tableId,
                 concoursId: concoursId,
                 doubletteId: doubletteId,
-                score: score,
+                points: points,
                 statut: statut,
                 rowid: rowid,
               ),

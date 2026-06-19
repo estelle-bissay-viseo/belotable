@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:belotable/utils/providers.dart';
@@ -182,38 +184,51 @@ class _TableDoubletteRow extends ConsumerStatefulWidget {
 }
 
 class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
-  late final TextEditingController _scoreController;
+  late final TextEditingController _pointsController;
+  late final FocusNode _pointsFocus;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _scoreController = TextEditingController(
-      text: widget.tableDoublette.score.toString(),
+    _pointsController = TextEditingController(
+      text: widget.tableDoublette.points.toString(),
     );
+    _pointsFocus = FocusNode();
+    _pointsFocus.addListener(_onPointsFocusChange);
   }
 
   @override
   void dispose() {
-    _scoreController.dispose();
+    _pointsController.dispose();
+    _pointsFocus
+      ..removeListener(_onPointsFocusChange)
+      ..dispose();
     super.dispose();
   }
 
-  Future<void> _saveScore() async {
-    final score = int.tryParse(_scoreController.text.trim()) ?? 0;
-    if (score == widget.tableDoublette.score) {
+  void _onPointsFocusChange() {
+    if (!_pointsFocus.hasFocus) {
+      unawaited(_savePoints());
+    }
+  }
+
+  Future<void> _savePoints() async {
+    final points = int.tryParse(_pointsController.text.trim()) ?? 0;
+    if (points == widget.tableDoublette.points) {
       return;
     }
 
     setState(() => _isSaving = true);
     try {
-      final repo = ref.read(mancheRepositoryProvider);
-      await repo.updateScore(
+      final updateUseCase = ref.read(updateManchePointsUseCaseProvider);
+      await updateUseCase(
         tableId: widget.tableDoublette.tableId,
         concoursId: widget.tableDoublette.concoursId,
         doubletteId: widget.tableDoublette.doubletteId,
-        score: score,
+        points: points,
       );
+
       widget.onRefresh();
     } finally {
       if (mounted) {
@@ -269,8 +284,9 @@ class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
           SizedBox(
             width: 95,
             child: TextField(
-              key: Key('score_field_${td.tableId}_${td.doubletteId}'),
-              controller: _scoreController,
+              key: Key('points_field_${td.tableId}_${td.doubletteId}'),
+              controller: _pointsController,
+              focusNode: _pointsFocus,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               decoration: const InputDecoration(
@@ -279,8 +295,7 @@ class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
                 isDense: true,
               ),
               enabled: !_isSaving,
-              onSubmitted: (_) => _saveScore(),
-              onEditingComplete: _saveScore,
+              onSubmitted: (_) => _savePoints(),
             ),
           ),
           const SizedBox(width: 8),
@@ -290,6 +305,10 @@ class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
             items: TableDoubletteStatut.values
                 .map(
                   (s) => DropdownMenuItem(
+                    key: Key(
+                      // ignore: lines_longer_than_80_chars because of UI key
+                      'statut_dropdown_item_${td.tableId}_${td.doubletteId}_${s.name}',
+                    ),
                     value: s,
                     child: Text(s.label),
                   ),

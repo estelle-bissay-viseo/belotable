@@ -55,7 +55,7 @@ class TableDoublette {
     required this.tableId,
     required this.concoursId,
     required this.doubletteId,
-    required this.score,
+    required this.points,
     required this.statut,
     required this.nomEquipe,
   });
@@ -69,8 +69,8 @@ class TableDoublette {
   /// Doublette registration id.
   final int doubletteId;
 
-  /// Score achieved in this table.
-  final int score;
+  /// Points achieved in this table.
+  final int points;
 
   /// Current status of the doublette in this table.
   final TableDoubletteStatut statut;
@@ -80,14 +80,14 @@ class TableDoublette {
 
   /// Returns copy with updated fields.
   TableDoublette copyWith({
-    int? score,
+    int? points,
     TableDoubletteStatut? statut,
   }) {
     return TableDoublette(
       tableId: tableId,
       concoursId: concoursId,
       doubletteId: doubletteId,
-      score: score ?? this.score,
+      points: points ?? this.points,
       statut: statut ?? this.statut,
       nomEquipe: nomEquipe,
     );

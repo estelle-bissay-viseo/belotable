@@ -1,4 +1,5 @@
 import 'package:belotable/domain/concours/concours.dart';
+import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -336,6 +337,239 @@ void main() {
       );
       expect(find.text('Les Stars (#5)'), findsOneWidget);
       expect(find.text('Les Vainqueurs (#6)'), findsOneWidget);
+    },
+  );
+
+  e2eTest(
+    'Manches flow',
+    'User inputs points and status for first table',
+    (tester, db) async {
+      const concoursId = 'concours-manches-flow';
+
+      await pumpTestApp(
+        tester,
+        db,
+        seed: (database) async {
+          // Create concours
+          await database.concoursDao.insertConcours(
+            Concours(
+              id: concoursId,
+              date: DateTime(2026, 6, 8),
+              lieu: 'Salle A',
+              organisateur: 'Club A',
+              nombreDonnesParManche: 8,
+              reglesJeu: 'Règles originales',
+            ),
+          );
+
+          // Create 5 doublettes
+          await database.doublettesDao.createDoublette(
+            concoursId: concoursId,
+            joueurA: 'Alice',
+            joueurB: 'Bob',
+            nomEquipe: 'Les As',
+          );
+          await database.doublettesDao.createDoublette(
+            concoursId: concoursId,
+            joueurA: 'Charlie',
+            joueurB: 'Diana',
+            nomEquipe: 'Les Pros',
+          );
+          await database.doublettesDao.createDoublette(
+            concoursId: concoursId,
+            joueurA: 'Eve',
+            joueurB: 'Frank',
+            nomEquipe: 'Les Experts',
+          );
+          await database.doublettesDao.createDoublette(
+            concoursId: concoursId,
+            joueurA: 'Grace',
+            joueurB: 'Henry',
+            nomEquipe: 'Les Champions',
+          );
+          await database.doublettesDao.createDoublette(
+            concoursId: concoursId,
+            joueurA: 'Iris',
+            joueurB: 'Jack',
+            nomEquipe: 'Les Stars',
+          );
+        },
+      );
+
+      // Navigate to concours list
+      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.pumpAndSettle();
+
+      // Open concours detail
+      await tester.tap(
+        find.byKey(const Key('concours_manage_button_$concoursId')),
+      );
+      await tester.pumpAndSettle();
+
+      // Click prepare manche button
+      await tester.tap(
+        find.byKey(const Key('concours_detail_prepare_manche_button')),
+      );
+      await tester.pumpAndSettle();
+
+      // Confirm manche creation in dialog
+      await tester.tap(
+        find.byKey(const Key('prepare_manche_confirm_button')),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify success message
+      expect(
+        find.text('Première manche créée avec succès'),
+        findsOneWidget,
+      );
+
+      // Wait a moment for navigation
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_manche_button_1')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
+
+      // Click on the first manche button to view it
+      await tester.tap(
+        find.byKey(const Key('concours_detail_manche_button_1')),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify manche page is displayed
+      expect(
+        find.byKey(const Key('manche_page_tables_list')),
+        findsOneWidget,
+      );
+
+      // Fill first table results
+      expect(
+        find.byKey(const Key('table_card_1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('td_row_1_1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('points_field_1_1')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('points_field_1_1')),
+        '1000',
+      );
+      expect(
+        find.byKey(const Key('statut_dropdown_1_1')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const Key('statut_dropdown_1_1')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('statut_dropdown_item_1_1_gagne')),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('points_field_1_2')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('points_field_1_2')),
+        '500',
+      );
+      expect(
+        find.byKey(const Key('statut_dropdown_1_2')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const Key('statut_dropdown_1_2')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('statut_dropdown_item_1_2_perdu')),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+
+      // Go back to concours detail
+      await tester.tap(find.byType(BackButton).first);
+      await tester.pumpAndSettle();
+
+      // Click on the first manche button to view it
+      await tester.tap(
+        find.byKey(const Key('concours_detail_manche_button_1')),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify manche page is displayed
+      expect(
+        find.byKey(const Key('manche_page_tables_list')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('table_card_1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('td_row_1_1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('points_field_1_1')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_1_1')))
+            .controller!
+            .text,
+        '1000',
+      );
+      expect(
+        find.byKey(const Key('statut_dropdown_1_1')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<DropdownButton<TableDoubletteStatut>>(
+              find.byKey(const Key('statut_dropdown_1_1')),
+            )
+            .value,
+        TableDoubletteStatut.gagne,
+      );
+      expect(
+        find.byKey(const Key('td_row_1_2')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('points_field_1_2')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_1_2')))
+            .controller!
+            .text,
+        '500',
+      );
+      expect(
+        find.byKey(const Key('statut_dropdown_1_2')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<DropdownButton<TableDoubletteStatut>>(
+              find.byKey(const Key('statut_dropdown_1_2')),
+            )
+            .value,
+        TableDoubletteStatut.perdu,
+      );
     },
   );
 }

@@ -64,6 +64,9 @@ class DoublettesTable extends Table {
   /// Team name unique per concours.
   TextColumn get nomEquipe => text()();
 
+  /// Aggregated points across all manches.
+  IntColumn get totalPoints => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column<Object>> get primaryKey => {concoursId, doubletteId};
 
@@ -117,8 +120,8 @@ class TableDoublettesTable extends Table {
   /// Doublette registration id.
   IntColumn get doubletteId => integer()();
 
-  /// Score achieved in this table.
-  IntColumn get score => integer().withDefault(const Constant(0))();
+  /// Points achieved in this table.
+  IntColumn get points => integer().withDefault(const Constant(0))();
 
   /// Team status in this table stored as string.
   TextColumn get statut => text().withDefault(const Constant('En attente'))();
@@ -291,6 +294,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
             joueurA: Value(doublette.joueurA),
             joueurB: Value(doublette.joueurB),
             nomEquipe: Value(doublette.nomEquipe),
+            totalPoints: Value(doublette.totalPoints),
           ),
         );
 
@@ -320,6 +324,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
       joueurA: row.joueurA,
       joueurB: row.joueurB,
       nomEquipe: row.nomEquipe,
+      totalPoints: row.totalPoints,
     );
   }
 
@@ -339,6 +344,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
             joueurA: row.joueurA,
             joueurB: row.joueurB,
             nomEquipe: row.nomEquipe,
+            totalPoints: row.totalPoints,
           ),
         )
         .toList(growable: false);
@@ -480,7 +486,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
             tableId: td.tableId,
             concoursId: td.concoursId,
             doubletteId: td.doubletteId,
-            score: td.score,
+            points: td.points,
             statut: TableDoubletteStatut.fromDb(td.statut),
             nomEquipe: d.nomEquipe,
           );
@@ -663,10 +669,61 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
       tableId: td.tableId,
       concoursId: td.concoursId,
       doubletteId: td.doubletteId,
-      score: td.score,
+      points: td.points,
       statut: TableDoubletteStatut.fromDb(td.statut),
       nomEquipe: d.nomEquipe,
     );
+  }
+
+  /// Returns all table-doublette records for a doublette across all manches,
+  /// ordered by manche numero ascending.
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
+    required String concoursId,
+    required int doubletteId,
+  }) async {
+    final rows =
+        await (select(tableDoublettesTable).join([
+                innerJoin(
+                  doublettesTable,
+                  doublettesTable.concoursId.equalsExp(
+                        tableDoublettesTable.concoursId,
+                      ) &
+                      doublettesTable.doubletteId.equalsExp(
+                        tableDoublettesTable.doubletteId,
+                      ),
+                ),
+                innerJoin(
+                  tablesDeJeuTable,
+                  tablesDeJeuTable.id.equalsExp(tableDoublettesTable.tableId),
+                ),
+                innerJoin(
+                  manchesTable,
+                  manchesTable.id.equalsExp(tablesDeJeuTable.mancheId),
+                ),
+              ])
+              ..where(
+                tableDoublettesTable.concoursId.equals(concoursId) &
+                    tableDoublettesTable.doubletteId.equals(doubletteId),
+              )
+              ..orderBy([
+                OrderingTerm.asc(manchesTable.numero),
+              ]))
+            .get();
+
+    return rows
+        .map((row) {
+          final td = row.readTable(tableDoublettesTable);
+          final d = row.readTable(doublettesTable);
+          return TableDoublette(
+            tableId: td.tableId,
+            concoursId: td.concoursId,
+            doubletteId: td.doubletteId,
+            points: td.points,
+            statut: TableDoubletteStatut.fromDb(td.statut),
+            nomEquipe: d.nomEquipe,
+          );
+        })
+        .toList(growable: false);
   }
 
   /// Removes a doublette from its table. Deletes the table if empty.
@@ -701,12 +758,12 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     }
   }
 
-  /// Updates score of a doublette in a table.
-  Future<void> updateScore({
+  /// Updates points of a doublette in a table.
+  Future<void> updatePoints({
     required int tableId,
     required String concoursId,
     required int doubletteId,
-    required int score,
+    required int points,
   }) async {
     await (update(tableDoublettesTable)..where(
           (t) =>
@@ -714,7 +771,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
               t.concoursId.equals(concoursId) &
               t.doubletteId.equals(doubletteId),
         ))
-        .write(TableDoublettesTableCompanion(score: Value(score)));
+        .write(TableDoublettesTableCompanion(points: Value(points)));
   }
 
   /// Updates statut of a doublette and applies opponent/table status rules.

@@ -103,6 +103,10 @@ Cette liste vous permet de visualiser les doublettes déjà inscrites, d'en ajou
 
 A la création d'une doublette, un nom d'équipe est automatiquement proposé par l'application, mais vous pouvez le modifier. Le nom d'équipe doit rester unique dans le concours.
 
+Vous pouvez gérer chaque doublette en cliquant sur le bouton **Gérer** associé à la doublette. Vous pourrez modifier le nom de l'équipe et les joueurs de la doublette. Vous pourrez également voir l'historique des points de la doublette sur les manches jouées, et la somme des points obtenus.
+
+![Détails d'une doublette](./assets/images/page-doublette-details.png)
+
 ### Gestion des manches
 
 Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(uniquement la première manche pour le moment)*.
@@ -123,3 +127,11 @@ Dès que la manche est créée, les **modifications des doublettes ont des impac
 - si une doublette est ajoutée après la préparation de la manche, elle sera placée sur une table libre si possible, sinon elle sera placée sur une nouvelle table en attente d'une autre doublette pour compléter la table.
 - si une doublette est supprimée alors qu'elle a déjà joué une partie, la doublette ne sera pas supprimée mais sera marquée comme "Abandon" sur sa partie, et son adversaire sera marquée comme "Gagné".
 - si deux tables attendent une doublette pour compléter la table, les 2 tables seront fusionnées.
+
+#### Saisie des résultats d'une manche
+
+Pour saisir les résultats d'une manche, cliquez sur le bouton **Manche X** depuis la page de gestion du concours.
+
+![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
+
+Vous pouvez saisir les résultats des parties jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc). La saisie des points lance immédiatement le calcul des points total de la doublette et le classement de la manche.
