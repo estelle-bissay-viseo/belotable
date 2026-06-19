@@ -135,3 +135,9 @@ Pour saisir les résultats d'une manche, cliquez sur le bouton **Manche X** depu
 ![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
 
 Vous pouvez saisir les résultats des parties jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc). La saisie des points lance immédiatement le calcul des points total de la doublette et le classement de la manche.
+
+### Classement des doublettes durant le concours
+
+Le classement de doublettes est disponible depuis la page de gestion du concours, en cliquant sur **Voir le classement**. Il est disponible dès qu'une manche a commencé, et est mis à jour automatiquement dès qu'un résultat de partie est saisi.
+
+![Classement](./assets/images/page-classement.png)
