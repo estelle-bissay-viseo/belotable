@@ -497,6 +497,18 @@ jobs:
         with:
           ref: ${{ inputs.checkout_ref }}
           fetch-depth: 1
+      
+      - name: Get week key
+        id: week_key
+        run: echo "week_key=$(date +'%G-W%V')" >> $GITHUB_OUTPUT
+
+      - name: Restore Trivy Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.cache/trivy
+          key: cache-trivy-${{ steps.week_key.outputs.week_key }}
+          restore-keys: |
+            cache-trivy-
 
       - name: Generate Trivy Report about FileSystem
         uses: aquasecurity/trivy-action@master
@@ -508,6 +520,10 @@ jobs:
           scan-ref: .
           severity: LOW,MEDIUM,HIGH,CRITICAL
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Generate Trivy Report about Docker Container Image
         uses: aquasecurity/trivy-action@master
@@ -520,6 +536,10 @@ jobs:
           image-ref: ${{ inputs.image_name }}:${{ inputs.release_tag }}
           severity: LOW,MEDIUM,HIGH,CRITICAL
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Generate Trivy Report about FileSystem for GitHub Code Scanning
         uses: aquasecurity/trivy-action@master
@@ -532,6 +552,10 @@ jobs:
           scan-ref: .
           severity: HIGH,CRITICAL
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
@@ -549,6 +573,10 @@ jobs:
           severity: LOW,MEDIUM,HIGH,CRITICAL
           github-pat: ${{ secrets.GITHUB_TOKEN }}
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Generate Trivy SBOM report as cyclonedx format
         uses: aquasecurity/trivy-action@v0.36.0
@@ -560,6 +588,10 @@ jobs:
           scan-ref: .
           severity: LOW,MEDIUM,HIGH,CRITICAL
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Generate Trivy SBOM report as spdx-json format
         uses: aquasecurity/trivy-action@v0.36.0
@@ -571,6 +603,10 @@ jobs:
           scan-ref: .
           severity: LOW,MEDIUM,HIGH,CRITICAL
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
@@ -595,6 +631,10 @@ jobs:
           scan-type: fs
           scan-ref: .
           exit-code: 1
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Scan with Trivy about Docker Container Image
         id: trivy_scan_image
@@ -606,6 +646,10 @@ jobs:
           scan-type: image
           image-ref: ${{ inputs.image_name }}:${{ inputs.release_tag }}
           exit-code: 1
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
 
       - name: Fail if major vulnerabilities found
         if: ${{ steps.trivy_scan_fs.outcome == 'failure' || steps.trivy_scan_image.outcome == 'failure' }}
