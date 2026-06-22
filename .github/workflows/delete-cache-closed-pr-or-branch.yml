@@ -1,0 +1,64 @@
+name: Cleanup github runner caches of PR/branch
+
+on:
+  pull_request:
+    types:
+      - closed
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Nom de la branche"
+        required: false
+      pr_number:
+        description: "Numéro de Pull Request"
+        required: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: write
+
+    steps:
+      - name: Determine ref
+        id: ref
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+
+          elif [[ -n "${{ inputs.pr_number }}" ]]; then
+            echo "ref=refs/pull/${{ inputs.pr_number }}/merge" >> $GITHUB_OUTPUT
+
+          elif [[ -n "${{ inputs.branch }}" ]]; then
+            echo "ref=refs/heads/${{ inputs.branch }}" >> $GITHUB_OUTPUT
+
+          else
+            echo "No branch or PR number provided"
+            exit 1
+          fi
+
+      - name: Cleanup caches
+        run: |
+          echo "Fetching cache keys for ref: $REF"
+
+          cacheKeys=$(gh cache list --ref "$REF" --limit 100 --json id --jq '.[].id')
+
+          if [[ -z "$cacheKeys" ]]; then
+            echo "No caches found"
+            exit 0
+          fi
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for key in $cacheKeys
+          do
+            echo "Deleting cache id: $key"
+            gh cache delete $key
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: ${{ steps.ref.outputs.ref }}

@@ -28,6 +28,7 @@ La version Flutter est centralisée dans `.fvmrc` (racine du dépôt) et relue d
 | **Web Docker Cleanup** (`web-docker-cleanup.yml`) | Planifié + manuel | Nettoyage des versions d'images GHCR obsolètes |
 | **Docs - GitHub Pages** (`docs-pages.yml`) | Push `main` ciblé + manuel | Build MkDocs, génération d'un PDF combiné en artefact, puis déploiement de la documentation utilisateur sur GitHub Pages |
 | **Retry failed jobs in workflow** (`_retry-workflow.yml`) | Manuel | Workflow technique de retry pour relancer les jobs échoués d'un workflow principal (CI ou release) sans relancer les jobs ayant réussi |
+| **Delete cache of PR/branch** (`delete-cache-closed-pr-or-branch.yml`) | PR fermée + manuel | Workflow technique pour supprimer les caches GitHub Actions liés à une PR fermée / branche, afin d'optimiser l'utilisation du cache et éviter les accumulations inutiles |
 
 ---
 
@@ -285,6 +286,35 @@ Publier automatiquement la documentation utilisateur statique (MkDocs) sur GitHu
 
 - Dans les paramètres du dépôt, la source GitHub Pages doit être `GitHub Actions`.
 - Le build strict échoue en cas d'erreur de doc (liens cassés, références invalides, etc.).
+
+---
+
+## Delete cache of PR/branch (`delete-cache-closed-pr-or-branch.yml`)
+
+### Déclencheurs
+
+- Fermeture d'une PR (`pull_request.closed`)
+- Manuel : `workflow_dispatch` avec saisie du numéro de la PR ou du nom de la branche
+
+### Permissions
+
+- `actions: write`
+
+### Objectif
+
+Supprimer les caches GitHub Actions liés à une PR fermée ou une branche supprimée, afin d'optimiser l'utilisation du cache et éviter les accumulations inutiles.
+
+### Job
+
+#### 1. `cleanup` (`ubuntu-latest`)
+
+- Récupère les inputs (numéro de PR ou nom de branche)
+- Utilise l'API GitHub pour identifier les caches liés à la PR ou à la branche
+- Supprime les caches identifiés via l'API GitHub
+
+### Points d'attention
+
+Attention à ne pas supprimer les caches de branches actives ou de PR ouvertes sans comprendre les impacts, notamment des branches `dev` ou `release`. Ce workflow doit être utilisé avec précaution et idéalement réservé aux PR/branches de fonctionnalité ou de bugfix qui ont été fermées ou mergées.
 
 ---
 

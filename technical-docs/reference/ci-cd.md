@@ -9,6 +9,7 @@
 - `docs-pages.yml` : publication de la documentation utilisateur sur GitHub Pages.
 - `web-docker-cleanup.yml` : nettoyage des images GHCR obsolètes.
 - `trivy-update-cache.yml` : scan Trivy planifié et production d'un artefact SBOM.
+- `delete-cache-closed-pr-or-branch.yml` : suppression des caches liés à une PR fermée ou une branche supprimée.
 
 ## Stratégie de branches
 
@@ -124,6 +125,7 @@ Le workflow `trivy-update-cache.yml` exécute aussi un scan planifié et publie 
 - `.github/workflows/docs-pages.yml`
 - `.github/workflows/web-docker-cleanup.yml`
 - `.github/workflows/trivy-update-cache.yml`
+- `.github/workflows/delete-cache-closed-pr-or-branch.yml`
 - `trivy.yaml`
 - `.trivyignore`
 - `.semgrepignore`
