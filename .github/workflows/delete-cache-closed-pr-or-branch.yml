@@ -25,7 +25,7 @@ jobs:
         id: ref
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+            echo "ref=refs/pull/${{ github.event.pull_request.number }}/merge" >> $GITHUB_OUTPUT
 
           elif [[ -n "${{ inputs.pr_number }}" ]]; then
             echo "ref=refs/pull/${{ inputs.pr_number }}/merge" >> $GITHUB_OUTPUT
