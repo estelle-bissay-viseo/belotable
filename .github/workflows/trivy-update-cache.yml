@@ -22,6 +22,18 @@ jobs:
       - name: Setup oras
         uses: oras-project/setup-oras@v1
 
+      - name: Get week key
+        id: week_key
+        run: echo "week_key=$(date +'%G-W%V')" >> $GITHUB_OUTPUT
+
+      - name: Restore Trivy Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.cache/trivy
+          key: cache-trivy-${{ steps.week_key.outputs.week_key }}
+          restore-keys: |
+            cache-trivy-
+
       - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -32,6 +44,10 @@ jobs:
           severity: LOW,MEDIUM,HIGH,CRITICAL
           github-pat: ${{ secrets.GITHUB_TOKEN }}
           exit-code: 0
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
       
       - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
@@ -47,3 +63,7 @@ jobs:
           trivy-config: trivy.yaml
           scan-type: fs
           scan-ref: .
+          version: latest
+          cache: 'false'
+        env:
+          TRIVY_CACHE_DIR: ${{ github.workspace }}/.cache/trivy
