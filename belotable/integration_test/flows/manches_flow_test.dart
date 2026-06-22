@@ -357,7 +357,7 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
-              nombreDonnesParManche: 8,
+              nombreDonnesParManche: 2,
               reglesJeu: 'Règles originales',
             ),
           );
@@ -454,12 +454,36 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.byKey(const Key('points_field_1_1')),
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_1')))
+            .data,
+        '0',
+      );
+      expect(
+        find.byKey(const Key('points_field_1_1_1')),
         findsOneWidget,
       );
       await tester.enterText(
-        find.byKey(const Key('points_field_1_1')),
-        '1000',
+        find.byKey(const Key('points_field_1_1_1')),
+        '100',
+      );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('points_field_1_1_2')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('points_field_1_1_2')),
+        '50',
+      );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_1')))
+            .data,
+        '150',
       );
       expect(
         find.byKey(const Key('statut_dropdown_1_1')),
@@ -476,12 +500,36 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const Key('points_field_1_2')),
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_2')))
+            .data,
+        '0',
+      );
+      expect(
+        find.byKey(const Key('points_field_1_2_1')),
         findsOneWidget,
       );
       await tester.enterText(
-        find.byKey(const Key('points_field_1_2')),
-        '500',
+        find.byKey(const Key('points_field_1_2_1')),
+        '62',
+      );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('points_field_1_2_2')),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('points_field_1_2_2')),
+        '150',
+      );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_2')))
+            .data,
+        '212',
       );
       expect(
         find.byKey(const Key('statut_dropdown_1_2')),
@@ -496,6 +544,29 @@ void main() {
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
+      // Check other table is not affected
+      expect(
+        find.byKey(const Key('points_field_2_3_1')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_2_3_1')))
+            .controller!
+            .text,
+        '0',
+      );
+      expect(
+        find.byKey(const Key('points_field_2_4_1')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_2_4_1')))
+            .controller!
+            .text,
+        '0',
+      );
 
       // Go back to concours detail
       await tester.tap(find.byType(BackButton).first);
@@ -521,15 +592,32 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.byKey(const Key('points_field_1_1')),
+        find.byKey(const Key('points_field_1_1_1')),
         findsOneWidget,
       );
       expect(
         tester
-            .widget<TextField>(find.byKey(const Key('points_field_1_1')))
+            .widget<TextField>(find.byKey(const Key('points_field_1_1_1')))
             .controller!
             .text,
-        '1000',
+        '100',
+      );
+      expect(
+        find.byKey(const Key('points_field_1_1_2')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_1_1_2')))
+            .controller!
+            .text,
+        '50',
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_1')))
+            .data,
+        '150',
       );
       expect(
         find.byKey(const Key('statut_dropdown_1_1')),
@@ -548,15 +636,32 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.byKey(const Key('points_field_1_2')),
+        find.byKey(const Key('points_field_1_2_1')),
         findsOneWidget,
       );
       expect(
         tester
-            .widget<TextField>(find.byKey(const Key('points_field_1_2')))
+            .widget<TextField>(find.byKey(const Key('points_field_1_2_1')))
             .controller!
             .text,
-        '500',
+        '62',
+      );
+      expect(
+        find.byKey(const Key('points_field_1_2_2')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_1_2_2')))
+            .controller!
+            .text,
+        '150',
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_2')))
+            .data,
+        '212',
       );
       expect(
         find.byKey(const Key('statut_dropdown_1_2')),
@@ -569,6 +674,29 @@ void main() {
             )
             .value,
         TableDoubletteStatut.perdu,
+      );
+      // Check other table is not affected
+      expect(
+        find.byKey(const Key('points_field_2_3_1')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_2_3_1')))
+            .controller!
+            .text,
+        '0',
+      );
+      expect(
+        find.byKey(const Key('points_field_2_4_1')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('points_field_2_4_1')))
+            .controller!
+            .text,
+        '0',
       );
     },
   );

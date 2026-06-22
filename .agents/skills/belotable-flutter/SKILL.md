@@ -45,7 +45,10 @@ fvm dart run build_runner build --delete-conflicting-outputs
 
 ## Behaviour
 
+- Do not care about database MigrationStrategy
 - Do not care about messages about line length in flutter analyze output (like `info - The line length exceeds 80-character limit`).
+- Do not care about messages about imports order (level info) in flutter analyze output
+- Do not care about messages about unused imports (level info) in flutter analyze output
 - Do not prepare git commit at all.
 - Do `fvm flutter test integration_test/all_tests.dart -d windows -r expanded` to run all integration tests.
 - Do `fvm flutter test` to run other tests.

@@ -454,4 +454,14 @@ class InMemoryMancheRepository implements MancheRepository {
       return;
     }
   }
+
+  @override
+  Future<void> initializeDealPointsForManche({
+    required int mancheId,
+    required String concoursId,
+    required int numberOfDeals,
+  }) async {
+    // No-op for in-memory implementation
+    // Deal points are handled by InMemoryDealPointsRepository
+  }
 }

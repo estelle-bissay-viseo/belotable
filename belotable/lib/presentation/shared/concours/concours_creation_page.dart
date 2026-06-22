@@ -1,8 +1,8 @@
 import 'package:belotable/domain/concours/default_game_rules.dart';
 import 'package:belotable/utils/date_format.dart';
 import 'package:belotable/utils/providers.dart';
+import 'package:belotable/utils/widgets/integer_form_field.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Page for creating a new Concours
@@ -158,50 +158,24 @@ class _ConcoursCreationPageState extends ConsumerState<ConcoursCreationPage> {
               },
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            IntegerFormField(
               key: const Key('concours_nombre_donnes_field'),
               controller: _nombreDonnesController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Nombre de donnes par manche',
               ),
-              keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Nombre de donnes obligatoire';
-                }
-                final parsed = int.tryParse(value);
-                if (parsed == null || parsed < 1) {
-                  return 'Doit être un nombre >= 1';
-                }
-                return null;
-              },
+              min: 1,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            IntegerFormField(
               key: const Key('concours_nombre_max_points_field'),
               controller: _nombreMaxPointsController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Nombre maximum de points par donne',
               ),
-              keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Nombre maximum de points obligatoire';
-                }
-                final parsed = int.tryParse(value);
-                if (parsed == null || parsed < 0) {
-                  return 'Doit être un nombre >= 0';
-                }
-                return null;
-              },
+              min: 0,
             ),
             const SizedBox(height: 12),
             TextFormField(

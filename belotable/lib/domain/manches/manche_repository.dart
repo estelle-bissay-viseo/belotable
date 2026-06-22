@@ -86,4 +86,11 @@ abstract interface class MancheRepository {
     required int sourceTableId,
     required String concoursId,
   });
+
+  /// Initializes deal points for all doublettes in all tables of a manche.
+  Future<void> initializeDealPointsForManche({
+    required int mancheId,
+    required String concoursId,
+    required int numberOfDeals,
+  });
 }

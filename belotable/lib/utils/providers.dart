@@ -1,6 +1,7 @@
 import 'package:belotable/data/database/app_database.dart';
 import 'package:belotable/data/pdf/pdf_repository_impl.dart';
 import 'package:belotable/data/repositories/drift_concours_repository.dart';
+import 'package:belotable/data/repositories/drift_deal_points_repository.dart';
 import 'package:belotable/data/repositories/drift_doublette_repository.dart';
 import 'package:belotable/data/repositories/drift_manche_repository.dart';
 import 'package:belotable/domain/concours/concours.dart';
@@ -14,6 +15,8 @@ import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/doublettes/doublette_repository.dart';
 import 'package:belotable/domain/doublettes/update_doublette_use_case.dart';
 import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
+import 'package:belotable/domain/manches/deal_points.dart';
+import 'package:belotable/domain/manches/deal_points_repository.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
@@ -46,6 +49,12 @@ final doubletteRepositoryProvider = Provider<DoubletteRepository>((ref) {
 final mancheRepositoryProvider = Provider<MancheRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return DriftMancheRepository(db);
+});
+
+/// Provides DealPointsRepository bound to database.
+final dealPointsRepositoryProvider = Provider<DealPointsRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DriftDealPointsRepository(db);
 });
 
 /// Provides CreateConcoursUseCase with repository dependency.
@@ -120,7 +129,8 @@ final updateManchePointsUseCaseProvider = Provider<UpdateManchePointsUseCase>(
   (ref) {
     final mancheRepo = ref.watch(mancheRepositoryProvider);
     final doubletteRepo = ref.watch(doubletteRepositoryProvider);
-    return UpdateManchePointsUseCase(mancheRepo, doubletteRepo);
+    final dealPointsRepo = ref.watch(dealPointsRepositoryProvider);
+    return UpdateManchePointsUseCase(mancheRepo, doubletteRepo, dealPointsRepo);
   },
 );
 
@@ -161,3 +171,22 @@ final generateConcoursTablePdfUseCaseProvider =
 final pdfExportServiceProvider = Provider<PdfExportService>((ref) {
   return createPdfExportService();
 });
+
+/// Provides deal points for a specific table-doublette-manche.
+// ignore: specify_nonobvious_property_types
+final dealPointsByTableDoubletteProvider = FutureProvider.autoDispose
+    .family<
+      List<DealPoints>,
+      ({int tableId, String concoursId, int doubletteId, int mancheId})
+    >((
+      ref,
+      params,
+    ) {
+      final repo = ref.watch(dealPointsRepositoryProvider);
+      return repo.findDealPointsForTableDoublette(
+        tableId: params.tableId,
+        concoursId: params.concoursId,
+        doubletteId: params.doubletteId,
+        mancheId: params.mancheId,
+      );
+    });

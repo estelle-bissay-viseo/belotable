@@ -21,6 +21,7 @@ class CreatePremiereMancheUseCase {
   /// Validates preconditions and creates the first manche.
   ///
   /// Also updates concours status from Initialisation to EnCours.
+  /// Initializes deal points for all doublettes.
   /// Throws [Exception] if no doublettes registered or manche already exists.
   Future<Manche> call(String concoursId) async {
     final trimmedId = concoursId.trim();
@@ -50,21 +51,30 @@ class CreatePremiereMancheUseCase {
       doublettes: doublettes,
     );
 
-    // Update concours status to EnCours
+    // Get concours to retrieve numberOfDeals
     final concours = await _concoursRepository.findById(trimmedId);
-    if (concours != null &&
-        concours.statutConcours == ConcoursStatut.initialisation) {
-      final updatedConcours = Concours(
-        id: concours.id,
-        date: concours.date,
-        lieu: concours.lieu,
-        organisateur: concours.organisateur,
-        nombreDonnesParManche: concours.nombreDonnesParManche,
-        nombreDoublettes: concours.nombreDoublettes,
-        reglesJeu: concours.reglesJeu,
-        statutConcours: ConcoursStatut.enCours,
+    if (concours != null) {
+      // Initialize deal points for all doublettes
+      await _mancheRepository.initializeDealPointsForManche(
+        mancheId: manche.id,
+        concoursId: trimmedId,
+        numberOfDeals: concours.nombreDonnesParManche,
       );
-      await _concoursRepository.save(updatedConcours);
+
+      // Update concours status to EnCours
+      if (concours.statutConcours == ConcoursStatut.initialisation) {
+        final updatedConcours = Concours(
+          id: concours.id,
+          date: concours.date,
+          lieu: concours.lieu,
+          organisateur: concours.organisateur,
+          nombreDonnesParManche: concours.nombreDonnesParManche,
+          nombreDoublettes: concours.nombreDoublettes,
+          reglesJeu: concours.reglesJeu,
+          statutConcours: ConcoursStatut.enCours,
+        );
+        await _concoursRepository.save(updatedConcours);
+      }
     }
 
     return manche;
