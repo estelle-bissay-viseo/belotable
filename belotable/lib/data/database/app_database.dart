@@ -130,6 +130,41 @@ class TableDoublettesTable extends Table {
   Set<Column<Object>> get primaryKey => {tableId, concoursId, doubletteId};
 }
 
+/// Table schema for deal-level points per doublette in a table.
+class DealPointsTable extends Table {
+  /// Owning table id.
+  IntColumn get tableId => integer().references(
+    TablesDeJeuTable,
+    #id,
+    onDelete: KeyAction.cascade,
+  )();
+
+  /// Owning concours id.
+  TextColumn get concoursId => text()();
+
+  /// Doublette registration id.
+  IntColumn get doubletteId => integer()();
+
+  /// Owning manche id.
+  IntColumn get mancheId =>
+      integer().references(ManchesTable, #id, onDelete: KeyAction.cascade)();
+
+  /// Deal number (1-based), e.g. 1, 2, ..., 10.
+  IntColumn get dealNumber => integer()();
+
+  /// Points for this deal.
+  IntColumn get points => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {
+    tableId,
+    concoursId,
+    doubletteId,
+    mancheId,
+    dealNumber,
+  };
+}
+
 /// Data Access Object for Concours table operations.
 @DriftAccessor(tables: [ConcoursTable, DoublettesTable])
 class ConcoursDao extends DatabaseAccessor<AppDatabase>
@@ -393,6 +428,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
     ManchesTable,
     TablesDeJeuTable,
     TableDoublettesTable,
+    DealPointsTable,
     DoublettesTable,
   ],
 )
@@ -633,6 +669,21 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
         concoursId: concoursId,
         doubletteId: doubletteId,
       );
+
+      // Initialize deal points for the newly added doublette
+      final concours = await (select(
+        concoursTable,
+      )..where((c) => c.id.equals(concoursId))).getSingleOrNull();
+
+      if (concours != null) {
+        await initializeDealPoints(
+          tableId: targetTableId,
+          concoursId: concoursId,
+          doubletteId: doubletteId,
+          mancheId: latestManche.id,
+          numberOfDeals: concours.nombreDonnesParManche,
+        );
+      }
     });
   }
 
@@ -908,7 +959,97 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
       );
     });
   }
+
+  /// Initializes all deals with 0 points for a doublette in a table.
+  Future<void> initializeDealPoints({
+    required int tableId,
+    required String concoursId,
+    required int doubletteId,
+    required int mancheId,
+    required int numberOfDeals,
+  }) async {
+    for (var dealNumber = 1; dealNumber <= numberOfDeals; dealNumber++) {
+      await into(dealPointsTable).insert(
+        DealPointsTableCompanion.insert(
+          tableId: tableId,
+          concoursId: concoursId,
+          doubletteId: doubletteId,
+          mancheId: mancheId,
+          dealNumber: dealNumber,
+        ),
+      );
+    }
+  }
+
+  /// Returns all deal points for a specific table-doublette.
+  Future<List<DealPointsTableData>> findDealPointsForTableDoublette({
+    required int tableId,
+    required String concoursId,
+    required int doubletteId,
+    required int mancheId,
+  }) async {
+    return (select(dealPointsTable)
+          ..where(
+            (dp) =>
+                dp.tableId.equals(tableId) &
+                dp.concoursId.equals(concoursId) &
+                dp.doubletteId.equals(doubletteId) &
+                dp.mancheId.equals(mancheId),
+          )
+          ..orderBy([(dp) => OrderingTerm.asc(dp.dealNumber)]))
+        .get();
+  }
+
+  /// Updates points for a specific deal.
+  Future<void> updateDealPoints({
+    required int tableId,
+    required String concoursId,
+    required int doubletteId,
+    required int mancheId,
+    required int dealNumber,
+    required int points,
+  }) async {
+    await (update(dealPointsTable)..where(
+          (dp) =>
+              dp.tableId.equals(tableId) &
+              dp.concoursId.equals(concoursId) &
+              dp.doubletteId.equals(doubletteId) &
+              dp.mancheId.equals(mancheId) &
+              dp.dealNumber.equals(dealNumber),
+        ))
+        .write(DealPointsTableCompanion(points: Value(points)));
+  }
+
+  /// Calculates total points for a doublette in a table from all deals.
+  Future<int> calculateTotalPointsFromDeals({
+    required int tableId,
+    required String concoursId,
+    required int doubletteId,
+    required int mancheId,
+  }) async {
+    final pointsExpr = dealPointsTable.points.sum();
+    final query = selectOnly(dealPointsTable)
+      ..addColumns([pointsExpr])
+      ..where(
+        dealPointsTable.tableId.equals(tableId) &
+            dealPointsTable.concoursId.equals(concoursId) &
+            dealPointsTable.doubletteId.equals(doubletteId) &
+            dealPointsTable.mancheId.equals(mancheId),
+      );
+
+    final row = await query.getSingleOrNull();
+    return row?.read(pointsExpr) ?? 0;
+  }
 }
+
+/// Returns the database name based on the build mode.
+String _dbName() {
+  if (kDebugMode) {
+    return 'belotable_db_debug';
+  }
+  return 'belotable_db';
+}
+
 
 /// Drift database instance for managing all application data.
 @DriftDatabase(
@@ -918,6 +1059,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     ManchesTable,
     TablesDeJeuTable,
     TableDoublettesTable,
+    DealPointsTable,
   ],
   daos: [ConcoursDao, DoublettesDao, ManchesDao],
 )
@@ -927,7 +1069,7 @@ class AppDatabase extends _$AppDatabase {
     : super(
         e ??
             driftDatabase(
-              name: 'belotable_db',
+              name: _dbName(),
               native: const DriftNativeOptions(
                 databaseDirectory: getApplicationSupportDirectory,
               ),
@@ -950,21 +1092,11 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.withExecutor(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
-    onUpgrade: (m, from, to) async {
-      if (from < 2) {
-        await m.createTable(doublettesTable);
-      }
-      if (from < 3) {
-        await m.createTable(manchesTable);
-        await m.createTable(tablesDeJeuTable);
-        await m.createTable(tableDoublettesTable);
-      }
-    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },

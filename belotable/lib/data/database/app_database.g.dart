@@ -46,6 +46,7 @@ mixin _$ManchesDaoMixin on DatabaseAccessor<AppDatabase> {
       attachedDatabase.tablesDeJeuTable;
   $TableDoublettesTableTable get tableDoublettesTable =>
       attachedDatabase.tableDoublettesTable;
+  $DealPointsTableTable get dealPointsTable => attachedDatabase.dealPointsTable;
   $DoublettesTableTable get doublettesTable => attachedDatabase.doublettesTable;
   ManchesDaoManager get managers => ManchesDaoManager(this);
 }
@@ -66,6 +67,11 @@ class ManchesDaoManager {
       $$TableDoublettesTableTableTableManager(
         _db.attachedDatabase,
         _db.tableDoublettesTable,
+      );
+  $$DealPointsTableTableTableManager get dealPointsTable =>
+      $$DealPointsTableTableTableManager(
+        _db.attachedDatabase,
+        _db.dealPointsTable,
       );
   $$DoublettesTableTableTableManager get doublettesTable =>
       $$DoublettesTableTableTableManager(
@@ -2027,6 +2033,456 @@ class TableDoublettesTableCompanion
   }
 }
 
+class $DealPointsTableTable extends DealPointsTable
+    with TableInfo<$DealPointsTableTable, DealPointsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DealPointsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _tableIdMeta = const VerificationMeta(
+    'tableId',
+  );
+  @override
+  late final GeneratedColumn<int> tableId = GeneratedColumn<int>(
+    'table_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tables_de_jeu_table (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _concoursIdMeta = const VerificationMeta(
+    'concoursId',
+  );
+  @override
+  late final GeneratedColumn<String> concoursId = GeneratedColumn<String>(
+    'concours_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _doubletteIdMeta = const VerificationMeta(
+    'doubletteId',
+  );
+  @override
+  late final GeneratedColumn<int> doubletteId = GeneratedColumn<int>(
+    'doublette_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mancheIdMeta = const VerificationMeta(
+    'mancheId',
+  );
+  @override
+  late final GeneratedColumn<int> mancheId = GeneratedColumn<int>(
+    'manche_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES manches_table (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _dealNumberMeta = const VerificationMeta(
+    'dealNumber',
+  );
+  @override
+  late final GeneratedColumn<int> dealNumber = GeneratedColumn<int>(
+    'deal_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
+  @override
+  late final GeneratedColumn<int> points = GeneratedColumn<int>(
+    'points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    tableId,
+    concoursId,
+    doubletteId,
+    mancheId,
+    dealNumber,
+    points,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'deal_points_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DealPointsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('table_id')) {
+      context.handle(
+        _tableIdMeta,
+        tableId.isAcceptableOrUnknown(data['table_id']!, _tableIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tableIdMeta);
+    }
+    if (data.containsKey('concours_id')) {
+      context.handle(
+        _concoursIdMeta,
+        concoursId.isAcceptableOrUnknown(data['concours_id']!, _concoursIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_concoursIdMeta);
+    }
+    if (data.containsKey('doublette_id')) {
+      context.handle(
+        _doubletteIdMeta,
+        doubletteId.isAcceptableOrUnknown(
+          data['doublette_id']!,
+          _doubletteIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_doubletteIdMeta);
+    }
+    if (data.containsKey('manche_id')) {
+      context.handle(
+        _mancheIdMeta,
+        mancheId.isAcceptableOrUnknown(data['manche_id']!, _mancheIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mancheIdMeta);
+    }
+    if (data.containsKey('deal_number')) {
+      context.handle(
+        _dealNumberMeta,
+        dealNumber.isAcceptableOrUnknown(data['deal_number']!, _dealNumberMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dealNumberMeta);
+    }
+    if (data.containsKey('points')) {
+      context.handle(
+        _pointsMeta,
+        points.isAcceptableOrUnknown(data['points']!, _pointsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    tableId,
+    concoursId,
+    doubletteId,
+    mancheId,
+    dealNumber,
+  };
+  @override
+  DealPointsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DealPointsTableData(
+      tableId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}table_id'],
+      )!,
+      concoursId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}concours_id'],
+      )!,
+      doubletteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}doublette_id'],
+      )!,
+      mancheId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}manche_id'],
+      )!,
+      dealNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deal_number'],
+      )!,
+      points: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}points'],
+      )!,
+    );
+  }
+
+  @override
+  $DealPointsTableTable createAlias(String alias) {
+    return $DealPointsTableTable(attachedDatabase, alias);
+  }
+}
+
+class DealPointsTableData extends DataClass
+    implements Insertable<DealPointsTableData> {
+  /// Owning table id.
+  final int tableId;
+
+  /// Owning concours id.
+  final String concoursId;
+
+  /// Doublette registration id.
+  final int doubletteId;
+
+  /// Owning manche id.
+  final int mancheId;
+
+  /// Deal number (1-based), e.g. 1, 2, ..., 10.
+  final int dealNumber;
+
+  /// Points for this deal.
+  final int points;
+  const DealPointsTableData({
+    required this.tableId,
+    required this.concoursId,
+    required this.doubletteId,
+    required this.mancheId,
+    required this.dealNumber,
+    required this.points,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['table_id'] = Variable<int>(tableId);
+    map['concours_id'] = Variable<String>(concoursId);
+    map['doublette_id'] = Variable<int>(doubletteId);
+    map['manche_id'] = Variable<int>(mancheId);
+    map['deal_number'] = Variable<int>(dealNumber);
+    map['points'] = Variable<int>(points);
+    return map;
+  }
+
+  DealPointsTableCompanion toCompanion(bool nullToAbsent) {
+    return DealPointsTableCompanion(
+      tableId: Value(tableId),
+      concoursId: Value(concoursId),
+      doubletteId: Value(doubletteId),
+      mancheId: Value(mancheId),
+      dealNumber: Value(dealNumber),
+      points: Value(points),
+    );
+  }
+
+  factory DealPointsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DealPointsTableData(
+      tableId: serializer.fromJson<int>(json['tableId']),
+      concoursId: serializer.fromJson<String>(json['concoursId']),
+      doubletteId: serializer.fromJson<int>(json['doubletteId']),
+      mancheId: serializer.fromJson<int>(json['mancheId']),
+      dealNumber: serializer.fromJson<int>(json['dealNumber']),
+      points: serializer.fromJson<int>(json['points']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'tableId': serializer.toJson<int>(tableId),
+      'concoursId': serializer.toJson<String>(concoursId),
+      'doubletteId': serializer.toJson<int>(doubletteId),
+      'mancheId': serializer.toJson<int>(mancheId),
+      'dealNumber': serializer.toJson<int>(dealNumber),
+      'points': serializer.toJson<int>(points),
+    };
+  }
+
+  DealPointsTableData copyWith({
+    int? tableId,
+    String? concoursId,
+    int? doubletteId,
+    int? mancheId,
+    int? dealNumber,
+    int? points,
+  }) => DealPointsTableData(
+    tableId: tableId ?? this.tableId,
+    concoursId: concoursId ?? this.concoursId,
+    doubletteId: doubletteId ?? this.doubletteId,
+    mancheId: mancheId ?? this.mancheId,
+    dealNumber: dealNumber ?? this.dealNumber,
+    points: points ?? this.points,
+  );
+  DealPointsTableData copyWithCompanion(DealPointsTableCompanion data) {
+    return DealPointsTableData(
+      tableId: data.tableId.present ? data.tableId.value : this.tableId,
+      concoursId: data.concoursId.present
+          ? data.concoursId.value
+          : this.concoursId,
+      doubletteId: data.doubletteId.present
+          ? data.doubletteId.value
+          : this.doubletteId,
+      mancheId: data.mancheId.present ? data.mancheId.value : this.mancheId,
+      dealNumber: data.dealNumber.present
+          ? data.dealNumber.value
+          : this.dealNumber,
+      points: data.points.present ? data.points.value : this.points,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DealPointsTableData(')
+          ..write('tableId: $tableId, ')
+          ..write('concoursId: $concoursId, ')
+          ..write('doubletteId: $doubletteId, ')
+          ..write('mancheId: $mancheId, ')
+          ..write('dealNumber: $dealNumber, ')
+          ..write('points: $points')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    tableId,
+    concoursId,
+    doubletteId,
+    mancheId,
+    dealNumber,
+    points,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DealPointsTableData &&
+          other.tableId == this.tableId &&
+          other.concoursId == this.concoursId &&
+          other.doubletteId == this.doubletteId &&
+          other.mancheId == this.mancheId &&
+          other.dealNumber == this.dealNumber &&
+          other.points == this.points);
+}
+
+class DealPointsTableCompanion extends UpdateCompanion<DealPointsTableData> {
+  final Value<int> tableId;
+  final Value<String> concoursId;
+  final Value<int> doubletteId;
+  final Value<int> mancheId;
+  final Value<int> dealNumber;
+  final Value<int> points;
+  final Value<int> rowid;
+  const DealPointsTableCompanion({
+    this.tableId = const Value.absent(),
+    this.concoursId = const Value.absent(),
+    this.doubletteId = const Value.absent(),
+    this.mancheId = const Value.absent(),
+    this.dealNumber = const Value.absent(),
+    this.points = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DealPointsTableCompanion.insert({
+    required int tableId,
+    required String concoursId,
+    required int doubletteId,
+    required int mancheId,
+    required int dealNumber,
+    this.points = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : tableId = Value(tableId),
+       concoursId = Value(concoursId),
+       doubletteId = Value(doubletteId),
+       mancheId = Value(mancheId),
+       dealNumber = Value(dealNumber);
+  static Insertable<DealPointsTableData> custom({
+    Expression<int>? tableId,
+    Expression<String>? concoursId,
+    Expression<int>? doubletteId,
+    Expression<int>? mancheId,
+    Expression<int>? dealNumber,
+    Expression<int>? points,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (tableId != null) 'table_id': tableId,
+      if (concoursId != null) 'concours_id': concoursId,
+      if (doubletteId != null) 'doublette_id': doubletteId,
+      if (mancheId != null) 'manche_id': mancheId,
+      if (dealNumber != null) 'deal_number': dealNumber,
+      if (points != null) 'points': points,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DealPointsTableCompanion copyWith({
+    Value<int>? tableId,
+    Value<String>? concoursId,
+    Value<int>? doubletteId,
+    Value<int>? mancheId,
+    Value<int>? dealNumber,
+    Value<int>? points,
+    Value<int>? rowid,
+  }) {
+    return DealPointsTableCompanion(
+      tableId: tableId ?? this.tableId,
+      concoursId: concoursId ?? this.concoursId,
+      doubletteId: doubletteId ?? this.doubletteId,
+      mancheId: mancheId ?? this.mancheId,
+      dealNumber: dealNumber ?? this.dealNumber,
+      points: points ?? this.points,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (tableId.present) {
+      map['table_id'] = Variable<int>(tableId.value);
+    }
+    if (concoursId.present) {
+      map['concours_id'] = Variable<String>(concoursId.value);
+    }
+    if (doubletteId.present) {
+      map['doublette_id'] = Variable<int>(doubletteId.value);
+    }
+    if (mancheId.present) {
+      map['manche_id'] = Variable<int>(mancheId.value);
+    }
+    if (dealNumber.present) {
+      map['deal_number'] = Variable<int>(dealNumber.value);
+    }
+    if (points.present) {
+      map['points'] = Variable<int>(points.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DealPointsTableCompanion(')
+          ..write('tableId: $tableId, ')
+          ..write('concoursId: $concoursId, ')
+          ..write('doubletteId: $doubletteId, ')
+          ..write('mancheId: $mancheId, ')
+          ..write('dealNumber: $dealNumber, ')
+          ..write('points: $points, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2040,6 +2496,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $TableDoublettesTableTable tableDoublettesTable =
       $TableDoublettesTableTable(this);
+  late final $DealPointsTableTable dealPointsTable = $DealPointsTableTable(
+    this,
+  );
   late final ConcoursDao concoursDao = ConcoursDao(this as AppDatabase);
   late final DoublettesDao doublettesDao = DoublettesDao(this as AppDatabase);
   late final ManchesDao manchesDao = ManchesDao(this as AppDatabase);
@@ -2053,6 +2512,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     manchesTable,
     tablesDeJeuTable,
     tableDoublettesTable,
+    dealPointsTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2083,6 +2543,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('table_doublettes_table', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tables_de_jeu_table',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('deal_points_table', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'manches_table',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('deal_points_table', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2981,6 +3455,29 @@ final class $$ManchesTableTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$DealPointsTableTable, List<DealPointsTableData>>
+  _dealPointsTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.dealPointsTable,
+    aliasName: $_aliasNameGenerator(
+      db.manchesTable.id,
+      db.dealPointsTable.mancheId,
+    ),
+  );
+
+  $$DealPointsTableTableProcessedTableManager get dealPointsTableRefs {
+    final manager = $$DealPointsTableTableTableManager(
+      $_db,
+      $_db.dealPointsTable,
+    ).filter((f) => f.mancheId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _dealPointsTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ManchesTableTableFilterComposer
@@ -3041,6 +3538,31 @@ class $$ManchesTableTableFilterComposer
           }) => $$TablesDeJeuTableTableFilterComposer(
             $db: $db,
             $table: $db.tablesDeJeuTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> dealPointsTableRefs(
+    Expression<bool> Function($$DealPointsTableTableFilterComposer f) f,
+  ) {
+    final $$DealPointsTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dealPointsTable,
+      getReferencedColumn: (t) => t.mancheId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DealPointsTableTableFilterComposer(
+            $db: $db,
+            $table: $db.dealPointsTable,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3156,6 +3678,31 @@ class $$ManchesTableTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> dealPointsTableRefs<T extends Object>(
+    Expression<T> Function($$DealPointsTableTableAnnotationComposer a) f,
+  ) {
+    final $$DealPointsTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dealPointsTable,
+      getReferencedColumn: (t) => t.mancheId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DealPointsTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dealPointsTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ManchesTableTableTableManager
@@ -3171,7 +3718,11 @@ class $$ManchesTableTableTableManager
           $$ManchesTableTableUpdateCompanionBuilder,
           (ManchesTableData, $$ManchesTableTableReferences),
           ManchesTableData,
-          PrefetchHooks Function({bool concoursId, bool tablesDeJeuTableRefs})
+          PrefetchHooks Function({
+            bool concoursId,
+            bool tablesDeJeuTableRefs,
+            bool dealPointsTableRefs,
+          })
         > {
   $$ManchesTableTableTableManager(_$AppDatabase db, $ManchesTableTable table)
     : super(
@@ -3213,11 +3764,16 @@ class $$ManchesTableTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({concoursId = false, tablesDeJeuTableRefs = false}) {
+              ({
+                concoursId = false,
+                tablesDeJeuTableRefs = false,
+                dealPointsTableRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (tablesDeJeuTableRefs) db.tablesDeJeuTable,
+                    if (dealPointsTableRefs) db.dealPointsTable,
                   ],
                   addJoins:
                       <
@@ -3276,6 +3832,27 @@ class $$ManchesTableTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (dealPointsTableRefs)
+                        await $_getPrefetchedData<
+                          ManchesTableData,
+                          $ManchesTableTable,
+                          DealPointsTableData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ManchesTableTableReferences
+                              ._dealPointsTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ManchesTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).dealPointsTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mancheId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3296,7 +3873,11 @@ typedef $$ManchesTableTableProcessedTableManager =
       $$ManchesTableTableUpdateCompanionBuilder,
       (ManchesTableData, $$ManchesTableTableReferences),
       ManchesTableData,
-      PrefetchHooks Function({bool concoursId, bool tablesDeJeuTableRefs})
+      PrefetchHooks Function({
+        bool concoursId,
+        bool tablesDeJeuTableRefs,
+        bool dealPointsTableRefs,
+      })
     >;
 typedef $$TablesDeJeuTableTableCreateCompanionBuilder =
     TablesDeJeuTableCompanion Function({
@@ -3372,6 +3953,29 @@ final class $$TablesDeJeuTableTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$DealPointsTableTable, List<DealPointsTableData>>
+  _dealPointsTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.dealPointsTable,
+    aliasName: $_aliasNameGenerator(
+      db.tablesDeJeuTable.id,
+      db.dealPointsTable.tableId,
+    ),
+  );
+
+  $$DealPointsTableTableProcessedTableManager get dealPointsTableRefs {
+    final manager = $$DealPointsTableTableTableManager(
+      $_db,
+      $_db.dealPointsTable,
+    ).filter((f) => f.tableId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _dealPointsTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$TablesDeJeuTableTableFilterComposer
@@ -3437,6 +4041,31 @@ class $$TablesDeJeuTableTableFilterComposer
           }) => $$TableDoublettesTableTableFilterComposer(
             $db: $db,
             $table: $db.tableDoublettesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> dealPointsTableRefs(
+    Expression<bool> Function($$DealPointsTableTableFilterComposer f) f,
+  ) {
+    final $$DealPointsTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dealPointsTable,
+      getReferencedColumn: (t) => t.tableId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DealPointsTableTableFilterComposer(
+            $db: $db,
+            $table: $db.dealPointsTable,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3561,6 +4190,31 @@ class $$TablesDeJeuTableTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> dealPointsTableRefs<T extends Object>(
+    Expression<T> Function($$DealPointsTableTableAnnotationComposer a) f,
+  ) {
+    final $$DealPointsTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dealPointsTable,
+      getReferencedColumn: (t) => t.tableId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DealPointsTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dealPointsTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TablesDeJeuTableTableTableManager
@@ -3576,7 +4230,11 @@ class $$TablesDeJeuTableTableTableManager
           $$TablesDeJeuTableTableUpdateCompanionBuilder,
           (TablesDeJeuTableData, $$TablesDeJeuTableTableReferences),
           TablesDeJeuTableData,
-          PrefetchHooks Function({bool mancheId, bool tableDoublettesTableRefs})
+          PrefetchHooks Function({
+            bool mancheId,
+            bool tableDoublettesTableRefs,
+            bool dealPointsTableRefs,
+          })
         > {
   $$TablesDeJeuTableTableTableManager(
     _$AppDatabase db,
@@ -3624,11 +4282,16 @@ class $$TablesDeJeuTableTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({mancheId = false, tableDoublettesTableRefs = false}) {
+              ({
+                mancheId = false,
+                tableDoublettesTableRefs = false,
+                dealPointsTableRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (tableDoublettesTableRefs) db.tableDoublettesTable,
+                    if (dealPointsTableRefs) db.dealPointsTable,
                   ],
                   addJoins:
                       <
@@ -3687,6 +4350,27 @@ class $$TablesDeJeuTableTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (dealPointsTableRefs)
+                        await $_getPrefetchedData<
+                          TablesDeJeuTableData,
+                          $TablesDeJeuTableTable,
+                          DealPointsTableData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TablesDeJeuTableTableReferences
+                              ._dealPointsTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TablesDeJeuTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).dealPointsTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.tableId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3707,7 +4391,11 @@ typedef $$TablesDeJeuTableTableProcessedTableManager =
       $$TablesDeJeuTableTableUpdateCompanionBuilder,
       (TablesDeJeuTableData, $$TablesDeJeuTableTableReferences),
       TablesDeJeuTableData,
-      PrefetchHooks Function({bool mancheId, bool tableDoublettesTableRefs})
+      PrefetchHooks Function({
+        bool mancheId,
+        bool tableDoublettesTableRefs,
+        bool dealPointsTableRefs,
+      })
     >;
 typedef $$TableDoublettesTableTableCreateCompanionBuilder =
     TableDoublettesTableCompanion Function({
@@ -4054,6 +4742,456 @@ typedef $$TableDoublettesTableTableProcessedTableManager =
       TableDoublettesTableData,
       PrefetchHooks Function({bool tableId})
     >;
+typedef $$DealPointsTableTableCreateCompanionBuilder =
+    DealPointsTableCompanion Function({
+      required int tableId,
+      required String concoursId,
+      required int doubletteId,
+      required int mancheId,
+      required int dealNumber,
+      Value<int> points,
+      Value<int> rowid,
+    });
+typedef $$DealPointsTableTableUpdateCompanionBuilder =
+    DealPointsTableCompanion Function({
+      Value<int> tableId,
+      Value<String> concoursId,
+      Value<int> doubletteId,
+      Value<int> mancheId,
+      Value<int> dealNumber,
+      Value<int> points,
+      Value<int> rowid,
+    });
+
+final class $$DealPointsTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $DealPointsTableTable,
+          DealPointsTableData
+        > {
+  $$DealPointsTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TablesDeJeuTableTable _tableIdTable(_$AppDatabase db) =>
+      db.tablesDeJeuTable.createAlias(
+        $_aliasNameGenerator(
+          db.dealPointsTable.tableId,
+          db.tablesDeJeuTable.id,
+        ),
+      );
+
+  $$TablesDeJeuTableTableProcessedTableManager get tableId {
+    final $_column = $_itemColumn<int>('table_id')!;
+
+    final manager = $$TablesDeJeuTableTableTableManager(
+      $_db,
+      $_db.tablesDeJeuTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tableIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ManchesTableTable _mancheIdTable(_$AppDatabase db) =>
+      db.manchesTable.createAlias(
+        $_aliasNameGenerator(db.dealPointsTable.mancheId, db.manchesTable.id),
+      );
+
+  $$ManchesTableTableProcessedTableManager get mancheId {
+    final $_column = $_itemColumn<int>('manche_id')!;
+
+    final manager = $$ManchesTableTableTableManager(
+      $_db,
+      $_db.manchesTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mancheIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$DealPointsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DealPointsTableTable> {
+  $$DealPointsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get concoursId => $composableBuilder(
+    column: $table.concoursId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get doubletteId => $composableBuilder(
+    column: $table.doubletteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dealNumber => $composableBuilder(
+    column: $table.dealNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TablesDeJeuTableTableFilterComposer get tableId {
+    final $$TablesDeJeuTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tableId,
+      referencedTable: $db.tablesDeJeuTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TablesDeJeuTableTableFilterComposer(
+            $db: $db,
+            $table: $db.tablesDeJeuTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ManchesTableTableFilterComposer get mancheId {
+    final $$ManchesTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mancheId,
+      referencedTable: $db.manchesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ManchesTableTableFilterComposer(
+            $db: $db,
+            $table: $db.manchesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DealPointsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DealPointsTableTable> {
+  $$DealPointsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get concoursId => $composableBuilder(
+    column: $table.concoursId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get doubletteId => $composableBuilder(
+    column: $table.doubletteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dealNumber => $composableBuilder(
+    column: $table.dealNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TablesDeJeuTableTableOrderingComposer get tableId {
+    final $$TablesDeJeuTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tableId,
+      referencedTable: $db.tablesDeJeuTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TablesDeJeuTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.tablesDeJeuTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ManchesTableTableOrderingComposer get mancheId {
+    final $$ManchesTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mancheId,
+      referencedTable: $db.manchesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ManchesTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.manchesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DealPointsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DealPointsTableTable> {
+  $$DealPointsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get concoursId => $composableBuilder(
+    column: $table.concoursId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get doubletteId => $composableBuilder(
+    column: $table.doubletteId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get dealNumber => $composableBuilder(
+    column: $table.dealNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get points =>
+      $composableBuilder(column: $table.points, builder: (column) => column);
+
+  $$TablesDeJeuTableTableAnnotationComposer get tableId {
+    final $$TablesDeJeuTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tableId,
+      referencedTable: $db.tablesDeJeuTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TablesDeJeuTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tablesDeJeuTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ManchesTableTableAnnotationComposer get mancheId {
+    final $$ManchesTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mancheId,
+      referencedTable: $db.manchesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ManchesTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.manchesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DealPointsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DealPointsTableTable,
+          DealPointsTableData,
+          $$DealPointsTableTableFilterComposer,
+          $$DealPointsTableTableOrderingComposer,
+          $$DealPointsTableTableAnnotationComposer,
+          $$DealPointsTableTableCreateCompanionBuilder,
+          $$DealPointsTableTableUpdateCompanionBuilder,
+          (DealPointsTableData, $$DealPointsTableTableReferences),
+          DealPointsTableData,
+          PrefetchHooks Function({bool tableId, bool mancheId})
+        > {
+  $$DealPointsTableTableTableManager(
+    _$AppDatabase db,
+    $DealPointsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DealPointsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DealPointsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DealPointsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> tableId = const Value.absent(),
+                Value<String> concoursId = const Value.absent(),
+                Value<int> doubletteId = const Value.absent(),
+                Value<int> mancheId = const Value.absent(),
+                Value<int> dealNumber = const Value.absent(),
+                Value<int> points = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DealPointsTableCompanion(
+                tableId: tableId,
+                concoursId: concoursId,
+                doubletteId: doubletteId,
+                mancheId: mancheId,
+                dealNumber: dealNumber,
+                points: points,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int tableId,
+                required String concoursId,
+                required int doubletteId,
+                required int mancheId,
+                required int dealNumber,
+                Value<int> points = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DealPointsTableCompanion.insert(
+                tableId: tableId,
+                concoursId: concoursId,
+                doubletteId: doubletteId,
+                mancheId: mancheId,
+                dealNumber: dealNumber,
+                points: points,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DealPointsTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({tableId = false, mancheId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (tableId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.tableId,
+                                referencedTable:
+                                    $$DealPointsTableTableReferences
+                                        ._tableIdTable(db),
+                                referencedColumn:
+                                    $$DealPointsTableTableReferences
+                                        ._tableIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (mancheId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.mancheId,
+                                referencedTable:
+                                    $$DealPointsTableTableReferences
+                                        ._mancheIdTable(db),
+                                referencedColumn:
+                                    $$DealPointsTableTableReferences
+                                        ._mancheIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DealPointsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DealPointsTableTable,
+      DealPointsTableData,
+      $$DealPointsTableTableFilterComposer,
+      $$DealPointsTableTableOrderingComposer,
+      $$DealPointsTableTableAnnotationComposer,
+      $$DealPointsTableTableCreateCompanionBuilder,
+      $$DealPointsTableTableUpdateCompanionBuilder,
+      (DealPointsTableData, $$DealPointsTableTableReferences),
+      DealPointsTableData,
+      PrefetchHooks Function({bool tableId, bool mancheId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4068,4 +5206,6 @@ class $AppDatabaseManager {
       $$TablesDeJeuTableTableTableManager(_db, _db.tablesDeJeuTable);
   $$TableDoublettesTableTableTableManager get tableDoublettesTable =>
       $$TableDoublettesTableTableTableManager(_db, _db.tableDoublettesTable);
+  $$DealPointsTableTableTableManager get dealPointsTable =>
+      $$DealPointsTableTableTableManager(_db, _db.dealPointsTable);
 }

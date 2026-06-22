@@ -183,4 +183,24 @@ class DriftMancheRepository implements MancheRepository {
       concoursId: concoursId,
     );
   }
+
+  @override
+  Future<void> initializeDealPointsForManche({
+    required int mancheId,
+    required String concoursId,
+    required int numberOfDeals,
+  }) async {
+    final tables = await _db.manchesDao.findTablesDeJeuByMancheId(mancheId);
+    for (final table in tables) {
+      for (final doublette in table.doublettes) {
+        await _db.manchesDao.initializeDealPoints(
+          tableId: table.id,
+          concoursId: concoursId,
+          doubletteId: doublette.doubletteId,
+          mancheId: mancheId,
+          numberOfDeals: numberOfDeals,
+        );
+      }
+    }
+  }
 }

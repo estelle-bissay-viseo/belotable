@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:belotable/domain/manches/deal_points.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:belotable/utils/providers.dart';
@@ -84,6 +85,7 @@ class ManchePage extends ConsumerWidget {
                     ),
                     child: _TableDeJeuCard(
                       table: tables[index],
+                      mancheId: mancheId,
                       onRefresh: () => ref.invalidate(
                         tablesDeJeuByMancheProvider(mancheId),
                       ),
@@ -99,9 +101,14 @@ class ManchePage extends ConsumerWidget {
 }
 
 class _TableDeJeuCard extends ConsumerWidget {
-  const _TableDeJeuCard({required this.table, required this.onRefresh});
+  const _TableDeJeuCard({
+    required this.table,
+    required this.mancheId,
+    required this.onRefresh,
+  });
 
   final TableDeJeu table;
+  final int mancheId;
   final VoidCallback onRefresh;
 
   @override
@@ -131,6 +138,8 @@ class _TableDeJeuCard extends ConsumerWidget {
                 (td) => _TableDoubletteRow(
                   key: Key('td_row_${table.id}_${td.doubletteId}'),
                   tableDoublette: td,
+                  tableId: table.id,
+                  mancheId: mancheId,
                   onRefresh: onRefresh,
                 ),
               ),
@@ -169,53 +178,138 @@ class _StatutChip extends StatelessWidget {
   }
 }
 
-class _TableDoubletteRow extends ConsumerStatefulWidget {
+class _TableDoubletteRow extends ConsumerWidget {
   const _TableDoubletteRow({
     required this.tableDoublette,
+    required this.tableId,
+    required this.mancheId,
     required this.onRefresh,
     super.key,
   });
 
   final TableDoublette tableDoublette;
+  final int tableId;
+  final int mancheId;
   final VoidCallback onRefresh;
 
   @override
-  ConsumerState<_TableDoubletteRow> createState() => _TableDoubletteRowState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dealPointsAsync = ref.watch(
+      dealPointsByTableDoubletteProvider(
+        (
+          tableId: tableId,
+          concoursId: tableDoublette.concoursId,
+          doubletteId: tableDoublette.doubletteId,
+          mancheId: mancheId,
+        ),
+      ),
+    );
+
+    return dealPointsAsync.when(
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(tableDoublette.nomEquipe),
+            ),
+            const SizedBox(width: 8),
+            const CircularProgressIndicator(),
+          ],
+        ),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Text('Erreur: $e'),
+      ),
+      data: (dealPoints) => _DealPointsRow(
+        tableDoublette: tableDoublette,
+        tableId: tableId,
+        mancheId: mancheId,
+        dealPoints: dealPoints,
+        onRefresh: onRefresh,
+      ),
+    );
+  }
 }
 
-class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
-  late final TextEditingController _pointsController;
-  late final FocusNode _pointsFocus;
+class _DealPointsRow extends ConsumerStatefulWidget {
+  const _DealPointsRow({
+    required this.tableDoublette,
+    required this.tableId,
+    required this.mancheId,
+    required this.dealPoints,
+    required this.onRefresh,
+  });
+
+  final TableDoublette tableDoublette;
+  final int tableId;
+  final int mancheId;
+  final List<DealPoints> dealPoints;
+  final VoidCallback onRefresh;
+
+  @override
+  ConsumerState<_DealPointsRow> createState() => _DealPointsRowState();
+}
+
+class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
+  late final List<TextEditingController> _dealControllers;
+  late final List<FocusNode> _dealFocusNodes;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _pointsController = TextEditingController(
-      text: widget.tableDoublette.points.toString(),
+    _dealControllers = List.generate(
+      widget.dealPoints.length,
+      (i) => TextEditingController(
+        text: widget.dealPoints[i].points.toString(),
+      ),
     );
-    _pointsFocus = FocusNode();
-    _pointsFocus.addListener(_onPointsFocusChange);
+    _dealFocusNodes = List.generate(
+      widget.dealPoints.length,
+      (i) => FocusNode(),
+    );
+    // Attach listeners to focus nodes
+    for (var i = 0; i < _dealFocusNodes.length; i++) {
+      _dealFocusNodes[i].addListener(() async {
+        if (!_dealFocusNodes[i].hasFocus) {
+          await _saveDealPoints(i + 1);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
-    _pointsController.dispose();
-    _pointsFocus
-      ..removeListener(_onPointsFocusChange)
-      ..dispose();
+    for (final controller in _dealControllers) {
+      controller.dispose();
+    }
+    for (final focusNode in _dealFocusNodes) {
+      focusNode.dispose();
+    }
     super.dispose();
   }
 
-  void _onPointsFocusChange() {
-    if (!_pointsFocus.hasFocus) {
-      unawaited(_savePoints());
-    }
-  }
+  Future<void> _saveDealPoints(int dealNumber) async {
+    final points =
+        int.tryParse(_dealControllers[dealNumber - 1].text.trim()) ?? 0;
 
-  Future<void> _savePoints() async {
-    final points = int.tryParse(_pointsController.text.trim()) ?? 0;
-    if (points == widget.tableDoublette.points) {
+    // Validate >= 0
+    if (points < 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Les points doivent être >= 0'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      // Reset to previous value
+      _dealControllers[dealNumber - 1].text = widget
+          .dealPoints[dealNumber - 1]
+          .points
+          .toString();
       return;
     }
 
@@ -226,10 +320,28 @@ class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
         tableId: widget.tableDoublette.tableId,
         concoursId: widget.tableDoublette.concoursId,
         doubletteId: widget.tableDoublette.doubletteId,
+        mancheId: widget.mancheId,
+        dealNumber: dealNumber,
         points: points,
       );
-
+      // Invalidate deal points provider to update total score
+      ref.invalidate(
+        dealPointsByTableDoubletteProvider(
+          (
+            tableId: widget.tableDoublette.tableId,
+            concoursId: widget.tableDoublette.concoursId,
+            doubletteId: widget.tableDoublette.doubletteId,
+            mancheId: widget.mancheId,
+          ),
+        ),
+      );
       widget.onRefresh();
+    } on Exception catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -265,39 +377,84 @@ class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
   @override
   Widget build(BuildContext context) {
     final td = widget.tableDoublette;
+    final total = widget.dealPoints.fold<int>(0, (sum, dp) => sum + dp.points);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Expanded(
-            flex: 3,
-            child: Text(
-              '${td.nomEquipe} (#${td.doubletteId})',
-              style: TextStyle(
-                fontWeight: _isWinner ? FontWeight.bold : FontWeight.normal,
-                color: _isWinner ? Colors.green[700] : null,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${td.nomEquipe} (#${td.doubletteId})',
+                      style: TextStyle(
+                        fontWeight: _isWinner
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _isWinner ? Colors.green[700] : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Deal inputs row
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(
+                      widget.dealPoints.length,
+                      (i) {
+                        final dealNumber = i + 1;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: SizedBox(
+                            width: 60,
+                            child: TextField(
+                              key: Key(
+                                // ignore: lines_longer_than_80_chars because UI key
+                                'points_field_${td.tableId}_${td.doubletteId}_$dealNumber',
+                              ),
+                              controller: _dealControllers[i],
+                              focusNode: _dealFocusNodes[i],
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                labelText: 'D$dealNumber',
+                                isDense: true,
+                              ),
+                              enabled: !_isSaving,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 8),
+
+          // Total score (read-only)
           SizedBox(
             width: 95,
-            child: TextField(
-              key: Key('points_field_${td.tableId}_${td.doubletteId}'),
-              controller: _pointsController,
-              focusNode: _pointsFocus,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+            child: InputDecorator(
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
                 labelText: 'Score final',
                 isDense: true,
-              ),
-              enabled: !_isSaving,
-              onSubmitted: (_) => _savePoints(),
             ),
-          ),
+            child: Text(
+              total.toString(),
+              key: Key('total_field_${td.tableId}_${td.doubletteId}'),
+              textAlign: TextAlign.center,
+              ),
+          ),),
           const SizedBox(width: 8),
           DropdownButton<TableDoubletteStatut>(
             key: Key('statut_dropdown_${td.tableId}_${td.doubletteId}'),
@@ -306,7 +463,7 @@ class _TableDoubletteRowState extends ConsumerState<_TableDoubletteRow> {
                 .map(
                   (s) => DropdownMenuItem(
                     key: Key(
-                      // ignore: lines_longer_than_80_chars because of UI key
+                      // ignore: lines_longer_than_80_chars because UI key
                       'statut_dropdown_item_${td.tableId}_${td.doubletteId}_${s.name}',
                     ),
                     value: s,

@@ -254,7 +254,7 @@ void main() {
               date: DateTime(2026, 6, 8),
               lieu: 'Salle A',
               organisateur: 'Club A',
-              nombreDonnesParManche: 8,
+              nombreDonnesParManche: 2,
               reglesJeu: 'Règles originales',
             ),
           );
@@ -342,25 +342,23 @@ void main() {
       );
 
       // Fill first table results
-      expect(
-        find.byKey(const Key('table_card_1')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('td_row_1_1')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const Key('points_field_1_1')),
-        findsOneWidget,
-      );
       await tester.enterText(
-        find.byKey(const Key('points_field_1_1')),
-        '1000',
+        find.byKey(const Key('points_field_1_1_1')),
+        '100',
       );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('points_field_1_1_2')),
+        '50',
+      );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(const Key('statut_dropdown_1_1')),
-        findsOneWidget,
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_1')))
+            .data,
+        '150',
       );
       await tester.tap(
         find.byKey(const Key('statut_dropdown_1_1')),
@@ -371,18 +369,23 @@ void main() {
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const Key('points_field_1_2')),
-        findsOneWidget,
-      );
+      
       await tester.enterText(
-        find.byKey(const Key('points_field_1_2')),
-        '500',
+        find.byKey(const Key('points_field_1_2_1')),
+        '62',
       );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('points_field_1_2_2')),
+        '150',
+      );
+      await tester.tap(find.byType(Scaffold));
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(const Key('statut_dropdown_1_2')),
-        findsOneWidget,
+        tester
+            .widget<Text>(find.byKey(const Key('total_field_1_2')))
+            .data,
+        '212',
       );
       await tester.tap(
         find.byKey(const Key('statut_dropdown_1_2')),
@@ -446,7 +449,7 @@ void main() {
               find.byKey(const Key('doublette_points_history_points_1')),
             )
             .data,
-        '1000',
+        '150',
       );
       expect(
         find.byKey(const Key('doublette_points_history_statut_1')),
@@ -479,7 +482,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('doublette_points_total')),
-          matching: find.text('1000'),
+          matching: find.text('150'),
         ),
         findsOneWidget,
       );
