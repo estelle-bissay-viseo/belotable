@@ -1,6 +1,7 @@
 import 'package:belotable/domain/doublettes/create_doublette_use_case.dart';
 import 'package:belotable/domain/doublettes/delete_doublette_use_case.dart';
 import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
+import 'package:belotable/domain/manches/manche_exceptions.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -63,7 +64,7 @@ void main() {
     );
 
     useCaseTest<_Deps, DeleteDoubletteUseCase>(
-      'converts to abandon when doublette already in play',
+      'throws exception when doublette already in play',
       dependenciesFactory: () => (
         doubletteRepository: InMemoryDoubletteRepository(),
         mancheRepository: InMemoryMancheRepository(),
@@ -107,22 +108,40 @@ void main() {
           statut: TableDoubletteStatut.enJeu,
         );
 
-        final deleted = await useCase(concoursId: 'c-1', doubletteId: 1);
-        expect(deleted, isFalse);
-
-        final updatedTables = await deps.mancheRepository
+        // Get status before delete attempt
+        final tablesBefore = await deps.mancheRepository
             .findTablesDeJeuByMancheId(
               manche.id,
             );
-        final updatedTable = updatedTables.first;
+        final tableBefore = tablesBefore.first;
+        final d1StatusBefore = tableBefore.doublettes
+            .firstWhere((d) => d.doubletteId == 1)
+            .statut;
+        final d2StatusBefore = tableBefore.doublettes
+            .firstWhere((d) => d.doubletteId == 2)
+            .statut;
+
+        // Deletion should throw exception
         expect(
-          updatedTable.doublettes.firstWhere((d) => d.doubletteId == 1).statut,
-          TableDoubletteStatut.abandon,
+          () => useCase(concoursId: 'c-1', doubletteId: 1),
+          throwsA(isA<DoubletteDejaJoueeException>()),
         );
-        expect(
-          updatedTable.doublettes.firstWhere((d) => d.doubletteId == 2).statut,
-          TableDoubletteStatut.gagne,
-        );
+
+        // Status should remain unchanged after failed deletion
+        final tablesAfter = await deps.mancheRepository
+            .findTablesDeJeuByMancheId(
+              manche.id,
+            );
+        final tableAfter = tablesAfter.first;
+        final d1StatusAfter = tableAfter.doublettes
+            .firstWhere((d) => d.doubletteId == 1)
+            .statut;
+        final d2StatusAfter = tableAfter.doublettes
+            .firstWhere((d) => d.doubletteId == 2)
+            .statut;
+
+        expect(d1StatusAfter, equals(d1StatusBefore));
+        expect(d2StatusAfter, equals(d2StatusBefore));
       },
     );
 

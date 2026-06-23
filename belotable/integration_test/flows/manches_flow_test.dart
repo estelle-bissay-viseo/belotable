@@ -454,9 +454,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_1')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_1'))).data,
         '0',
       );
       expect(
@@ -480,9 +478,7 @@ void main() {
       await tester.tap(find.byType(Scaffold));
       await tester.pumpAndSettle();
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_1')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_1'))).data,
         '150',
       );
       expect(
@@ -500,9 +496,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_2')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_2'))).data,
         '0',
       );
       expect(
@@ -526,9 +520,7 @@ void main() {
       await tester.tap(find.byType(Scaffold));
       await tester.pumpAndSettle();
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_2')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_2'))).data,
         '212',
       );
       expect(
@@ -614,9 +606,7 @@ void main() {
         '50',
       );
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_1')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_1'))).data,
         '150',
       );
       expect(
@@ -658,9 +648,7 @@ void main() {
         '150',
       );
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_2')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_2'))).data,
         '212',
       );
       expect(

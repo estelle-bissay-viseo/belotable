@@ -114,7 +114,7 @@ void main() {
 
   e2eTest(
     'Doublettes flow',
-    'Deleting in-play doublette is blocked and converted to abandon',
+    'Deleting in-play doublette is blocked with error message',
     (tester, db) async {
       await pumpTestApp(
         tester,
@@ -221,17 +221,26 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
       await tester.pumpAndSettle();
 
+      // Doublette status should remain unchanged (not converted to abandon)
       final tdAfterDelete = await db.manchesDao.findTableDoublette(
         concoursId: 'c-2',
         doubletteId: 1,
       );
-      expect(tdAfterDelete?.statut, TableDoubletteStatut.abandon);
+      expect(tdAfterDelete?.statut, TableDoubletteStatut.enJeu);
 
+      // Doublette should still be in the database
       final registered = await db.doublettesDao.findDoublettesByConcoursId(
         'c-2',
       );
       expect(registered.map((d) => d.doubletteId), containsAll([1, 2]));
 
+      // Error snackbar should appear (check for presence, not exact text)
+      expect(
+        find.byType(SnackBar),
+        findsOneWidget,
+      );
+
+      // Doublettes should still be visible
       expect(find.text('Les As'), findsOneWidget);
       expect(find.text('Les Rois'), findsOneWidget);
     },
@@ -355,9 +364,7 @@ void main() {
       await tester.tap(find.byType(Scaffold));
       await tester.pumpAndSettle();
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_1')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_1'))).data,
         '150',
       );
       await tester.tap(
@@ -369,7 +376,7 @@ void main() {
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
-      
+
       await tester.enterText(
         find.byKey(const Key('points_field_1_2_1')),
         '62',
@@ -382,9 +389,7 @@ void main() {
       await tester.tap(find.byType(Scaffold));
       await tester.pumpAndSettle();
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('total_field_1_2')))
-            .data,
+        tester.widget<Text>(find.byKey(const Key('total_field_1_2'))).data,
         '212',
       );
       await tester.tap(

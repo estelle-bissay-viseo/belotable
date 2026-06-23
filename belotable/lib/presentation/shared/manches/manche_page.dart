@@ -444,17 +444,18 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
           SizedBox(
             width: 95,
             child: InputDecorator(
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Score final',
                 isDense: true,
-            ),
-            child: Text(
-              total.toString(),
-              key: Key('total_field_${td.tableId}_${td.doubletteId}'),
-              textAlign: TextAlign.center,
               ),
-          ),),
+              child: Text(
+                total.toString(),
+                key: Key('total_field_${td.tableId}_${td.doubletteId}'),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
           DropdownButton<TableDoubletteStatut>(
             key: Key('statut_dropdown_${td.tableId}_${td.doubletteId}'),

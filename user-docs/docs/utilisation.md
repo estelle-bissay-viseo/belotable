@@ -107,6 +107,8 @@ Vous pouvez gérer chaque doublette en cliquant sur le bouton **Gérer** associ�
 
 ![Détails d'une doublette](./assets/images/page-doublette-details.png)
 
+Vous ne pouvez pas supprimer une doublette si elle a commencé à jouer dans au moins une manche. Pour l'exclure des manches suivantes, vous devez modifier son statut dans la dernière manche jouée vers "Abandon".
+
 ### Gestion des manches
 
 Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(uniquement la première manche pour le moment)*.
@@ -125,7 +127,6 @@ Dès que la manche est créée, les **modifications des doublettes ont des impac
 
 - si une doublette est supprimée, cela libèrera une place sur la table où elle était prévue, mais ne réorganisera pas les autres tables.
 - si une doublette est ajoutée après la préparation de la manche, elle sera placée sur une table libre si possible, sinon elle sera placée sur une nouvelle table en attente d'une autre doublette pour compléter la table.
-- si une doublette est supprimée alors qu'elle a déjà joué une partie, la doublette ne sera pas supprimée mais sera marquée comme "Abandon" sur sa partie, et son adversaire sera marquée comme "Gagné".
 - si deux tables attendent une doublette pour compléter la table, les 2 tables seront fusionnées.
 
 #### Saisie des résultats d'une manche

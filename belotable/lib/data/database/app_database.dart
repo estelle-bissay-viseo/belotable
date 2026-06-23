@@ -1050,7 +1050,6 @@ String _dbName() {
   return 'belotable_db';
 }
 
-
 /// Drift database instance for managing all application data.
 @DriftDatabase(
   tables: [

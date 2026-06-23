@@ -1,4 +1,5 @@
 import 'package:belotable/domain/doublettes/doublette.dart';
+import 'package:belotable/domain/manches/manche_exceptions.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_creation_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_detail_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
@@ -51,29 +52,29 @@ class DoublettesListPage extends ConsumerWidget {
     }
 
     final deleteUseCase = ref.read(deleteDoubletteUseCaseProvider);
-    final deleted = await deleteUseCase(
-      concoursId: doublette.concoursId,
-      doubletteId: doublette.doubletteId,
-    );
+    try {
+      await deleteUseCase(
+        concoursId: doublette.concoursId,
+        doubletteId: doublette.doubletteId,
+      );
 
-    if (!context.mounted) {
-      return;
-    }
+      if (!context.mounted) {
+        return;
+      }
 
-    if (deleted) {
       ref
         ..invalidate(doublettesByConcoursProvider(concoursId))
         ..invalidate(concoursListProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Doublette supprimée avec succès')),
       );
-    } else {
+    } on DoubletteDejaJoueeException catch (e) {
+      if (!context.mounted) {
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Suppression impossible: doublette passée en Abandon',
-          ),
-        ),
+        SnackBar(content: Text(e.message)),
       );
     }
   }
