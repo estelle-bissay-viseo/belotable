@@ -136,6 +136,10 @@ void main() {
         find.byKey(const Key('table_card_3')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const Key('table_card_4')),
+        findsNothing,
+      );
 
       // Verify last table (table 3) initially has 1 pair
       expect(

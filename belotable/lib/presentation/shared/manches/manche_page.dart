@@ -115,7 +115,7 @@ class _TableDeJeuCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card.outlined(
-      key: Key('table_card_${table.id}'),
+      key: Key('table_card_${table.numero}'),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -137,9 +137,10 @@ class _TableDeJeuCard extends ConsumerWidget {
             else
               ...table.doublettes.map(
                 (td) => _TableDoubletteRow(
-                  key: Key('td_row_${table.id}_${td.doubletteId}'),
+                  key: Key('td_row_${table.numero}_${td.doubletteId}'),
                   tableDoublette: td,
                   tableId: table.id,
+                  tableNumero: table.numero,
                   mancheId: mancheId,
                   onRefresh: onRefresh,
                 ),
@@ -183,6 +184,7 @@ class _TableDoubletteRow extends ConsumerWidget {
   const _TableDoubletteRow({
     required this.tableDoublette,
     required this.tableId,
+    required this.tableNumero,
     required this.mancheId,
     required this.onRefresh,
     super.key,
@@ -190,9 +192,10 @@ class _TableDoubletteRow extends ConsumerWidget {
 
   final TableDoublette tableDoublette;
   final int tableId;
+  final int tableNumero;
   final int mancheId;
-  final VoidCallback onRefresh;
-
+  final VoidCallback onRefresh;  
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dealPointsAsync = ref.watch(
@@ -226,6 +229,7 @@ class _TableDoubletteRow extends ConsumerWidget {
       data: (dealPoints) => _DealPointsRow(
         tableDoublette: tableDoublette,
         tableId: tableId,
+        tableNumero: tableNumero,
         mancheId: mancheId,
         dealPoints: dealPoints,
         onRefresh: onRefresh,
@@ -238,6 +242,7 @@ class _DealPointsRow extends ConsumerStatefulWidget {
   const _DealPointsRow({
     required this.tableDoublette,
     required this.tableId,
+    required this.tableNumero,
     required this.mancheId,
     required this.dealPoints,
     required this.onRefresh,
@@ -245,6 +250,7 @@ class _DealPointsRow extends ConsumerStatefulWidget {
 
   final TableDoublette tableDoublette;
   final int tableId;
+  final int tableNumero;
   final int mancheId;
   final List<DealPoints> dealPoints;
   final VoidCallback onRefresh;
@@ -398,6 +404,9 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                             : FontWeight.normal,
                         color: _isWinner ? Colors.green[700] : null,
                       ),
+                      key: Key(
+                        'doublette_name_${widget.tableNumero}_${td.doubletteId}',
+                      ),
                     ),
                   ],
                 ),
@@ -417,7 +426,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                             child: TextField(
                               key: Key(
                                 // ignore: lines_longer_than_80_chars because UI key
-                                'points_field_${td.tableId}_${td.doubletteId}_$dealNumber',
+                                'points_field_${widget.tableNumero}_${td.doubletteId}_$dealNumber',
                               ),
                               controller: _dealControllers[i],
                               focusNode: _dealFocusNodes[i],
@@ -452,21 +461,21 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
               ),
               child: Text(
                 total.toString(),
-                key: Key('total_field_${td.tableId}_${td.doubletteId}'),
+                key: Key('total_field_${widget.tableNumero}_${td.doubletteId}'),
                 textAlign: TextAlign.center,
               ),
             ),
           ),
           const SizedBox(width: 8),
           DropdownButton<TableDoubletteStatut>(
-            key: Key('statut_dropdown_${td.tableId}_${td.doubletteId}'),
+            key: Key('statut_dropdown_${widget.tableNumero}_${td.doubletteId}'),
             value: td.statut,
             items: TableDoubletteStatut.values
                 .map(
                   (s) => DropdownMenuItem(
                     key: Key(
                       // ignore: lines_longer_than_80_chars because UI key
-                      'statut_dropdown_item_${td.tableId}_${td.doubletteId}_${s.name}',
+                      'statut_dropdown_item_${widget.tableNumero}_${td.doubletteId}_${s.name}',
                     ),
                     value: s,
                     child: Text(s.label),
