@@ -194,8 +194,8 @@ class _TableDoubletteRow extends ConsumerWidget {
   final int tableId;
   final int tableNumero;
   final int mancheId;
-  final VoidCallback onRefresh;  
-  
+  final VoidCallback onRefresh;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dealPointsAsync = ref.watch(
@@ -405,6 +405,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                         color: _isWinner ? Colors.green[700] : null,
                       ),
                       key: Key(
+                        // ignore: lines_longer_than_80_chars because UI key
                         'doublette_name_${widget.tableNumero}_${td.doubletteId}',
                       ),
                     ),
