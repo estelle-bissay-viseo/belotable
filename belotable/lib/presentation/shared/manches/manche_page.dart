@@ -4,6 +4,7 @@ import 'package:belotable/domain/manches/deal_points.dart';
 import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
+import 'package:belotable/presentation/shared/manches/deal_sum_utils.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -134,7 +135,7 @@ class _TableDeJeuCard extends ConsumerWidget {
             const SizedBox(height: 12),
             if (table.doublettes.isEmpty)
               const Text('Aucune doublette assignée')
-            else
+            else ...[
               ...table.doublettes.map(
                 (td) => _TableDoubletteRow(
                   key: Key('td_row_${table.numero}_${td.doubletteId}'),
@@ -145,6 +146,11 @@ class _TableDeJeuCard extends ConsumerWidget {
                   onRefresh: onRefresh,
                 ),
               ),
+              _TableSumRow(
+                table: table,
+                mancheId: mancheId,
+              ),
+            ],
           ],
         ),
       ),
@@ -493,6 +499,124 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TableSumRow extends ConsumerWidget {
+  const _TableSumRow({
+    required this.table,
+    required this.mancheId,
+  });
+
+  final TableDeJeu table;
+  final int mancheId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final firstDoublette = table.doublettes.isNotEmpty
+        ? table.doublettes[0]
+        : null;
+    if (firstDoublette == null) {
+      return const SizedBox.shrink();
+    }
+
+    final concoursAsync = ref.watch(
+      concoursProvider(firstDoublette.concoursId),
+    );
+
+    return concoursAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (concours) {
+        if (concours == null || concours.nombreMaxPointsParDonne == 0) {
+          return const SizedBox.shrink();
+        }
+
+        // Fetch dealPoints for all doublettes
+        final allDealPointsAsync = <AsyncValue<List<DealPoints>>>[];
+        for (final td in table.doublettes) {
+          allDealPointsAsync.add(
+            ref.watch(
+              dealPointsByTableDoubletteProvider(
+                (
+                  tableId: table.id,
+                  concoursId: td.concoursId,
+                  doubletteId: td.doubletteId,
+                  mancheId: mancheId,
+                ),
+              ),
+            ),
+          );
+        }
+
+        // Check if any are loading or error
+        final isLoading = allDealPointsAsync.any((av) => av.isLoading);
+        final hasError = allDealPointsAsync.any((av) => av.hasError);
+
+        if (isLoading || hasError) {
+          return const SizedBox.shrink();
+        }
+
+        // Combine all dealPoints
+        final combinedPoints = <DealPoints>[];
+        for (final dpAsync in allDealPointsAsync) {
+          dpAsync.whenData(combinedPoints.addAll);
+        }
+
+        final sums = computeTableDealSums(combinedPoints);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Somme des points des donnes',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(
+                    sums.length,
+                    (i) {
+                      final dealNumber = i + 1;
+                      final dealSum = sums[i];
+                      final sumColor = getDealSumColor(
+                        dealSum,
+                        concours.nombreMaxPointsParDonne,
+                      );
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: SizedBox(
+                          width: 60,
+                          child: InputDecorator(
+                            key: Key(
+                              'table_sum_${table.numero}_$dealNumber',
+                            ),
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              labelText: 'D$dealNumber',
+                              isDense: true,
+                            ),
+                            child: Text(
+                              dealSum.toString(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: sumColor),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

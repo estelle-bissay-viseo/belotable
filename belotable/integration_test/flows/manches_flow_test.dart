@@ -132,6 +132,11 @@ void main() {
         find.byKey(const Key('table_card_2')),
         findsOneWidget,
       );
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_3')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
       expect(
         find.byKey(const Key('table_card_3')),
         findsOneWidget,
@@ -276,6 +281,12 @@ void main() {
         find.byKey(const Key('table_card_2')),
         findsOneWidget,
       );
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_3')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('table_card_3')),
         findsOneWidget,
@@ -331,6 +342,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify last table now has 2 pairs (d5 and d6)
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_3')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('td_row_3_5')),
         findsOneWidget,

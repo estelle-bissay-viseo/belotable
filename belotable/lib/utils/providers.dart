@@ -207,3 +207,13 @@ final dealPointsByTableDoubletteProvider = FutureProvider.autoDispose
         mancheId: params.mancheId,
       );
     });
+
+/// Provides a single concours by id.
+// ignore: specify_nonobvious_property_types
+final concoursProvider = FutureProvider.autoDispose.family<Concours?, String>((
+  ref,
+  concoursId,
+) {
+  final repo = ref.watch(concoursRepositoryProvider);
+  return repo.findById(concoursId);
+});
