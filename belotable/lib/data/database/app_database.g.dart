@@ -1124,8 +1124,18 @@ class $ManchesTableTable extends ManchesTable
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _statutMeta = const VerificationMeta('statut');
   @override
-  List<GeneratedColumn> get $columns => [id, concoursId, numero];
+  late final GeneratedColumn<String> statut = GeneratedColumn<String>(
+    'statut',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('En cours'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, concoursId, numero, statut];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1157,6 +1167,12 @@ class $ManchesTableTable extends ManchesTable
     } else if (isInserting) {
       context.missing(_numeroMeta);
     }
+    if (data.containsKey('statut')) {
+      context.handle(
+        _statutMeta,
+        statut.isAcceptableOrUnknown(data['statut']!, _statutMeta),
+      );
+    }
     return context;
   }
 
@@ -1178,6 +1194,10 @@ class $ManchesTableTable extends ManchesTable
         DriftSqlType.int,
         data['${effectivePrefix}numero'],
       )!,
+      statut: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}statut'],
+      )!,
     );
   }
 
@@ -1197,10 +1217,14 @@ class ManchesTableData extends DataClass
 
   /// Round number, starting at 1.
   final int numero;
+
+  /// Round completion status stored as string.
+  final String statut;
   const ManchesTableData({
     required this.id,
     required this.concoursId,
     required this.numero,
+    required this.statut,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1208,6 +1232,7 @@ class ManchesTableData extends DataClass
     map['id'] = Variable<int>(id);
     map['concours_id'] = Variable<String>(concoursId);
     map['numero'] = Variable<int>(numero);
+    map['statut'] = Variable<String>(statut);
     return map;
   }
 
@@ -1216,6 +1241,7 @@ class ManchesTableData extends DataClass
       id: Value(id),
       concoursId: Value(concoursId),
       numero: Value(numero),
+      statut: Value(statut),
     );
   }
 
@@ -1228,6 +1254,7 @@ class ManchesTableData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       concoursId: serializer.fromJson<String>(json['concoursId']),
       numero: serializer.fromJson<int>(json['numero']),
+      statut: serializer.fromJson<String>(json['statut']),
     );
   }
   @override
@@ -1237,15 +1264,21 @@ class ManchesTableData extends DataClass
       'id': serializer.toJson<int>(id),
       'concoursId': serializer.toJson<String>(concoursId),
       'numero': serializer.toJson<int>(numero),
+      'statut': serializer.toJson<String>(statut),
     };
   }
 
-  ManchesTableData copyWith({int? id, String? concoursId, int? numero}) =>
-      ManchesTableData(
-        id: id ?? this.id,
-        concoursId: concoursId ?? this.concoursId,
-        numero: numero ?? this.numero,
-      );
+  ManchesTableData copyWith({
+    int? id,
+    String? concoursId,
+    int? numero,
+    String? statut,
+  }) => ManchesTableData(
+    id: id ?? this.id,
+    concoursId: concoursId ?? this.concoursId,
+    numero: numero ?? this.numero,
+    statut: statut ?? this.statut,
+  );
   ManchesTableData copyWithCompanion(ManchesTableCompanion data) {
     return ManchesTableData(
       id: data.id.present ? data.id.value : this.id,
@@ -1253,6 +1286,7 @@ class ManchesTableData extends DataClass
           ? data.concoursId.value
           : this.concoursId,
       numero: data.numero.present ? data.numero.value : this.numero,
+      statut: data.statut.present ? data.statut.value : this.statut,
     );
   }
 
@@ -1261,46 +1295,53 @@ class ManchesTableData extends DataClass
     return (StringBuffer('ManchesTableData(')
           ..write('id: $id, ')
           ..write('concoursId: $concoursId, ')
-          ..write('numero: $numero')
+          ..write('numero: $numero, ')
+          ..write('statut: $statut')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, concoursId, numero);
+  int get hashCode => Object.hash(id, concoursId, numero, statut);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ManchesTableData &&
           other.id == this.id &&
           other.concoursId == this.concoursId &&
-          other.numero == this.numero);
+          other.numero == this.numero &&
+          other.statut == this.statut);
 }
 
 class ManchesTableCompanion extends UpdateCompanion<ManchesTableData> {
   final Value<int> id;
   final Value<String> concoursId;
   final Value<int> numero;
+  final Value<String> statut;
   const ManchesTableCompanion({
     this.id = const Value.absent(),
     this.concoursId = const Value.absent(),
     this.numero = const Value.absent(),
+    this.statut = const Value.absent(),
   });
   ManchesTableCompanion.insert({
     this.id = const Value.absent(),
     required String concoursId,
     required int numero,
+    this.statut = const Value.absent(),
   }) : concoursId = Value(concoursId),
        numero = Value(numero);
   static Insertable<ManchesTableData> custom({
     Expression<int>? id,
     Expression<String>? concoursId,
     Expression<int>? numero,
+    Expression<String>? statut,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (concoursId != null) 'concours_id': concoursId,
       if (numero != null) 'numero': numero,
+      if (statut != null) 'statut': statut,
     });
   }
 
@@ -1308,11 +1349,13 @@ class ManchesTableCompanion extends UpdateCompanion<ManchesTableData> {
     Value<int>? id,
     Value<String>? concoursId,
     Value<int>? numero,
+    Value<String>? statut,
   }) {
     return ManchesTableCompanion(
       id: id ?? this.id,
       concoursId: concoursId ?? this.concoursId,
       numero: numero ?? this.numero,
+      statut: statut ?? this.statut,
     );
   }
 
@@ -1328,6 +1371,9 @@ class ManchesTableCompanion extends UpdateCompanion<ManchesTableData> {
     if (numero.present) {
       map['numero'] = Variable<int>(numero.value);
     }
+    if (statut.present) {
+      map['statut'] = Variable<String>(statut.value);
+    }
     return map;
   }
 
@@ -1336,7 +1382,8 @@ class ManchesTableCompanion extends UpdateCompanion<ManchesTableData> {
     return (StringBuffer('ManchesTableCompanion(')
           ..write('id: $id, ')
           ..write('concoursId: $concoursId, ')
-          ..write('numero: $numero')
+          ..write('numero: $numero, ')
+          ..write('statut: $statut')
           ..write(')'))
         .toString();
   }
@@ -3401,12 +3448,14 @@ typedef $$ManchesTableTableCreateCompanionBuilder =
       Value<int> id,
       required String concoursId,
       required int numero,
+      Value<String> statut,
     });
 typedef $$ManchesTableTableUpdateCompanionBuilder =
     ManchesTableCompanion Function({
       Value<int> id,
       Value<String> concoursId,
       Value<int> numero,
+      Value<String> statut,
     });
 
 final class $$ManchesTableTableReferences
@@ -3496,6 +3545,11 @@ class $$ManchesTableTableFilterComposer
 
   ColumnFilters<int> get numero => $composableBuilder(
     column: $table.numero,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statut => $composableBuilder(
+    column: $table.statut,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3592,6 +3646,11 @@ class $$ManchesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get statut => $composableBuilder(
+    column: $table.statut,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ConcoursTableTableOrderingComposer get concoursId {
     final $$ConcoursTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3630,6 +3689,9 @@ class $$ManchesTableTableAnnotationComposer
 
   GeneratedColumn<int> get numero =>
       $composableBuilder(column: $table.numero, builder: (column) => column);
+
+  GeneratedColumn<String> get statut =>
+      $composableBuilder(column: $table.statut, builder: (column) => column);
 
   $$ConcoursTableTableAnnotationComposer get concoursId {
     final $$ConcoursTableTableAnnotationComposer composer = $composerBuilder(
@@ -3740,20 +3802,24 @@ class $$ManchesTableTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> concoursId = const Value.absent(),
                 Value<int> numero = const Value.absent(),
+                Value<String> statut = const Value.absent(),
               }) => ManchesTableCompanion(
                 id: id,
                 concoursId: concoursId,
                 numero: numero,
+                statut: statut,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String concoursId,
                 required int numero,
+                Value<String> statut = const Value.absent(),
               }) => ManchesTableCompanion.insert(
                 id: id,
                 concoursId: concoursId,
                 numero: numero,
+                statut: statut,
               ),
           withReferenceMapper: (p0) => p0
               .map(

@@ -1,4 +1,5 @@
 import 'package:belotable/domain/doublettes/doublette_repository.dart';
+import 'package:belotable/domain/manches/manche_exceptions.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
@@ -16,8 +17,10 @@ class DeleteDoubletteUseCase {
   /// Deletes one row by composite key.
   ///
   /// If the doublette is assigned to a manche table:
-  /// - [TableDoubletteStatut.enAttente]: removes from table, then deletes.
-  /// - Playing or already played: converts status to Abandon and keeps row.
+  /// - [TableDoubletteStatut.enAttente] on all records: removes from table,
+  ///   then deletes physically.
+  /// - Any record with status other than [TableDoubletteStatut.enAttente]:
+  ///   throws [DoubletteDejaJoueeException].
   ///
   /// After removal, if a table is left with only one doublette and another
   /// table in the same concours also has exactly one doublette with
@@ -25,8 +28,8 @@ class DeleteDoubletteUseCase {
   /// the table with the smaller id keeps both doublettes, and the other table
   /// is deleted.
   ///
-  /// Returns true when doublette is physically deleted, false when converted
-  /// to abandon.
+  /// Returns true when doublette is physically deleted.
+  /// Throws [DoubletteDejaJoueeException] if doublette has already played.
   Future<bool> call({
     required String concoursId,
     required int doubletteId,
@@ -45,21 +48,20 @@ class DeleteDoubletteUseCase {
 
     final mancheRepo = mancheRepository;
     if (mancheRepo != null) {
-      final tableDoublette = await mancheRepo.findTableDoublette(
+      final tableDoublettes = await mancheRepo.findTableDoublettesByDoubletteId(
         concoursId: trimmedConcoursId,
         doubletteId: doubletteId,
       );
 
-      if (tableDoublette != null) {
+      // Check if any record has status other than enAttente
+      for (final tableDoublette in tableDoublettes) {
         if (tableDoublette.statut != TableDoubletteStatut.enAttente) {
-          await mancheRepo.updateStatut(
-            tableId: tableDoublette.tableId,
-            concoursId: trimmedConcoursId,
-            doubletteId: doubletteId,
-            statut: TableDoubletteStatut.abandon,
-          );
-          return false;
+          throw DoubletteDejaJoueeException(doubletteId);
         }
+      }
+
+      // If there are any enAttente records, remove from table
+      if (tableDoublettes.isNotEmpty) {
         await mancheRepo.removeDoubletteFromTable(
           concoursId: trimmedConcoursId,
           doubletteId: doubletteId,
@@ -70,7 +72,7 @@ class DeleteDoubletteUseCase {
         await _mergeSingleDoubletteTablesIfNeeded(
           mancheRepo,
           trimmedConcoursId,
-          tableDoublette.tableId,
+          tableDoublettes.first.tableId,
         );
       }
     }

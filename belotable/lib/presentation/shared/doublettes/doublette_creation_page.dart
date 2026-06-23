@@ -1,5 +1,6 @@
 import 'package:belotable/domain/doublettes/doublette_exceptions.dart';
 import 'package:belotable/domain/doublettes/team_name_dictionary.dart';
+import 'package:belotable/domain/manches/manche_exceptions.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,6 +84,13 @@ class _DoubletteCreationPageState extends ConsumerState<DoubletteCreationPage> {
         const SnackBar(
           content: Text("Nom d'équipe déjà utilisé pour ce concours"),
         ),
+      );
+    } on PremiereMancheTermineeException catch (e) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
       );
     } finally {
       if (mounted) {

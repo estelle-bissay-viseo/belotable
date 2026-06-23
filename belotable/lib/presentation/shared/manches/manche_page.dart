@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:belotable/domain/manches/deal_points.dart';
+import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:belotable/utils/providers.dart';
@@ -114,7 +115,7 @@ class _TableDeJeuCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card.outlined(
-      key: Key('table_card_${table.id}'),
+      key: Key('table_card_${table.numero}'),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -136,9 +137,10 @@ class _TableDeJeuCard extends ConsumerWidget {
             else
               ...table.doublettes.map(
                 (td) => _TableDoubletteRow(
-                  key: Key('td_row_${table.id}_${td.doubletteId}'),
+                  key: Key('td_row_${table.numero}_${td.doubletteId}'),
                   tableDoublette: td,
                   tableId: table.id,
+                  tableNumero: table.numero,
                   mancheId: mancheId,
                   onRefresh: onRefresh,
                 ),
@@ -182,6 +184,7 @@ class _TableDoubletteRow extends ConsumerWidget {
   const _TableDoubletteRow({
     required this.tableDoublette,
     required this.tableId,
+    required this.tableNumero,
     required this.mancheId,
     required this.onRefresh,
     super.key,
@@ -189,6 +192,7 @@ class _TableDoubletteRow extends ConsumerWidget {
 
   final TableDoublette tableDoublette;
   final int tableId;
+  final int tableNumero;
   final int mancheId;
   final VoidCallback onRefresh;
 
@@ -225,6 +229,7 @@ class _TableDoubletteRow extends ConsumerWidget {
       data: (dealPoints) => _DealPointsRow(
         tableDoublette: tableDoublette,
         tableId: tableId,
+        tableNumero: tableNumero,
         mancheId: mancheId,
         dealPoints: dealPoints,
         onRefresh: onRefresh,
@@ -237,6 +242,7 @@ class _DealPointsRow extends ConsumerStatefulWidget {
   const _DealPointsRow({
     required this.tableDoublette,
     required this.tableId,
+    required this.tableNumero,
     required this.mancheId,
     required this.dealPoints,
     required this.onRefresh,
@@ -244,6 +250,7 @@ class _DealPointsRow extends ConsumerStatefulWidget {
 
   final TableDoublette tableDoublette;
   final int tableId;
+  final int tableNumero;
   final int mancheId;
   final List<DealPoints> dealPoints;
   final VoidCallback onRefresh;
@@ -397,6 +404,10 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                             : FontWeight.normal,
                         color: _isWinner ? Colors.green[700] : null,
                       ),
+                      key: Key(
+                        // ignore: lines_longer_than_80_chars because UI key
+                        'doublette_name_${widget.tableNumero}_${td.doubletteId}',
+                      ),
                     ),
                   ],
                 ),
@@ -416,7 +427,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                             child: TextField(
                               key: Key(
                                 // ignore: lines_longer_than_80_chars because UI key
-                                'points_field_${td.tableId}_${td.doubletteId}_$dealNumber',
+                                'points_field_${widget.tableNumero}_${td.doubletteId}_$dealNumber',
                               ),
                               controller: _dealControllers[i],
                               focusNode: _dealFocusNodes[i],
@@ -444,27 +455,28 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
           SizedBox(
             width: 95,
             child: InputDecorator(
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Score final',
                 isDense: true,
-            ),
-            child: Text(
-              total.toString(),
-              key: Key('total_field_${td.tableId}_${td.doubletteId}'),
-              textAlign: TextAlign.center,
               ),
-          ),),
+              child: Text(
+                total.toString(),
+                key: Key('total_field_${widget.tableNumero}_${td.doubletteId}'),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
           DropdownButton<TableDoubletteStatut>(
-            key: Key('statut_dropdown_${td.tableId}_${td.doubletteId}'),
+            key: Key('statut_dropdown_${widget.tableNumero}_${td.doubletteId}'),
             value: td.statut,
             items: TableDoubletteStatut.values
                 .map(
                   (s) => DropdownMenuItem(
                     key: Key(
                       // ignore: lines_longer_than_80_chars because UI key
-                      'statut_dropdown_item_${td.tableId}_${td.doubletteId}_${s.name}',
+                      'statut_dropdown_item_${widget.tableNumero}_${td.doubletteId}_${s.name}',
                     ),
                     value: s,
                     child: Text(s.label),
@@ -485,20 +497,53 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
   }
 }
 
-/// Shows confirmation dialog before creating the first manche and navigates
-/// to it if confirmed.
+/// Shows confirmation dialog before creating the next manche and navigates
+/// to it if confirmed. Blocks creation if previous manche exists and is not
+/// finished.
+/// Also handles PremiereMancheTermineeException for doublette creation.
 Future<void> showCreatePremiereMancheDialog(
   BuildContext context,
   WidgetRef ref,
   String concoursId,
 ) async {
+  // Check if a manche exists and is not finished
+  final mancheRepo = ref.read(mancheRepositoryProvider);
+  final latestManche = await mancheRepo.findLatestManche(concoursId);
+
+  if (latestManche != null && latestManche.statut != MancheStatut.termine) {
+    // Show blocking dialog
+    if (!context.mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Manche précédente non terminée'),
+        content: const Text(
+          'Vous ne pouvez pas préparer une nouvelle manche tant que '
+          "la manche précédente n'est pas terminée.",
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
+  final title = latestManche == null
+      ? 'Préparer la première manche ?'
+      : 'Préparer une nouvelle manche ?';
+
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Préparer la première manche ?'),
+      title: Text(title),
       content: const Text(
-        'Les doublettes enregistrées seront réparties automatiquement '
-        'en tables de 2.',
+        'Les doublettes seront réparties automatiquement '
+        'en tables par classement (points descendants, '
+        "puis date d'inscription).",
       ),
       actions: [
         TextButton(
@@ -520,7 +565,7 @@ Future<void> showCreatePremiereMancheDialog(
   }
 
   try {
-    final useCase = ref.read(createPremiereMancheUseCaseProvider);
+    final useCase = ref.read(createNextMancheUseCaseProvider);
     await useCase(concoursId);
 
     if (!context.mounted) {
@@ -529,7 +574,7 @@ Future<void> showCreatePremiereMancheDialog(
 
     ref.invalidate(manchesByConcoursProvider(concoursId));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Première manche créée avec succès')),
+      const SnackBar(content: Text('Manche créée avec succès')),
     );
   } on Exception catch (e) {
     if (!context.mounted) {

@@ -107,11 +107,13 @@ Vous pouvez gérer chaque doublette en cliquant sur le bouton **Gérer** associ�
 
 ![Détails d'une doublette](./assets/images/page-doublette-details.png)
 
+Vous ne pouvez pas supprimer une doublette si elle a commencé à jouer dans au moins une manche. Pour l'exclure des manches suivantes, vous devez modifier son statut dans la dernière manche jouée vers "Abandon".
+
 ### Gestion des manches
 
 Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(uniquement la première manche pour le moment)*.
 
-Lorsque vous avez enregistré toutes les doublettes du concours, cliquez sur **Préparer la première manche** pour démarrer le concours.
+Lorsque vous avez enregistré toutes les doublettes du concours, cliquez sur **Préparer une nouvelle manche** pour démarrer le concours.
 
 Vous pouvez voir la répartition des doublettes sur les tables de la première manche, et inscrire les résultats des parties jouées en cliquant sur le bouton **Manche 1**.
 
@@ -125,7 +127,6 @@ Dès que la manche est créée, les **modifications des doublettes ont des impac
 
 - si une doublette est supprimée, cela libèrera une place sur la table où elle était prévue, mais ne réorganisera pas les autres tables.
 - si une doublette est ajoutée après la préparation de la manche, elle sera placée sur une table libre si possible, sinon elle sera placée sur une nouvelle table en attente d'une autre doublette pour compléter la table.
-- si une doublette est supprimée alors qu'elle a déjà joué une partie, la doublette ne sera pas supprimée mais sera marquée comme "Abandon" sur sa partie, et son adversaire sera marquée comme "Gagné".
 - si deux tables attendent une doublette pour compléter la table, les 2 tables seront fusionnées.
 
 #### Saisie des résultats d'une manche
@@ -135,6 +136,16 @@ Pour saisir les résultats d'une manche, cliquez sur le bouton **Manche X** depu
 ![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
 
 Vous pouvez saisir les résultats des donnes jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc). La saisie des points lance immédiatement le calcul des points total de la doublette et le classement de la manche.
+
+Une manche est considérée comme terminée lorsque tous les statuts des parties jouées sur les tables sont différents de "En attente".
+
+#### Création des manches suivantes
+
+Pour créer une nouvelle manche, il faut que la manche précédente soit terminée.
+
+La création d'une nouvelle manche est disponible depuis la page de gestion du concours, en cliquant sur **Préparer une nouvelle manche**.
+
+La nouvelle manche est générée automatiquement en fonction du classement de la manche précédente. Les doublettes sont réparties sur les tables **par ordre de classement**, puis par ordre d'inscription pour les doublettes ex-æquo.
 
 ### Classement des doublettes durant le concours
 

@@ -1,5 +1,5 @@
 ---
-name: read-feature
+name: read-plan-issue
 description: 'Analyze feature requests from markdown files to extract business requirements, data model impacts, UI changes, and acceptance criteria. Use when: reviewing feature requirements, understanding implementation scope, planning technical design, preparing acceptance tests. Generates structured analysis report saved to .github/feature_analyze/YYYYMMDD_hhmm_analysis.md.'
 argument-hint: 'Path to feature request markdown file'
 ---

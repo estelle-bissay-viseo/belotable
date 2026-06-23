@@ -7,8 +7,28 @@ class DoubletteDejaJoueeException implements Exception {
   /// Id of the doublette that cannot be deleted.
   final int doubletteId;
 
+  /// User-facing message explaining why deletion is refused.
+  String get message =>
+      'Vous ne pouvez pas supprimer une doublette qui a commencé à jouer. '
+      'Veuillez la noter au statut "Abandon" dans la dernière manche jouée '
+      'pour exclure cette doublette de la prochaine manche.';
+
   @override
   String toString() =>
       'DoubletteDejaJoueeException: doublette $doubletteId cannot be deleted '
       'because it is playing or has already played.';
+}
+
+/// Exception thrown when attempting to create a doublette after manche 1 is
+/// finished (terminée).
+class PremiereMancheTermineeException implements Exception {
+  /// User-facing message.
+  String get message =>
+      'Vous ne pouvez pas ajouter de doublettes car la première manche '
+      'est terminée.';
+
+  @override
+  String toString() =>
+      'PremiereMancheTermineeException: cannot create doublette after manche 1 '
+      'is finished.';
 }

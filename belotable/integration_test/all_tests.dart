@@ -2,6 +2,7 @@ import 'package:integration_test/integration_test.dart';
 
 import 'flows/doublettes_flow_test.dart' as doublettes_flow;
 import 'flows/manches_flow_test.dart' as manches_flow;
+import 'flows/next_manche_flow_test.dart' as next_manche_flow;
 import 'pages/concours_creation_page_test.dart' as concours_creation_page;
 import 'pages/concours_deletion_test.dart' as concours_deletion;
 import 'pages/concours_edit_page_test.dart' as concours_edit_page;
@@ -20,6 +21,7 @@ void main() {
 
   doublettes_flow.main();
   manches_flow.main();
+  next_manche_flow.main();
 
   concours_creation_page.main();
   concours_edit_page.main();

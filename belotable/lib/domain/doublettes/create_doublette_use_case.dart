@@ -2,7 +2,9 @@ import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/doublettes/doublette_exceptions.dart';
 import 'package:belotable/domain/doublettes/doublette_repository.dart';
 import 'package:belotable/domain/doublettes/team_name_dictionary.dart';
+import 'package:belotable/domain/manches/manche_exceptions.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
+import 'package:belotable/domain/manches/manche_statut.dart';
 
 /// Creates a new doublette in a contest.
 class CreateDoubletteUseCase {
@@ -18,6 +20,7 @@ class CreateDoubletteUseCase {
   final MancheRepository? mancheRepository;
 
   /// Creates and persists new doublette.
+  /// Throws [PremiereMancheTermineeException] if manche 1 is finished.
   Future<Doublette> call({
     required String concoursId,
     required String joueurA,
@@ -40,6 +43,17 @@ class CreateDoubletteUseCase {
     }
     if (trimmedJoueurB.isEmpty) {
       throw ArgumentError.value(joueurB, 'joueurB', 'joueurB required');
+    }
+
+    // Check if manche 1 exists and is terminée
+    final mancheRepo = mancheRepository;
+    if (mancheRepo != null) {
+      final manche1 = await mancheRepo.findLatestManche(trimmedConcoursId);
+      if (manche1 != null &&
+          manche1.numero == 1 &&
+          manche1.statut == MancheStatut.termine) {
+        throw PremiereMancheTermineeException();
+      }
     }
 
     var teamName = nomEquipe?.trim() ?? '';

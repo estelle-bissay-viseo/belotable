@@ -1,6 +1,7 @@
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
+import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 
@@ -13,10 +14,16 @@ class InMemoryMancheRepository implements MancheRepository {
     required String concoursId,
     required List<Doublette> doublettes,
   }) async {
+    final existing = manches.where((m) => m.concoursId == concoursId).toList();
+    final nextNumero = existing.isEmpty
+        ? 1
+        : existing.map((m) => m.numero).reduce((a, b) => a > b ? a : b) + 1;
+
     final manche = Manche(
       id: manches.length + 1,
       concoursId: concoursId,
-      numero: 1,
+      numero: nextNumero,
+      statut: MancheStatut.enCours,
     );
     manches.add(manche);
 
@@ -192,6 +199,51 @@ class InMemoryMancheRepository implements MancheRepository {
         .where((m) => m.concoursId == concoursId)
         .toList(growable: false)
       ..sort((a, b) => a.numero.compareTo(b.numero));
+  }
+
+  @override
+  Future<Manche?> findLatestManche(String concoursId) async {
+    final concoursManches = await findManchesByConcoursId(concoursId);
+    if (concoursManches.isEmpty) {
+      return null;
+    }
+    final latest = concoursManches.last;
+
+    // Recompute status from current doublettes
+    final tables = _tablesByManche[latest.id] ?? [];
+    final allDoublettes = <TableDoublette>[];
+    for (final table in tables) {
+      allDoublettes.addAll(table.doublettes);
+    }
+    final computedStatus = MancheStatut.fromDoublettes(allDoublettes);
+
+    if (latest.statut == computedStatus) {
+      return latest;
+    }
+    return Manche(
+      id: latest.id,
+      concoursId: latest.concoursId,
+      numero: latest.numero,
+      statut: computedStatus,
+    );
+  }
+
+  @override
+  Future<List<int>> findDoublettesWithAbandonHistory(
+    String concoursId,
+  ) async {
+    final result = <int>{};
+    for (final tables in _tablesByManche.values) {
+      for (final table in tables) {
+        for (final td in table.doublettes) {
+          if (td.concoursId == concoursId &&
+              td.statut == TableDoubletteStatut.abandon) {
+            result.add(td.doubletteId);
+          }
+        }
+      }
+    }
+    return result.toList(growable: false);
   }
 
   @override
