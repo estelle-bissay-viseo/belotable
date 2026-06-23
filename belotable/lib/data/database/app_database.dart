@@ -710,7 +710,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
         return;
       }
 
-      // No-op if more than 1 manche exists 
+      // No-op if more than 1 manche exists
       // (shouldn't auto-assign beyond manche 1)
       final allManches = await (select(
         manchesTable,

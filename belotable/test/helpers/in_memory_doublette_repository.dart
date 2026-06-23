@@ -98,4 +98,19 @@ class InMemoryDoubletteRepository implements DoubletteRepository {
     }
     return false;
   }
+
+  Future<void> updateTotalPoints(int doubletteId, int totalPoints) async {
+    final index = _items.indexWhere((item) => item.doubletteId == doubletteId);
+    if (index != -1) {
+      final d = _items[index];
+      _items[index] = Doublette(
+        concoursId: d.concoursId,
+        doubletteId: d.doubletteId,
+        joueurA: d.joueurA,
+        joueurB: d.joueurB,
+        nomEquipe: d.nomEquipe,
+        totalPoints: totalPoints,
+      );
+    }
+  }
 }

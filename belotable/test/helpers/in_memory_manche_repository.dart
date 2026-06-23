@@ -207,7 +207,25 @@ class InMemoryMancheRepository implements MancheRepository {
     if (concoursManches.isEmpty) {
       return null;
     }
-    return concoursManches.last;
+    final latest = concoursManches.last;
+
+    // Recompute status from current doublettes
+    final tables = _tablesByManche[latest.id] ?? [];
+    final allDoublettes = <TableDoublette>[];
+    for (final table in tables) {
+      allDoublettes.addAll(table.doublettes);
+    }
+    final computedStatus = MancheStatut.fromDoublettes(allDoublettes);
+
+    if (latest.statut == computedStatus) {
+      return latest;
+    }
+    return Manche(
+      id: latest.id,
+      concoursId: latest.concoursId,
+      numero: latest.numero,
+      statut: computedStatus,
+    );
   }
 
   @override
