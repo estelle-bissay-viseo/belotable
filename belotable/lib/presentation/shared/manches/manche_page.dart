@@ -536,6 +536,7 @@ Future<void> showCreatePremiereMancheDialog(
       ? 'Préparer la première manche ?'
       : 'Préparer une nouvelle manche ?';
 
+  if (!context.mounted) return;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
