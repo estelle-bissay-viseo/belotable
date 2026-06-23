@@ -307,27 +307,9 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                             ),
                             error: (_, _) =>
                                 const Text('Erreur chargement manches'),
-                            data: (manches) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            data: (manches) => Row(
                               children: [
-                                if (manches.isEmpty)
-                                  FilledButton.tonalIcon(
-                                    key: const Key(
-                                      'concours_detail_prepare_manche_button',
-                                    ),
-                                    onPressed: () =>
-                                        showCreatePremiereMancheDialog(
-                                          context,
-                                          ref,
-                                          widget.concoursId,
-                                        ),
-                                    label: const Text(
-                                      'Préparer la première manche',
-                                    ),
-                                    icon: const Icon(Icons.sports_score),
-                                    iconAlignment: .start,
-                                  )
-                                else
+                                if (manches.isNotEmpty) ...[
                                   Wrap(
                                     spacing: 8,
                                     runSpacing: 8,
@@ -335,6 +317,25 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                                         .map((m) => _MancheButton(manche: m))
                                         .toList(),
                                   ),
+                                ],
+                                if (manches.isNotEmpty)
+                                  const SizedBox(width: 8),
+                                FilledButton.tonalIcon(
+                                  key: const Key(
+                                    'concours_detail_prepare_manche_button',
+                                  ),
+                                  onPressed: () =>
+                                      showCreatePremiereMancheDialog(
+                                        context,
+                                        ref,
+                                        widget.concoursId,
+                                      ),
+                                  label: const Text(
+                                    'Préparer une nouvelle manche',
+                                  ),
+                                  icon: const Icon(Icons.sports_score),
+                                  iconAlignment: .start,
+                                ),
                               ],
                             ),
                           );

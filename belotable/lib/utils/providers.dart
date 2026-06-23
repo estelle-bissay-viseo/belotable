@@ -14,6 +14,7 @@ import 'package:belotable/domain/doublettes/delete_doublette_use_case.dart';
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/doublettes/doublette_repository.dart';
 import 'package:belotable/domain/doublettes/update_doublette_use_case.dart';
+import 'package:belotable/domain/manches/create_next_manche_use_case.dart';
 import 'package:belotable/domain/manches/create_premiere_manche_use_case.dart';
 import 'package:belotable/domain/manches/deal_points.dart';
 import 'package:belotable/domain/manches/deal_points_repository.dart';
@@ -123,6 +124,22 @@ final createPremiereMancheUseCaseProvider =
         concoursRepo,
       );
     });
+
+/// Provides CreateNextMancheUseCase with repository dependencies.
+/// Generalizes manche creation to support manche 2, 3, ... N with
+/// ranking-based distribution and completion checks.
+final createNextMancheUseCaseProvider = Provider<CreateNextMancheUseCase>((
+  ref,
+) {
+  final doubletteRepo = ref.watch(doubletteRepositoryProvider);
+  final mancheRepo = ref.watch(mancheRepositoryProvider);
+  final concoursRepo = ref.watch(concoursRepositoryProvider);
+  return CreateNextMancheUseCase(
+    doubletteRepo,
+    mancheRepo,
+    concoursRepo,
+  );
+});
 
 /// Provides UpdateManchePointsUseCase with repository dependencies.
 final updateManchePointsUseCaseProvider = Provider<UpdateManchePointsUseCase>(

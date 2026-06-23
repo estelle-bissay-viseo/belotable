@@ -15,6 +15,14 @@ abstract interface class MancheRepository {
   /// Returns all manches for a concours ordered by numero.
   Future<List<Manche>> findManchesByConcoursId(String concoursId);
 
+  /// Returns the latest manche (highest numero) for a concours,
+  /// or null if none exists.
+  Future<Manche?> findLatestManche(String concoursId);
+
+  /// Returns ids of doublettes that have at least one "Abandon" status
+  /// across any manche in the concours.
+  Future<List<int>> findDoublettesWithAbandonHistory(String concoursId);
+
   /// Returns tables with doublettes for a given manche id.
   Future<List<TableDeJeu>> findTablesDeJeuByMancheId(int mancheId);
 

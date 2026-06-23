@@ -326,7 +326,7 @@ void main() {
 
       // Verify success message
       expect(
-        find.text('Première manche créée avec succès'),
+        find.text('Manche créée avec succès'),
         findsOneWidget,
       );
 

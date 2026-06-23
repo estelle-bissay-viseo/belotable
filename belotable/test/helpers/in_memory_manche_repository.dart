@@ -14,10 +14,15 @@ class InMemoryMancheRepository implements MancheRepository {
     required String concoursId,
     required List<Doublette> doublettes,
   }) async {
+    final existing = manches.where((m) => m.concoursId == concoursId).toList();
+    final nextNumero = existing.isEmpty
+        ? 1
+        : existing.map((m) => m.numero).reduce((a, b) => a > b ? a : b) + 1;
+
     final manche = Manche(
       id: manches.length + 1,
       concoursId: concoursId,
-      numero: 1,
+      numero: nextNumero,
       statut: MancheStatut.enCours,
     );
     manches.add(manche);
@@ -194,6 +199,33 @@ class InMemoryMancheRepository implements MancheRepository {
         .where((m) => m.concoursId == concoursId)
         .toList(growable: false)
       ..sort((a, b) => a.numero.compareTo(b.numero));
+  }
+
+  @override
+  Future<Manche?> findLatestManche(String concoursId) async {
+    final concoursManches = await findManchesByConcoursId(concoursId);
+    if (concoursManches.isEmpty) {
+      return null;
+    }
+    return concoursManches.last;
+  }
+
+  @override
+  Future<List<int>> findDoublettesWithAbandonHistory(
+    String concoursId,
+  ) async {
+    final result = <int>{};
+    for (final tables in _tablesByManche.values) {
+      for (final table in tables) {
+        for (final td in table.doublettes) {
+          if (td.concoursId == concoursId &&
+              td.statut == TableDoubletteStatut.abandon) {
+            result.add(td.doubletteId);
+          }
+        }
+      }
+    }
+    return result.toList(growable: false);
   }
 
   @override

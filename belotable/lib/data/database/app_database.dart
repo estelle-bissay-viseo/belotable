@@ -691,6 +691,94 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     });
   }
 
+  /// Assigns doublette to manche 1 only if manche 1 exists and is not "Terminé"
+  /// Creates new table in manche 1 when needed, or no-op if conditions not met.
+  Future<void> assignDoubletteToManche1Only({
+    required String concoursId,
+    required int doubletteId,
+  }) async {
+    await transaction(() async {
+      // Find manche 1
+      final manche1 =
+          await (select(manchesTable)..where(
+                (t) => t.concoursId.equals(concoursId) & t.numero.equals(1),
+              ))
+              .getSingleOrNull();
+
+      // No-op if manche 1 doesn't exist or is finished
+      if (manche1 == null || manche1.statut == 'Terminé') {
+        return;
+      }
+
+      // No-op if more than 1 manche exists 
+      // (shouldn't auto-assign beyond manche 1)
+      final allManches = await (select(
+        manchesTable,
+      )..where((t) => t.concoursId.equals(concoursId))).get();
+      if (allManches.length > 1) {
+        return;
+      }
+
+      // Already assigned to manche 1?
+      final alreadyAssigned =
+          await (select(tableDoublettesTable).join([
+                innerJoin(
+                  tablesDeJeuTable,
+                  tablesDeJeuTable.id.equalsExp(tableDoublettesTable.tableId),
+                ),
+              ])..where(
+                tableDoublettesTable.concoursId.equals(concoursId) &
+                    tableDoublettesTable.doubletteId.equals(doubletteId) &
+                    tablesDeJeuTable.mancheId.equals(manche1.id),
+              ))
+              .getSingleOrNull();
+
+      if (alreadyAssigned != null) {
+        return;
+      }
+
+      // Find first available table in manche 1 or create one
+      var targetTableId = await findFirstAvailableTableId(concoursId);
+      if (targetTableId == null) {
+        final maxNumeroExpr = tablesDeJeuTable.numero.max();
+        final maxNumeroQuery = selectOnly(tablesDeJeuTable)
+          ..addColumns([maxNumeroExpr])
+          ..where(tablesDeJeuTable.mancheId.equals(manche1.id));
+        final maxNumeroRow = await maxNumeroQuery.getSingle();
+        final nextNumero = (maxNumeroRow.read(maxNumeroExpr) ?? 0) + 1;
+
+        final newTable = await insertTableDeJeu(
+          TablesDeJeuTableCompanion.insert(
+            mancheId: manche1.id,
+            numero: nextNumero,
+          ),
+        );
+        targetTableId = newTable.id;
+      }
+
+      await addDoubletteToTable(
+        tableId: targetTableId,
+        concoursId: concoursId,
+        doubletteId: doubletteId,
+      );
+
+      // Initialize deal points
+      final concours = await (select(
+        concoursTable,
+      )..where((c) => c.id.equals(concoursId))).getSingleOrNull();
+
+      if (concours != null) {
+        await initializeDealPoints(
+          tableId: targetTableId,
+          concoursId: concoursId,
+          doubletteId: doubletteId,
+          mancheId: manche1.id,
+          numberOfDeals: concours.nombreDonnesParManche,
+        );
+      }
+    });
+  }
+
   /// Returns the table-doublette record for a doublette, or null.
   Future<TableDoublette?> findTableDoublette({
     required String concoursId,
@@ -1064,6 +1152,43 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
 
     final row = await query.getSingleOrNull();
     return row?.read(pointsExpr) ?? 0;
+  }
+
+  /// Returns the latest (highest numero) manche for a concours, or null.
+  Future<ManchesTableData?> findLatestMancheData(String concoursId) async {
+    return (select(manchesTable)
+          ..where((t) => t.concoursId.equals(concoursId))
+          ..orderBy([(t) => OrderingTerm.desc(t.numero)])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  /// Returns ids of doublettes with at least one "Abandon" status across
+  /// any manche in the concours.
+  Future<List<int>> findDoublettesWithAbandonHistory(
+    String concoursId,
+  ) async {
+    final rows =
+        await (select(tableDoublettesTable).join([
+                innerJoin(
+                  tablesDeJeuTable,
+                  tablesDeJeuTable.id.equalsExp(tableDoublettesTable.tableId),
+                ),
+                innerJoin(
+                  manchesTable,
+                  manchesTable.id.equalsExp(tablesDeJeuTable.mancheId),
+                ),
+              ])
+              ..where(
+                manchesTable.concoursId.equals(concoursId) &
+                    tableDoublettesTable.statut.equals('Abandon'),
+              )
+              ..groupBy([tableDoublettesTable.doubletteId]))
+            .get();
+
+    return rows
+        .map((row) => row.readTable(tableDoublettesTable).doubletteId)
+        .toList(growable: false);
   }
 }
 

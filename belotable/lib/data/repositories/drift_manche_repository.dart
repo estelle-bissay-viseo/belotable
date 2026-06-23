@@ -19,8 +19,17 @@ class DriftMancheRepository implements MancheRepository {
     required List<Doublette> doublettes,
   }) async {
     return _db.transaction(() async {
+      // Compute next numero: max existing + 1, or 1 if none exist
+      final existing = await _db.manchesDao.findManchesByConcoursId(concoursId);
+      final nextNumero = existing.isEmpty
+          ? 1
+          : existing.map((m) => m.numero).reduce((a, b) => a > b ? a : b) + 1;
+
       final mancheRow = await _db.manchesDao.insertManche(
-        ManchesTableCompanion.insert(concoursId: concoursId, numero: 1),
+        ManchesTableCompanion.insert(
+          concoursId: concoursId,
+          numero: nextNumero,
+        ),
       );
 
       // Distribute doublettes into tables of 2 (last may have 3 if odd)
@@ -72,6 +81,25 @@ class DriftMancheRepository implements MancheRepository {
   }
 
   @override
+  Future<Manche?> findLatestManche(String concoursId) async {
+    final row = await _db.manchesDao.findLatestMancheData(concoursId);
+    if (row == null) {
+      return null;
+    }
+    return Manche(
+      id: row.id,
+      concoursId: row.concoursId,
+      numero: row.numero,
+      statut: MancheStatut.fromDb(row.statut),
+    );
+  }
+
+  @override
+  Future<List<int>> findDoublettesWithAbandonHistory(String concoursId) async {
+    return _db.manchesDao.findDoublettesWithAbandonHistory(concoursId);
+  }
+
+  @override
   Future<List<TableDeJeu>> findTablesDeJeuByMancheId(int mancheId) {
     return _db.manchesDao.findTablesDeJeuByMancheId(mancheId);
   }
@@ -104,7 +132,7 @@ class DriftMancheRepository implements MancheRepository {
     required String concoursId,
     required int doubletteId,
   }) {
-    return _db.manchesDao.assignDoubletteToLatestManche(
+    return _db.manchesDao.assignDoubletteToManche1Only(
       concoursId: concoursId,
       doubletteId: doubletteId,
     );
