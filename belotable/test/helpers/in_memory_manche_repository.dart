@@ -1,6 +1,7 @@
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
+import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 
@@ -17,6 +18,7 @@ class InMemoryMancheRepository implements MancheRepository {
       id: manches.length + 1,
       concoursId: concoursId,
       numero: 1,
+      statut: MancheStatut.enCours,
     );
     manches.add(manche);
 

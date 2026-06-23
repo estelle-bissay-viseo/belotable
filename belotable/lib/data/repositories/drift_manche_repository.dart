@@ -2,6 +2,7 @@ import 'package:belotable/data/database/app_database.dart';
 import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
+import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 
@@ -50,6 +51,7 @@ class DriftMancheRepository implements MancheRepository {
         id: mancheRow.id,
         concoursId: concoursId,
         numero: mancheRow.numero,
+        statut: MancheStatut.fromDb(mancheRow.statut),
       );
     });
   }
@@ -59,7 +61,12 @@ class DriftMancheRepository implements MancheRepository {
     final rows = await _db.manchesDao.findManchesByConcoursId(concoursId);
     return rows
         .map(
-          (r) => Manche(id: r.id, concoursId: r.concoursId, numero: r.numero),
+          (r) => Manche(
+            id: r.id,
+            concoursId: r.concoursId,
+            numero: r.numero,
+            statut: MancheStatut.fromDb(r.statut),
+          ),
         )
         .toList(growable: false);
   }

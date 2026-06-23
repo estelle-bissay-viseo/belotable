@@ -83,6 +83,71 @@ void main() {
   );
 
   repositoryDbTest<_Repos>(
+    'manche status persists and updates when doublette status changes',
+    factory: (db) => (
+      concoursRepository: DriftConcoursRepository(db),
+      doubletteRepository: DriftDoubletteRepository(db),
+      mancheRepository: DriftMancheRepository(db),
+    ),
+    body: (_, repos) async {
+      await repos.concoursRepository.save(
+        Concours(
+          id: 'c-manche-status',
+          date: DateTime(2026, 6, 8),
+          lieu: 'Salle Test',
+          organisateur: 'Club Test',
+        ),
+      );
+
+      await repos.doubletteRepository.create(
+        concoursId: 'c-manche-status',
+        joueurA: 'A1',
+        joueurB: 'B1',
+        nomEquipe: 'E1',
+      );
+      await repos.doubletteRepository.create(
+        concoursId: 'c-manche-status',
+        joueurA: 'A2',
+        joueurB: 'B2',
+        nomEquipe: 'E2',
+      );
+
+      final doublettes = await repos.doubletteRepository.findByConcoursId(
+        'c-manche-status',
+      );
+      final manche = await repos.mancheRepository.createPremiereManche(
+        concoursId: 'c-manche-status',
+        doublettes: doublettes,
+      );
+
+      // Verify manche status is initially "En cours"
+      expect(manche.statut.label, 'En cours');
+
+      // Retrieve manche again to verify status persists in DB
+      final manches = await repos.mancheRepository.findManchesByConcoursId(
+        'c-manche-status',
+      );
+      expect(manches.first.statut.label, 'En cours');
+
+      // Update doublette status to terminate all doublettes
+      final tables = await repos.mancheRepository.findTablesDeJeuByMancheId(
+        manche.id,
+      );
+      await repos.mancheRepository.updateStatut(
+        tableId: tables.first.id,
+        concoursId: 'c-manche-status',
+        doubletteId: 2,
+        statut: TableDoubletteStatut.perdu,
+      );
+
+      // Verify manche status changed to "Terminé"
+      final updatedManches = await repos.mancheRepository
+          .findManchesByConcoursId('c-manche-status');
+      expect(updatedManches.first.statut.label, 'Terminé');
+    },
+  );
+
+  repositoryDbTest<_Repos>(
     'addDoubletteToTable enforces one table per manche and max two per table',
     factory: (db) => (
       concoursRepository: DriftConcoursRepository(db),

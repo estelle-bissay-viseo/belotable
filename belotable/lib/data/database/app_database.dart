@@ -1,6 +1,7 @@
 import 'package:belotable/domain/concours/concours.dart';
 import 'package:belotable/domain/concours/concours_statut.dart';
 import 'package:belotable/domain/doublettes/doublette.dart';
+import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 import 'package:drift/drift.dart';
@@ -87,6 +88,9 @@ class ManchesTable extends Table {
 
   /// Round number, starting at 1.
   IntColumn get numero => integer()();
+
+  /// Round completion status stored as string.
+  TextColumn get statut => text().withDefault(const Constant('En cours'))();
 }
 
 /// Table schema for storing match tables within a round.
@@ -867,15 +871,36 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
       TablesDeJeuTableCompanion(statut: Value(tableStatut.label)),
     );
 
+    // Recompute and persist manche statut from all doublettes across all tables
     final tableRow = await (select(
+      tablesDeJeuTable,
+    )..where((t) => t.id.equals(tableId))).getSingle();
+    final mancheId = tableRow.mancheId;
+
+    final allTableRows = await (select(
+      tablesDeJeuTable,
+    )..where((t) => t.mancheId.equals(mancheId))).get();
+
+    final allDoublettes = <TableDoublette>[];
+    for (final table in allTableRows) {
+      final doublettes = await _loadDoublettesForTable(table.id);
+      allDoublettes.addAll(doublettes);
+    }
+
+    final mancheStatut = MancheStatut.fromDoublettes(allDoublettes);
+    await (update(manchesTable)..where((t) => t.id.equals(mancheId))).write(
+      ManchesTableCompanion(statut: Value(mancheStatut.label)),
+    );
+
+    final updatedTableRow = await (select(
       tablesDeJeuTable,
     )..where((t) => t.id.equals(tableId))).getSingle();
 
     return TableDeJeu(
-      id: tableRow.id,
-      mancheId: tableRow.mancheId,
-      numero: tableRow.numero,
-      statut: TableDeJeuStatut.fromDb(tableRow.statut),
+      id: updatedTableRow.id,
+      mancheId: updatedTableRow.mancheId,
+      numero: updatedTableRow.numero,
+      statut: TableDeJeuStatut.fromDb(updatedTableRow.statut),
       doublettes: participations,
     );
   }
