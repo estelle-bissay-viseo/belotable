@@ -115,7 +115,7 @@ Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(unique
 
 Lorsque vous avez enregistré toutes les doublettes du concours, cliquez sur **Préparer une nouvelle manche** pour démarrer le concours.
 
-Vous pouvez voir la répartition des doublettes sur les tables de la première manche, et inscrire les résultats des parties jouées en cliquant sur le bouton **Manche 1**.
+Vous pouvez voir la répartition des doublettes sur les tables de la manche, et inscrire les résultats des parties jouées en cliquant sur le bouton **Manche X**.
 
 ![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
 
@@ -136,6 +136,9 @@ Pour saisir les résultats d'une manche, cliquez sur le bouton **Manche X** depu
 ![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
 
 Vous pouvez saisir les résultats des donnes jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc). La saisie des points lance immédiatement le calcul des points total de la doublette et le classement de la manche.
+
+La saisie des points lance immédiatement le calcul de la somme des points de chaque donne et ces sommes sont affichées sur la table comme aide à la vérification des points.
+Si un nombre maximum de points par donne a été configuré sur le concours (autre que 0), lorsqu'une de ces sommes est différente de ce maximum, elle est affichée en rouge pour mettre en évidence l'erreur. Mais cela n'empêche pas l'enregistrement des données, afin de vous permettre de vérifier et corriger cela plus tard.
 
 Une manche est considérée comme terminée lorsque tous les statuts des parties jouées sur les tables sont différents de "En attente".
 
