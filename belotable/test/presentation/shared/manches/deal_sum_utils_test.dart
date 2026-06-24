@@ -1,6 +1,5 @@
 import 'package:belotable/domain/manches/deal_points.dart';
 import 'package:belotable/presentation/shared/manches/deal_sum_utils.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -158,20 +157,21 @@ void main() {
       });
     });
 
-    group('getDealSumColor', () {
-      test('returns orange when highlighted', () {
-        final color = getDealSumColor(50, 162);
-        expect(color, equals(Colors.orange));
+    group('getDealSumError', () {
+      test('returns error when highlighted', () {
+        final error = getDealSumError(50, 162);
+        expect(error, isNotNull);
+        expect(error, equals('❌162'));
       });
 
-      test('returns black when not highlighted (sum is 0)', () {
-        final color = getDealSumColor(0, 162);
-        expect(color, equals(Colors.black));
+      test('returns null when not highlighted (sum is 0)', () {
+        final error = getDealSumError(0, 162);
+        expect(error, isNull);
       });
 
-      test('returns black when not highlighted (sum equals max)', () {
-        final color = getDealSumColor(162, 162);
-        expect(color, equals(Colors.black));
+      test('returns null when not highlighted (sum equals max)', () {
+        final error = getDealSumError(162, 162);
+        expect(error, isNull);
       });
     });
   });

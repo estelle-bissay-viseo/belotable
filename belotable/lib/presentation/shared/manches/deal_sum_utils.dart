@@ -1,5 +1,4 @@
 import 'package:belotable/domain/manches/deal_points.dart';
-import 'package:flutter/material.dart';
 
 /// Computes per-deal sums from doublette dealPoints across a table.
 ///
@@ -32,19 +31,12 @@ List<int> computeTableDealSums(List<DealPoints> allDealPoints) {
 /// Determines if a deal sum should be highlighted orange.
 ///
 /// Returns true when:
-/// - sum ≠ 0 AND sum ≠ maxPointsPerDeal
+/// - sum != 0 AND sum != maxPointsPerDeal
 ///
 /// Returns false when:
 /// - sum = 0 OR sum = maxPointsPerDeal
 bool shouldHighlightDealSum(int dealSum, int maxPointsPerDeal) {
   return dealSum != 0 && dealSum != maxPointsPerDeal;
-}
-
-/// Gets text color for deal sum based on highlight logic.
-Color getDealSumColor(int dealSum, int maxPointsPerDeal) {
-  return shouldHighlightDealSum(dealSum, maxPointsPerDeal)
-      ? Colors.orange
-      : Colors.grey;
 }
 
 /// Gets the error hint
