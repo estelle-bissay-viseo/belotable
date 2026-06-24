@@ -44,5 +44,5 @@ bool shouldHighlightDealSum(int dealSum, int maxPointsPerDeal) {
 Color getDealSumColor(int dealSum, int maxPointsPerDeal) {
   return shouldHighlightDealSum(dealSum, maxPointsPerDeal)
       ? Colors.orange
-      : Colors.black;
+      : Colors.grey;
 }

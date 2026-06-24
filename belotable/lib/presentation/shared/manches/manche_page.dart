@@ -572,8 +572,11 @@ class _TableSumRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Somme des points des donnes',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                'Somme des points par donne',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
               ),
               const SizedBox(height: 8),
               SingleChildScrollView(
@@ -597,9 +600,19 @@ class _TableSumRow extends ConsumerWidget {
                               'table_sum_${table.numero}_$dealNumber',
                             ),
                             decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: sumColor,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: sumColor,
+                                ),
+                              ),
                               labelText: 'D$dealNumber',
                               isDense: true,
+                              floatingLabelStyle: TextStyle(color: sumColor),
                             ),
                             child: Text(
                               dealSum.toString(),
