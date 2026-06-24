@@ -132,6 +132,11 @@ void main() {
         find.byKey(const Key('table_card_2')),
         findsOneWidget,
       );
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_3')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
       expect(
         find.byKey(const Key('table_card_3')),
         findsOneWidget,
@@ -276,6 +281,12 @@ void main() {
         find.byKey(const Key('table_card_2')),
         findsOneWidget,
       );
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_3')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('table_card_3')),
         findsOneWidget,
@@ -331,6 +342,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify last table now has 2 pairs (d5 and d6)
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_3')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('td_row_3_5')),
         findsOneWidget,
@@ -540,6 +557,29 @@ void main() {
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
+
+      // Check sum by deal
+      expect(
+        find.byKey(const Key('table_sum_1_1')),
+        findsOneWidget,
+      );
+      var sum11 = tester.widget<InputDecorator>(
+        find.byKey(const Key('table_sum_1_1')),
+      );
+      var textSum11 = sum11.child! as Text;
+      expect(textSum11.data, '162');
+      expect(sum11.decoration.errorText, isNull);
+      expect(
+        find.byKey(const Key('table_sum_1_2')),
+        findsOneWidget,
+      );
+      var sum12 = tester.widget<InputDecorator>(
+        find.byKey(const Key('table_sum_1_2')),
+      );
+      var textSum12 = sum12.child! as Text;
+      expect(textSum12.data, '200');
+      expect(sum12.decoration.errorText, isNotNull);
+
       // Check other table is not affected
       expect(
         find.byKey(const Key('points_field_2_3_1')),
@@ -667,6 +707,27 @@ void main() {
             .value,
         TableDoubletteStatut.perdu,
       );
+      // Check sum by deal
+      expect(
+        find.byKey(const Key('table_sum_1_1')),
+        findsOneWidget,
+      );
+      sum11 = tester.widget<InputDecorator>(
+        find.byKey(const Key('table_sum_1_1')),
+      );
+      textSum11 = sum11.child! as Text;
+      expect(textSum11.data, '162');
+      expect(sum11.decoration.errorText, isNull);
+      expect(
+        find.byKey(const Key('table_sum_1_2')),
+        findsOneWidget,
+      );
+      sum12 = tester.widget<InputDecorator>(
+        find.byKey(const Key('table_sum_1_2')),
+      );
+      textSum12 = sum12.child! as Text;
+      expect(textSum12.data, '200');
+      expect(sum12.decoration.errorText, isNotNull);
       // Check other table is not affected
       expect(
         find.byKey(const Key('points_field_2_3_1')),

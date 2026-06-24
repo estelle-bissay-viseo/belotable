@@ -601,7 +601,7 @@ void main() {
         find.byKey(const Key('points_field_2_3_1')),
         '100',
       );
-      await tester.tap(find.byType(Scaffold));
+      await tester.tap(find.byType(Scaffold), warnIfMissed: false);
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('points_field_2_4_1')),
@@ -613,6 +613,7 @@ void main() {
       // Mark all as finished
       await tester.tap(
         find.byKey(const Key('statut_dropdown_1_2')),
+        warnIfMissed: false,
       );
       await tester.pumpAndSettle();
       await tester.tap(
@@ -620,8 +621,15 @@ void main() {
         warnIfMissed: false,
       );
       await tester.pumpAndSettle();
+      await tester.dragUntilVisible(
+        find.byKey(const Key('table_card_2')),
+        find.byKey(const Key('manche_page_tables_list')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('statut_dropdown_2_4')),
+        warnIfMissed: false,
       );
       await tester.pumpAndSettle();
       await tester.tap(

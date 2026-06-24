@@ -341,6 +341,9 @@ class _ConcoursEditPageState extends ConsumerState<ConcoursEditPage> {
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Nombre maximum de points par donne',
+                              helperText:
+                                  // ignore: lines_longer_than_80_chars because UI
+                                  'Laissez à 0 pour ne pas appliquer de maximum',
                             ),
                             min: 0,
                           ),
