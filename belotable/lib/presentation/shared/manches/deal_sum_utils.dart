@@ -46,3 +46,10 @@ Color getDealSumColor(int dealSum, int maxPointsPerDeal) {
       ? Colors.orange
       : Colors.grey;
 }
+
+/// Gets the error hint
+String? getDealSumError(int dealSum, int maxPointsPerDeal) {
+  return shouldHighlightDealSum(dealSum, maxPointsPerDeal)
+      ? '❌$maxPointsPerDeal'
+      : null;
+}

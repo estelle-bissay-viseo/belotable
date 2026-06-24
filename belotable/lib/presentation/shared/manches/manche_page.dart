@@ -572,9 +572,9 @@ class _TableSumRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Somme des points par donne',
+                'Sommes des points par donne',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Colors.grey,
                 ),
               ),
@@ -587,7 +587,7 @@ class _TableSumRow extends ConsumerWidget {
                     (i) {
                       final dealNumber = i + 1;
                       final dealSum = sums[i];
-                      final sumColor = getDealSumColor(
+                      final errorHint = getDealSumError(
                         dealSum,
                         concours.nombreMaxPointsParDonne,
                       );
@@ -600,24 +600,34 @@ class _TableSumRow extends ConsumerWidget {
                               'table_sum_${table.numero}_$dealNumber',
                             ),
                             decoration: InputDecoration(
-                              border: OutlineInputBorder(
+                              border: const OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: sumColor,
+                                  color: Colors.grey,
                                 ),
                               ),
-                              enabledBorder: OutlineInputBorder(
+                              enabledBorder: const OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: sumColor,
+                                  color: Colors.grey,
                                 ),
                               ),
                               labelText: 'D$dealNumber',
+                              labelStyle: const TextStyle(fontSize: 10),
                               isDense: true,
-                              floatingLabelStyle: TextStyle(color: sumColor),
+                              errorText: errorHint,
+                              errorStyle: const TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             child: Text(
                               dealSum.toString(),
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: sumColor),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: (errorHint != null)
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
                             ),
                           ),
                         ),

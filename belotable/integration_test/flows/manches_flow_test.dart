@@ -566,10 +566,9 @@ void main() {
       var sum11 = tester.widget<InputDecorator>(
         find.byKey(const Key('table_sum_1_1')),
       );
-
       var textSum11 = sum11.child! as Text;
       expect(textSum11.data, '162');
-      expect(textSum11.style?.color, Colors.grey);
+      expect(sum11.decoration.errorText, isNull);
       expect(
         find.byKey(const Key('table_sum_1_2')),
         findsOneWidget,
@@ -577,10 +576,9 @@ void main() {
       var sum12 = tester.widget<InputDecorator>(
         find.byKey(const Key('table_sum_1_2')),
       );
-
       var textSum12 = sum12.child! as Text;
       expect(textSum12.data, '200');
-      expect(textSum12.style?.color, Colors.orange);
+      expect(sum12.decoration.errorText, isNotNull);
 
       // Check other table is not affected
       expect(
@@ -719,7 +717,7 @@ void main() {
       );
       textSum11 = sum11.child! as Text;
       expect(textSum11.data, '162');
-      expect(textSum11.style?.color, Colors.grey);
+      expect(sum11.decoration.errorText, isNull);
       expect(
         find.byKey(const Key('table_sum_1_2')),
         findsOneWidget,
@@ -729,7 +727,7 @@ void main() {
       );
       textSum12 = sum12.child! as Text;
       expect(textSum12.data, '200');
-      expect(textSum12.style?.color, Colors.orange);
+      expect(sum12.decoration.errorText, isNotNull);
       // Check other table is not affected
       expect(
         find.byKey(const Key('points_field_2_3_1')),
