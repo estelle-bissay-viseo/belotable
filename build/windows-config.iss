@@ -9,7 +9,8 @@
 AppName=Belotable
 AppVersion={#AppVersion}
 AppPublisher=Belotable
-DefaultDirName={autopf}\Belotable
+DefaultDirName={localappdata}\Programs\Belotable
+PrivilegesRequired=lowest
 DefaultGroupName=Belotable
 SetupIconFile=..\belotable\windows\runner\resources\app_icon.ico
 OutputDir=windows_output
@@ -35,3 +36,56 @@ Name: "{autodesktop}\Belotable"; Filename: "{app}\belotable.exe"; Tasks: desktop
 
 [Run]
 Filename: "{app}\belotable.exe"; Description: "Lancer Belotable"; Flags: nowait postinstall skipifsilent
+
+[Code]
+var
+  RemoveData: Boolean;
+
+// supprimer les données existantes à l'installation
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+begin
+  if CurStep = ssInstall then
+  begin
+    if DirExists(ExpandConstant('{userappdata}\belotable')) then
+    begin
+      if MsgBox(
+        'Des données existantes ont été trouvées. Il est fortement conseiller de les supprimer si vous installez une nouvelle version de Belotable car elles seront incompatibles. Voulez-vous les supprimer ?',
+        mbConfirmation, MB_YESNO
+      ) = IDYES then
+      begin
+        DelTree(ExpandConstant('{userappdata}\belotable'), True, True, True);
+      end;
+    end;
+  end;
+end;
+
+// Demander si suppression des données à la désinstallation
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+
+  if DirExists(ExpandConstant('{userappdata}\belotable')) then
+  begin
+    RemoveData :=
+      MsgBox(
+        'Souhaitez-vous supprimer les données utilisateur de Belotable ?',
+        mbConfirmation, MB_YESNO
+      ) = IDYES;
+  end
+  else
+  begin
+    RemoveData := False;
+  end;
+end;
+
+// Supprimer les données à la désinstallation si demandé
+procedure CurUninstallStepChanged(Step: TUninstallStep);
+begin
+  if (Step = usUninstall) and RemoveData then
+  begin
+    DelTree(ExpandConstant('{userappdata}\belotable'), True, True, True);
+  end;
+end;
+

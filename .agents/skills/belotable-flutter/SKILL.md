@@ -45,7 +45,7 @@ fvm dart run build_runner build --delete-conflicting-outputs
 
 ## Behaviour
 
-- Do not care about database MigrationStrategy
+- Do not care about database schemaVersion and database MigrationStrategy in app_database.dart
 - Do not care about messages about line length in flutter analyze output (like `info - The line length exceeds 80-character limit`).
 - Do not care about messages about imports order (level info) in flutter analyze output
 - Do not care about messages about unused imports (level info) in flutter analyze output
