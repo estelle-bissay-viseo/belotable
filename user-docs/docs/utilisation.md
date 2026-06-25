@@ -83,13 +83,27 @@ Vous pouvez gérer ici les doublettes inscrites au concours, le déroulement du 
 
 ### Génération du fichier PDF de saisie des points des donnes
 
+**Par table**
+
 Vous pouvez générer un fichier PDF de saisie des points des donnes pour le concours en cliquant sur le bouton **PDF pour les tables**. Il est destiné à être imprimé et distribué sur les tables pour saisir les résultats des parties jouées sur les tables.
 
 Ce PDF contient toutes les informations du concours (date, lieu, organisateur et règles de jeu), ainsi que des champs pour écrire qui joue sur la table, et les points de chaque donne. Le tableau de saisie des points est généré automatiquement en fonction du nombre de donnes par manche défini pour le concours.
 
 Exemple de fichier PDF généré :
 
-![Exemple de fichier PDF généré](./assets/images/exemple-pdf-table.png)
+![fichier PDF table](./assets/images/exemple-pdf-table.png)
+
+**Par doublette**
+
+Vous pouvez générer un fichier PDF de saisie des points des donnes pour le concours en cliquant sur le bouton **PDF pour les doublettes**. Il est destiné à être imprimé et distribué aux doublettes pour saisir les résultats des parties jouées.
+
+Ce PDF contient toutes les informations du concours (date, lieu, organisateur et règles de jeu), ainsi que des champs pour écrire quelle doublette est concernée, et les points de chaque donne pour 5 manches. Le tableau de saisie des points est généré automatiquement en fonction du nombre de donnes par manche défini pour le concours.
+
+Si le concours comporte plus de 5 manches, il faudra distribuer un second papier aux doublettes.
+
+Exemple de fichier PDF généré :
+
+![fichier PDF doublette](./assets/images/exemple-pdf-doublette.png)
 
 ### Gestion des doublettes
 
@@ -132,8 +146,6 @@ Dès que la manche est créée, les **modifications des doublettes ont des impac
 #### Saisie des résultats d'une manche
 
 Pour saisir les résultats d'une manche, cliquez sur le bouton **Manche X** depuis la page de gestion du concours.
-
-![Page de gestion d'une manche](./assets/images/page-manche-tables.png)
 
 Vous pouvez saisir les résultats des donnes jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc). La saisie des points lance immédiatement le calcul des points total de la doublette et le classement de la manche.
 
