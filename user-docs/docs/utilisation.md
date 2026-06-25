@@ -111,7 +111,7 @@ Vous ne pouvez pas supprimer une doublette si elle a commencé à jouer dans au 
 
 ### Gestion des manches
 
-Depuis la page de gestion d'un concours, vous pouvez gérer les manches *(uniquement la première manche pour le moment)*.
+Depuis la page de gestion d'un concours, vous pouvez gérer les manches.
 
 Lorsque vous avez enregistré toutes les doublettes du concours, cliquez sur **Préparer une nouvelle manche** pour démarrer le concours.
 
