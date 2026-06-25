@@ -30,10 +30,14 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_manage_button_id-ranking-no-manche')),
       );
       await tester.pumpAndSettle();
@@ -106,10 +110,14 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_manage_button_id-ranking-with-manche')),
       );
       await tester.pumpAndSettle();
@@ -182,15 +190,20 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_manage_button_id-ranking-nav')),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_ranking_button')),
       );
       await tester.pumpAndSettle();

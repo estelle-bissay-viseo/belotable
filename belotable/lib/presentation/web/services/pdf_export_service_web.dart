@@ -7,7 +7,7 @@ import 'package:web/web.dart' as web;
 /// Implementation of PDF export service for web platforms.
 class WebPdfExportService implements PdfExportService {
   @override
-  Future<void> save(Uint8List bytes) async {
+  Future<void> save(Uint8List bytes, {String fileName = 'belotable'}) async {
     final buffer = bytes.buffer.toJS;
     final parts = <JSAny>[buffer].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'application/pdf'));
@@ -15,16 +15,19 @@ class WebPdfExportService implements PdfExportService {
 
     web.HTMLAnchorElement()
       ..href = url
-      ..download = 'concours.pdf'
+      ..download = '$fileName.pdf'
       ..click();
 
     web.URL.revokeObjectURL(url);
   }
 
   @override
-  Future<void> saveAndOpen(Uint8List bytes) async {
+  Future<void> saveAndOpen(
+    Uint8List bytes, {
+    String fileName = 'belotable',
+  }) async {
     // On web, we can only trigger a download.
-    await save(bytes);
+    await save(bytes, fileName: fileName);
   }
 }
 

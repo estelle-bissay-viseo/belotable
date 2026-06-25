@@ -23,6 +23,7 @@ import 'package:belotable/domain/manches/manche_repository.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/update_manche_points_use_case.dart';
 import 'package:belotable/domain/pdf/repositories/pdf_repository.dart';
+import 'package:belotable/domain/pdf/usecases/generate_concours_doublette_pdf_usecase.dart';
 import 'package:belotable/domain/pdf/usecases/generate_concours_table_pdf_usecase.dart';
 import 'package:belotable/presentation/shared/services/pdf_export_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -178,6 +179,17 @@ final generateConcoursTablePdfUseCaseProvider =
       final concoursRepo = ref.watch(concoursRepositoryProvider);
       final pdfRepo = ref.watch(pdfRepositoryProvider);
       return GenerateConcoursTablePdfUseCase(
+        concoursRepository: concoursRepo,
+        pdfRepository: pdfRepo,
+      );
+    });
+
+/// Provides GenerateConcoursDoublettePdfUseCase for exporting concours to PDF.
+final generateConcoursDoublettePdfUseCaseProvider =
+    Provider<GenerateConcoursDoublettePdfUseCase>((ref) {
+      final concoursRepo = ref.watch(concoursRepositoryProvider);
+      final pdfRepo = ref.watch(pdfRepositoryProvider);
+      return GenerateConcoursDoublettePdfUseCase(
         concoursRepository: concoursRepo,
         pdfRepository: pdfRepo,
       );

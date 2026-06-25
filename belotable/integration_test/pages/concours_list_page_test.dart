@@ -15,7 +15,10 @@ void main() {
     (tester, db) async {
       await pumpTestApp(tester, db);
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(
@@ -23,7 +26,10 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const Key('concours_list_add_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_list_add_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('concours_creation_form')), findsOneWidget);
@@ -61,7 +67,10 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       final latestDateTop = tester.getTopLeft(find.text('08/06/2026')).dy;
@@ -106,7 +115,10 @@ void main() {
       await pumpTestApp(tester, db);
 
       // Create concours from home page (not via list + button).
-      await tester.tap(find.byKey(const Key('home_create_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_create_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -117,12 +129,18 @@ void main() {
         find.byKey(const Key('concours_organisateur_field')),
         'Association Belote',
       );
-      await tester.tap(find.byKey(const Key('concours_validate_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_validate_button')),
+      );
       await tester.pumpAndSettle();
 
       // Back on home. Navigate to list.
       expect(find.byKey(const Key('home_body_title')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       // Newly created concours must be visible.
@@ -137,7 +155,10 @@ void main() {
     (tester, db) async {
       await pumpTestApp(tester, db);
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(
@@ -146,7 +167,10 @@ void main() {
       );
 
       // Create via + button from within list page.
-      await tester.tap(find.byKey(const Key('concours_list_add_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_list_add_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -157,7 +181,10 @@ void main() {
         find.byKey(const Key('concours_organisateur_field')),
         'Club Nord',
       );
-      await tester.tap(find.byKey(const Key('concours_validate_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_validate_button')),
+      );
       await tester.pumpAndSettle();
 
       // Back on list page — new concours must be visible.
@@ -189,7 +216,10 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       // Find edit button for this concours
@@ -236,7 +266,10 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       // Verify status column exists and shows correct values

@@ -7,10 +7,10 @@ import 'package:belotable/presentation/shared/services/pdf_export_service_stub.d
 /// Abstract service for exporting PDFs.
 abstract class PdfExportService {
   /// Saves the given PDF bytes to a file.
-  Future<void> save(Uint8List bytes);
+  Future<void> save(Uint8List bytes, {String fileName = 'belotable'});
 
   /// Saves the given PDF bytes to a file and opens it.
-  Future<void> saveAndOpen(Uint8List bytes);
+  Future<void> saveAndOpen(Uint8List bytes, {String fileName = 'belotable'});
 }
 
 /// Returns the appropriate PdfExportService.

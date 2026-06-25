@@ -30,10 +30,14 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_manage_button_id-detail')),
       );
       await tester.pumpAndSettle();
@@ -108,15 +112,26 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
-      await tester.pumpAndSettle();
-
       await tester.tap(
-        find.byKey(const Key('concours_manage_button_id-manche-warning')),
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_manage_button_id-manche-warning')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_manche_button_1')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_manche_button_1')),
       );
       await tester.pumpAndSettle();
@@ -157,10 +172,14 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_manage_button_id-params-display')),
       );
       await tester.pumpAndSettle();

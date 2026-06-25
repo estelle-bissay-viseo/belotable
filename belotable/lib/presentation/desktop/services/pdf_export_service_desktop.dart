@@ -7,11 +7,11 @@ import 'package:file_picker/file_picker.dart';
 /// Implementation of PDF export service for desktop platforms.
 class DesktopPdfExportService implements PdfExportService {
   @override
-  Future<void> save(Uint8List bytes) async {
+  Future<void> save(Uint8List bytes, {String fileName = 'belotable'}) async {
     // Use FilePicker to let the user choose where to save the PDF file.
     final path = await FilePicker.saveFile(
       dialogTitle: 'Enregistrer le PDF',
-      fileName: 'concours.pdf',
+      fileName: '$fileName.pdf',
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
@@ -24,11 +24,14 @@ class DesktopPdfExportService implements PdfExportService {
   }
 
   @override
-  Future<void> saveAndOpen(Uint8List bytes) async {
+  Future<void> saveAndOpen(
+    Uint8List bytes, {
+    String fileName = 'belotable',
+  }) async {
     // Use FilePicker to let the user choose where to save the PDF file.
     final path = await FilePicker.saveFile(
       dialogTitle: 'Enregistrer le PDF',
-      fileName: 'concours.pdf',
+      fileName: '$fileName.pdf',
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
