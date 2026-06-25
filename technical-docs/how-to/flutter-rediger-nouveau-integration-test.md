@@ -37,7 +37,7 @@ void main() {
     (tester, db) async {
       await pumpTestApp(tester, db);
 
-      await tester.tap(find.byKey(const Key('home_create_concours_button')));
+      await tester.tap( warnIfMissed: false,find.byKey(const Key('home_create_concours_button')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('concours_creation_form')), findsOneWidget);
@@ -70,7 +70,7 @@ void main() {
       // Seeding optionnel
       await pumpTestApp(tester, db, seed: seedTestData);
 
-      await tester.tap(find.byKey(const Key('concours_edit_button')));
+      await tester.tap( warnIfMissed: false,find.byKey(const Key('concours_edit_button')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('concours_form')), findsOneWidget);

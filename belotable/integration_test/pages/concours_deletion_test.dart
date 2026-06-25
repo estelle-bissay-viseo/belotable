@@ -39,7 +39,10 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       // Verify both concours are visible
@@ -48,6 +51,7 @@ void main() {
 
       // Click delete button on first concours (2026-06-08)
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_delete_button_id-to-delete')),
       );
       await tester.pumpAndSettle();
@@ -61,7 +65,7 @@ void main() {
       );
 
       // Click confirm button in dialog
-      await tester.tap(find.byType(FilledButton));
+      await tester.tap(warnIfMissed: false, find.byType(FilledButton));
       await tester.pumpAndSettle();
 
       // Dialog should close and deleted concours should be gone
@@ -101,18 +105,24 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       // Click delete button
-      await tester.tap(find.byKey(const Key('concours_delete_button_id-1')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_delete_button_id-1')),
+      );
       await tester.pumpAndSettle();
 
       // Confirmation dialog should appear
       expect(find.byType(AlertDialog), findsOneWidget);
 
       // Click cancel button
-      await tester.tap(find.text('Annuler'));
+      await tester.tap(warnIfMissed: false, find.text('Annuler'));
       await tester.pumpAndSettle();
 
       // Dialog should close and concours should still exist

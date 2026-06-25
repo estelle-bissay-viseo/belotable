@@ -29,10 +29,14 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_edit_button_id-edit')),
       );
       await tester.pumpAndSettle();
@@ -63,6 +67,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_edit_validate_button')),
       );
       await tester.pumpAndSettle();
@@ -94,10 +99,14 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_edit_button_id-discard')),
       );
       await tester.pumpAndSettle();
@@ -113,12 +122,16 @@ void main() {
         const Offset(0, -200),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('concours_edit_cancel_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_edit_cancel_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Annuler les modifications ?'), findsOneWidget);
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_edit_discard_keep_editing_button')),
       );
       await tester.pumpAndSettle();
@@ -131,10 +144,14 @@ void main() {
         const Offset(0, -200),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('concours_edit_cancel_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_edit_cancel_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_edit_discard_confirm_button')),
       );
       await tester.pumpAndSettle();

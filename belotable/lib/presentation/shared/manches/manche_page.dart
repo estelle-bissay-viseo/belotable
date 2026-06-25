@@ -722,7 +722,10 @@ Future<void> showCreatePremiereMancheDialog(
 
     ref.invalidate(manchesByConcoursProvider(concoursId));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Manche créée avec succès')),
+      const SnackBar(
+        content: Text('Manche créée avec succès'),
+        duration: Duration(seconds: 2), //default is 4s
+      ),
     );
   } on Exception catch (e) {
     if (!context.mounted) {

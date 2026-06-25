@@ -13,7 +13,10 @@ void main() {
     (tester, db) async {
       await pumpTestApp(tester, db);
 
-      await tester.tap(find.byKey(const Key('home_info_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_info_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Informations'), findsOneWidget);
@@ -29,7 +32,10 @@ void main() {
       expect(versionText.data, isNotNull);
       expect(versionText.data, startsWith('Version : '));
 
-      await tester.tap(find.byKey(const Key('app_info_back_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('app_info_back_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('home_body_title')), findsOneWidget);

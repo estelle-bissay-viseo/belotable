@@ -17,7 +17,7 @@ class MockPdfExportService implements PdfExportService {
   }
 
   @override
-  Future<void> save(Uint8List bytes) async {
+  Future<void> save(Uint8List bytes, {String fileName = 'belotable'}) async {
     savedBytes = bytes;
     final dir = Directory(tempDir);
     final path = '${dir.path}/concours.pdf';
@@ -27,7 +27,10 @@ class MockPdfExportService implements PdfExportService {
   }
 
   @override
-  Future<void> saveAndOpen(Uint8List bytes) async {
+  Future<void> saveAndOpen(
+    Uint8List bytes, {
+    String fileName = 'belotable',
+  }) async {
     await save(bytes);
     // Don't actually open in tests
   }

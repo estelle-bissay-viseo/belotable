@@ -30,7 +30,10 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(
@@ -39,10 +42,14 @@ void main() {
       );
       expect(find.text('0'), findsWidgets);
 
-      await tester.tap(find.byKey(const Key('concours_manage_button_c-1')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_manage_button_c-1')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_doublettes_button')),
       );
       await tester.pumpAndSettle();
@@ -52,7 +59,10 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const Key('doublettes_list_add_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('doublettes_list_add_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -68,6 +78,7 @@ void main() {
         'Les As',
       );
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('doublette_creation_validate_button')),
       );
       await tester.pumpAndSettle();
@@ -76,22 +87,32 @@ void main() {
       expect(find.text('Alice'), findsOneWidget);
       expect(find.text('Bob'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('doublette_manage_button_c-1_1')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('doublette_manage_button_c-1_1')),
+      );
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('doublette_detail_nom_equipe_field')),
         'Les Rois',
       );
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('doublette_detail_validate_button')),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Les Rois'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('doublette_delete_button_c-1_1')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('doublette_delete_button_c-1_1')),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
+      await tester.tap(
+        warnIfMissed: false,
+        find.widgetWithText(FilledButton, 'Supprimer'),
+      );
       await tester.pumpAndSettle();
 
       expect(
@@ -99,9 +120,9 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byType(BackButton).first);
+      await tester.tap(warnIfMissed: false, find.byType(BackButton).first);
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(BackButton).first);
+      await tester.tap(warnIfMissed: false, find.byType(BackButton).first);
       await tester.pumpAndSettle();
 
       expect(
@@ -133,18 +154,28 @@ void main() {
         },
       );
 
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('concours_manage_button_c-2')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_manage_button_c-2')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_doublettes_button')),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('doublettes_list_add_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('doublettes_list_add_button')),
+      );
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('doublette_creation_joueur_a_field')),
@@ -159,11 +190,15 @@ void main() {
         'Les As',
       );
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('doublette_creation_validate_button')),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('doublettes_list_add_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('doublettes_list_add_button')),
+      );
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('doublette_creation_joueur_a_field')),
@@ -178,18 +213,29 @@ void main() {
         'Les Rois',
       );
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('doublette_creation_validate_button')),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(BackButton).first);
+      await tester.tap(warnIfMissed: false, find.byType(BackButton).first);
       await tester.pumpAndSettle();
 
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_prepare_manche_button')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_prepare_manche_button')),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('prepare_manche_confirm_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('prepare_manche_confirm_button')),
+      );
       await tester.pumpAndSettle();
 
       final mancheRows = await db.manchesDao.findManchesByConcoursId('c-2');
@@ -210,15 +256,20 @@ void main() {
       expect(tdBeforeDelete?.statut, TableDoubletteStatut.enJeu);
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_doublettes_button')),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('doublette_delete_button_c-2_1')),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
+      await tester.tap(
+        warnIfMissed: false,
+        find.widgetWithText(FilledButton, 'Supprimer'),
+      );
       await tester.pumpAndSettle();
 
       // Doublette status should remain unchanged (not converted to abandon)
@@ -303,23 +354,35 @@ void main() {
       );
 
       // Navigate to concours list
-      await tester.tap(find.byKey(const Key('home_list_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_list_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       // Open concours detail
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_manage_button_$concoursId')),
       );
       await tester.pumpAndSettle();
 
       // Click prepare manche button
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_prepare_manche_button')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_prepare_manche_button')),
       );
       await tester.pumpAndSettle();
 
       // Confirm manche creation in dialog
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('prepare_manche_confirm_button')),
       );
       await tester.pumpAndSettle();
@@ -340,6 +403,7 @@ void main() {
 
       // Click on the first manche button to view it
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_manche_button_1')),
       );
       await tester.pumpAndSettle();
@@ -355,25 +419,26 @@ void main() {
         find.byKey(const Key('points_field_1_1_1')),
         '100',
       );
-      await tester.tap(find.byType(Scaffold));
+      await tester.tap(warnIfMissed: false, find.byType(Scaffold));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('points_field_1_1_2')),
         '50',
       );
-      await tester.tap(find.byType(Scaffold));
+      await tester.tap(warnIfMissed: false, find.byType(Scaffold));
       await tester.pumpAndSettle();
       expect(
         tester.widget<Text>(find.byKey(const Key('total_field_1_1'))).data,
         '150',
       );
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('statut_dropdown_1_1')),
       );
       await tester.pumpAndSettle();
       await tester.tap(
-        find.byKey(const Key('statut_dropdown_item_1_1_gagne')),
         warnIfMissed: false,
+        find.byKey(const Key('statut_dropdown_item_1_1_gagne')),
       );
       await tester.pumpAndSettle();
 
@@ -386,32 +451,35 @@ void main() {
         find.byKey(const Key('points_field_1_2_2')),
         '150',
       );
-      await tester.tap(find.byType(Scaffold));
+      await tester.tap(warnIfMissed: false, find.byType(Scaffold));
       await tester.pumpAndSettle();
       expect(
         tester.widget<Text>(find.byKey(const Key('total_field_1_2'))).data,
         '212',
       );
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('statut_dropdown_1_2')),
       );
       await tester.pumpAndSettle();
       await tester.tap(
-        find.byKey(const Key('statut_dropdown_item_1_2_perdu')),
         warnIfMissed: false,
+        find.byKey(const Key('statut_dropdown_item_1_2_perdu')),
       );
       await tester.pumpAndSettle();
 
       // Go back to concours detail
-      await tester.tap(find.byType(BackButton).first);
+      await tester.tap(warnIfMissed: false, find.byType(BackButton).first);
       await tester.pumpAndSettle();
 
       // Verify points history is displayed correctly in first doublette
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(const Key('concours_detail_doublettes_button')),
       );
       await tester.pumpAndSettle();
       await tester.tap(
+        warnIfMissed: false,
         find.byKey(
           const Key('doublette_manage_button_concours-doublettes-flow_1'),
         ),

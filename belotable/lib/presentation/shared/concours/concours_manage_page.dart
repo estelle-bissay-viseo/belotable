@@ -222,8 +222,13 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                                     final pdfExportService = ref.read(
                                       pdfExportServiceProvider,
                                     );
+                                    final fileName =
+                                        'concours_table_${widget.concoursId}';
                                     if (context.mounted) {
-                                      await pdfExportService.saveAndOpen(bytes);
+                                      await pdfExportService.saveAndOpen(
+                                        bytes,
+                                        fileName: fileName,
+                                      );
                                     }
                                   } on Exception {
                                     if (context.mounted) {
@@ -247,6 +252,58 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                             },
                           ),
                           const SizedBox(width: 8),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              return FilledButton.tonalIcon(
+                                key: const Key(
+                                  'concours_detail_pdf_doublette_button',
+                                ),
+                                onPressed: () async {
+                                  final useCase = ref.read(
+                                    generateConcoursDoublettePdfUseCaseProvider,
+                                  );
+                                  try {
+                                    final bytes = await useCase(
+                                      widget.concoursId,
+                                    );
+                                    final pdfExportService = ref.read(
+                                      pdfExportServiceProvider,
+                                    );
+                                    final fileName =
+                                        // ignore: lines_longer_than_80_chars because short
+                                        'concours_doublette_${widget.concoursId}';
+                                    if (context.mounted) {
+                                      await pdfExportService.saveAndOpen(
+                                        bytes,
+                                        fileName: fileName,
+                                      );
+                                    }
+                                  } on Exception {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            // ignore: lines_longer_than_80_chars because short
+                                            'Erreur: Impossible de générer le PDF',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                label: const Text('PDF pour les doublettes'),
+                                icon: const Icon(Icons.picture_as_pdf),
+                                iconAlignment: .start,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
                           FilledButton.tonalIcon(
                             key: const Key('concours_detail_doublettes_button'),
                             onPressed: () => Navigator.of(context).pushNamed(

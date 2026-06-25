@@ -14,12 +14,18 @@ void main() {
     (tester, db) async {
       await pumpTestApp(tester, db);
 
-      await tester.tap(find.byKey(const Key('home_create_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_create_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('concours_creation_form')), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('concours_cancel_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_cancel_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('home_body_title')), findsOneWidget);
@@ -33,7 +39,10 @@ void main() {
     (tester, db) async {
       await pumpTestApp(tester, db);
 
-      await tester.tap(find.byKey(const Key('home_create_concours_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('home_create_concours_button')),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -57,7 +66,10 @@ void main() {
         'Règles de jeu du concours',
       );
 
-      await tester.tap(find.byKey(const Key('concours_validate_button')));
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('concours_validate_button')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('home_body_title')), findsOneWidget);
