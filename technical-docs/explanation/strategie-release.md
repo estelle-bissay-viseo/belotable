@@ -3,10 +3,10 @@
 
 ## Intentions du flux de branches
 
-Le flux `dev` -> `release` -> `main` sépare clairement :
+Le flux `dev` -> `main` sépare clairement :
 
 - intégration continue rapide (`dev`).
-- branche purement technique pour déclencher le process de release (`release`).
+- branche pour déclencher le process de release (directement sur `main`).
 - référence de production (`main`).
 
 ## Ce que fait le pipeline release
@@ -17,7 +17,7 @@ Le workflow `release.yml` automatise un cycle complet :
 2. construire les artefacts (Docker web, installeur Windows, PDF docs).
 3. créer le tag `vX.Y.Z`.
 4. créer une release GitHub en brouillon avec artefacts.
-5. synchroniser `release` vers `main`, puis `main` vers `dev` via **rebase**.
+5. synchroniser `main` vers `dev` via **rebase**.
 6. incrémenter `dev` vers la prochaine version `-alpha`.
 
 ## Approche rebase plutôt que merge
@@ -28,9 +28,7 @@ Les mise à jour des branches utilisent **rebase** au lieu de merge commits. Cel
 - Simplifie le suivi des changements et la compréhension de l'arborescence.
 - Maintient la cohérence avec la philosophie TBD (trunk-based development).
 
-Le rebase est exécuté dans l'étape "Rebase release into main then prepare dev" du workflow `release.yml` :
-- Rebase de `release` dans `main`.
-- Rebase de `main` dans `dev`.
+Le rebase est exécuté dans l'étape "Prepare next dev version" du workflow `release.yml` : rebase de `main` dans `dev`.
 
 ## Avantages
 

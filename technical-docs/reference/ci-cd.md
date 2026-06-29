@@ -4,7 +4,7 @@
 ## Workflows actifs
 
 - `ci.yml` : CI de développement sur `dev` et PR éligibles.
-- `release.yml` : pipeline technique de release sur `release` ou manuel.
+- `release.yml` : pipeline technique de release sur `main` ou manuel.
 - `_shared-build-scan.yml` : workflow réutilisable appelé par `ci.yml` et `release.yml` pour exécuter jobs techniques communs (Semgrep, test/analyze Flutter, builds, scans Trivy).
 - `docs-pages.yml` : publication de la documentation utilisateur sur GitHub Pages.
 - `web-docker-cleanup.yml` : nettoyage des images GHCR obsolètes.
@@ -14,14 +14,11 @@
 ## Stratégie de branches
 
 - `dev` : intégration continue.
-- `release` : préparation technique de release.
-- `main` : référence production.
+- `main` : préparation technique de release et référence production.
 
 ## Intégration via rebase
 
-Les mise à jour des branches après une release utilisent **rebase** plutôt que merge :
-- `release` est rebased dans `main`.
-- `main` est rebased dans `dev`.
+Les mise à jour des branches après une release utilisent **rebase** plutôt que merge : `main` est rebased dans `dev`.
 
 Cette approche conserve un historique Git linéaire, sans merge commits, tout en maintenant la traçabilité des changements.
 
