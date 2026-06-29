@@ -3,7 +3,7 @@ name: Release Technical Pipeline
 on:
   push:
     branches:
-      - release
+      - main
   workflow_dispatch:
 
 permissions:
@@ -97,20 +97,20 @@ jobs:
             sed -i -E "s/^version:[[:space:]]*[^[:space:]]+$/version: ${target_version}/" belotable/pubspec.yaml
           }
 
-          git fetch origin release main dev --tags
+          git fetch origin main dev --tags
 
           if git ls-remote --tags origin "refs/tags/${RELEASE_TAG}" | grep -q .; then
             echo "ERROR: Tag ${RELEASE_TAG} already exists on remote." >&2
             exit 1
           fi
 
-          git checkout -B release origin/release
+          git checkout -B main origin/main
           
           update_pubspec_version "$RELEASE_VERSION"
           if ! git diff --quiet -- belotable/pubspec.yaml; then
             git add belotable/pubspec.yaml
             git commit -m "chore(release): set version ${RELEASE_VERSION}"
-            git push origin release
+            git push origin main
           fi
           
           RELEASE_SHA="$(git rev-parse HEAD)"
@@ -127,7 +127,6 @@ jobs:
       docs_pdf_version: ${{ needs.prepare.outputs.release_version }}
       docker_metadata_tags: |
         type=raw,value=${{ needs.prepare.outputs.release_tag }}
-        type=raw,value=release
         type=ref,event=branch
         type=sha,prefix=sha-
       enable_pr_analyze_comment: false
@@ -138,7 +137,6 @@ jobs:
       - quality-build
     runs-on: ubuntu-latest
     env:
-      RELEASE_BRANCH: release
       MAIN_BRANCH: main
       DEV_BRANCH: dev
 
@@ -297,7 +295,7 @@ jobs:
             --draft \
             --notes-file release-notes.md
 
-      - name: Rebase release into main then prepare dev
+      - name: Prepare next dev version
         shell: bash
         env:
           RELEASE_SHA: ${{ needs.prepare.outputs.release_sha }}
@@ -311,7 +309,7 @@ jobs:
             sed -i -E "s/^version:[[:space:]]*[^[:space:]]+$/version: ${target_version}/" belotable/pubspec.yaml
           }
 
-          git fetch origin "$RELEASE_BRANCH" "$MAIN_BRANCH" "$DEV_BRANCH" --tags
+          git fetch origin "$MAIN_BRANCH" "$DEV_BRANCH" --tags
 
           git checkout -B "$MAIN_BRANCH" "origin/$MAIN_BRANCH"
           git rebase "$RELEASE_SHA"
