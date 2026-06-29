@@ -11,42 +11,27 @@ class DriftDealPointsRepository implements DealPointsRepository {
 
   @override
   Future<void> initializeDealPoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
     required int numberOfDeals,
   }) async {
     await _database.manchesDao.initializeDealPoints(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-      mancheId: mancheId,
+      tableDoubletteId: tableDoubletteId,
       numberOfDeals: numberOfDeals,
     );
   }
 
   @override
   Future<List<DealPoints>> findDealPointsForTableDoublette({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
   }) async {
     final rows = await _database.manchesDao.findDealPointsForTableDoublette(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-      mancheId: mancheId,
+      tableDoubletteId: tableDoubletteId,
     );
 
     return rows
         .map(
           (row) => DealPoints(
-            tableId: row.tableId,
-            concoursId: row.concoursId,
-            doubletteId: row.doubletteId,
-            mancheId: row.mancheId,
+            tableDoubletteId: row.tableDoubletteId,
             dealNumber: row.dealNumber,
             points: row.points,
           ),
@@ -56,18 +41,12 @@ class DriftDealPointsRepository implements DealPointsRepository {
 
   @override
   Future<void> updateDealPoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
     required int dealNumber,
     required int points,
   }) async {
     await _database.manchesDao.updateDealPoints(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-      mancheId: mancheId,
+      tableDoubletteId: tableDoubletteId,
       dealNumber: dealNumber,
       points: points,
     );
@@ -75,16 +54,10 @@ class DriftDealPointsRepository implements DealPointsRepository {
 
   @override
   Future<int> calculateTotalPointsFromDeals({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
   }) async {
     return _database.manchesDao.calculateTotalPointsFromDeals(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-      mancheId: mancheId,
+      tableDoubletteId: tableDoubletteId,
     );
   }
 }

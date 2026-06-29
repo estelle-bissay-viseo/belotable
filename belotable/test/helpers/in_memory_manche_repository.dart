@@ -8,6 +8,7 @@ import 'package:belotable/domain/manches/table_doublette.dart';
 class InMemoryMancheRepository implements MancheRepository {
   final manches = <Manche>[];
   final _tablesByManche = <int, List<TableDeJeu>>{};
+  var _tableDoubletteIdCounter = 0;
 
   @override
   Future<Manche> createPremiereManche({
@@ -36,6 +37,7 @@ class InMemoryMancheRepository implements MancheRepository {
       final tableId = tables.length + 1;
       final participants = <TableDoublette>[
         TableDoublette(
+          id: ++_tableDoubletteIdCounter,
           tableId: tableId,
           concoursId: concoursId,
           doubletteId: first.doubletteId,
@@ -45,6 +47,7 @@ class InMemoryMancheRepository implements MancheRepository {
         ),
         if (second != null)
           TableDoublette(
+            id: ++_tableDoubletteIdCounter,
             tableId: tableId,
             concoursId: concoursId,
             doubletteId: second.doubletteId,
@@ -70,7 +73,7 @@ class InMemoryMancheRepository implements MancheRepository {
   }
 
   @override
-  Future<void> addDoubletteToTable({
+  Future<int?> addDoubletteToTable({
     required int tableId,
     required String concoursId,
     required int doubletteId,
@@ -87,17 +90,19 @@ class InMemoryMancheRepository implements MancheRepository {
         ),
       );
       if (alreadyAssignedInManche) {
-        return;
+        return null;
       }
 
       final table = entry.value[tableIndex];
       if (table.doublettes.length >= 2) {
-        return;
+        return null;
       }
 
+      final tableDoubletteId = ++_tableDoubletteIdCounter;
       final updated = [
         ...table.doublettes,
         TableDoublette(
+          id: tableDoubletteId,
           tableId: tableId,
           concoursId: concoursId,
           doubletteId: doubletteId,
@@ -113,8 +118,9 @@ class InMemoryMancheRepository implements MancheRepository {
         statut: TableDeJeuStatut.fromDoublettes(updated),
         doublettes: updated,
       );
-      return;
+      return tableDoubletteId;
     }
+    return null;
   }
 
   @override
@@ -160,6 +166,7 @@ class InMemoryMancheRepository implements MancheRepository {
         : tables.map((t) => t.numero).reduce((a, b) => a > b ? a : b) + 1;
 
     final newDoublette = TableDoublette(
+      id: ++_tableDoubletteIdCounter,
       tableId: nextTableId,
       concoursId: concoursId,
       doubletteId: doubletteId,
@@ -340,15 +347,11 @@ class InMemoryMancheRepository implements MancheRepository {
 
   @override
   Future<void> updatePoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required int points,
   }) async {
-    await _updateTableDoublette(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+    await _updateTableDoubletteById(
+      tableDoubletteId: tableDoubletteId,
       mapper: (td) => td.copyWith(points: points),
     );
   }
@@ -435,6 +438,41 @@ class InMemoryMancheRepository implements MancheRepository {
         );
         tables[i] = updatedTable;
         onTableUpdated?.call(updatedTable);
+        return;
+      }
+    }
+  }
+
+  Future<void> _updateTableDoubletteById({
+    required int tableDoubletteId,
+    required TableDoublette Function(TableDoublette) mapper,
+  }) async {
+    for (final entry in _tablesByManche.entries) {
+      final tables = entry.value;
+      for (var i = 0; i < tables.length; i++) {
+        final table = tables[i];
+        var changed = false;
+        final updatedDoublettes = table.doublettes
+            .map((td) {
+              if (td.id == tableDoubletteId) {
+                changed = true;
+                return mapper(td);
+              }
+              return td;
+            })
+            .toList(growable: false);
+
+        if (!changed) {
+          continue;
+        }
+
+        tables[i] = TableDeJeu(
+          id: table.id,
+          mancheId: table.mancheId,
+          numero: table.numero,
+          statut: TableDeJeuStatut.fromDoublettes(updatedDoublettes),
+          doublettes: updatedDoublettes,
+        );
         return;
       }
     }

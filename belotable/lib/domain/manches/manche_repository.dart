@@ -37,7 +37,9 @@ abstract interface class MancheRepository {
   Future<int?> findFirstAvailableTableId(String concoursId);
 
   /// Adds a doublette to a specific table.
-  Future<void> addDoubletteToTable({
+  /// Returns the inserted table-doublette id,
+  /// or null if not added due to validation failure.
+  Future<int?> addDoubletteToTable({
     required int tableId,
     required String concoursId,
     required int doubletteId,
@@ -71,9 +73,7 @@ abstract interface class MancheRepository {
 
   /// Updates points for a doublette in a table.
   Future<void> updatePoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required int points,
   });
 

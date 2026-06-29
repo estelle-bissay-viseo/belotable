@@ -45,22 +45,15 @@ class CreatePremiereMancheUseCase {
       throw Exception('Aucune doublette enregistrée pour créer une manche.');
     }
 
-    // Create manche
+    // Create manche (also initializes deal points for each doublette)
     final manche = await _mancheRepository.createPremiereManche(
       concoursId: trimmedId,
       doublettes: doublettes,
     );
 
-    // Get concours to retrieve numberOfDeals
+    // Get concours to update status
     final concours = await _concoursRepository.findById(trimmedId);
     if (concours != null) {
-      // Initialize deal points for all doublettes
-      await _mancheRepository.initializeDealPointsForManche(
-        mancheId: manche.id,
-        concoursId: trimmedId,
-        numberOfDeals: concours.nombreDonnesParManche,
-      );
-
       // Update concours status to EnCours
       if (concours.statutConcours == ConcoursStatut.initialisation) {
         final updatedConcours = Concours(

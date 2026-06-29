@@ -19,10 +19,9 @@ class UpdateManchePointsUseCase {
 
   /// Updates deal points and recalculates doublette total.
   Future<void> call({
-    required int tableId,
+    required int tableDoubletteId,
     required String concoursId,
     required int doubletteId,
-    required int mancheId,
     required int dealNumber,
     required int points,
   }) async {
@@ -37,28 +36,20 @@ class UpdateManchePointsUseCase {
 
     // Update deal points
     await _dealPointsRepository.updateDealPoints(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-      mancheId: mancheId,
+      tableDoubletteId: tableDoubletteId,
       dealNumber: dealNumber,
       points: points,
     );
 
-    // Calculate total from all deals for this doublette in this table
+    // Calculate total from all deals for this doublette
     final totalPoints = await _dealPointsRepository
         .calculateTotalPointsFromDeals(
-          tableId: tableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          mancheId: mancheId,
+          tableDoubletteId: tableDoubletteId,
         );
 
     // Update stored points on table_doublettes (for compatibility/display)
     await _mancheRepository.updatePoints(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      tableDoubletteId: tableDoubletteId,
       points: totalPoints,
     );
 

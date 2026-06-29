@@ -202,21 +202,16 @@ final pdfExportServiceProvider = Provider<PdfExportService>((ref) {
 });
 
 /// Provides deal points for a specific table-doublette-manche.
+/// Provides deal points for a table-doublette by id.
 // ignore: specify_nonobvious_property_types
 final dealPointsByTableDoubletteProvider = FutureProvider.autoDispose
-    .family<
-      List<DealPoints>,
-      ({int tableId, String concoursId, int doubletteId, int mancheId})
-    >((
+    .family<List<DealPoints>, int>((
       ref,
-      params,
+      tableDoubletteId,
     ) {
       final repo = ref.watch(dealPointsRepositoryProvider);
       return repo.findDealPointsForTableDoublette(
-        tableId: params.tableId,
-        concoursId: params.concoursId,
-        doubletteId: params.doubletteId,
-        mancheId: params.mancheId,
+        tableDoubletteId: tableDoubletteId,
       );
     });
 

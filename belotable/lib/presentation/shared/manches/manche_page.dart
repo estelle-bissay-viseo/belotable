@@ -206,12 +206,7 @@ class _TableDoubletteRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dealPointsAsync = ref.watch(
       dealPointsByTableDoubletteProvider(
-        (
-          tableId: tableId,
-          concoursId: tableDoublette.concoursId,
-          doubletteId: tableDoublette.doubletteId,
-          mancheId: mancheId,
-        ),
+        tableDoublette.id,
       ),
     );
 
@@ -338,22 +333,16 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
     try {
       final updateUseCase = ref.read(updateManchePointsUseCaseProvider);
       await updateUseCase(
-        tableId: widget.tableDoublette.tableId,
+        tableDoubletteId: widget.tableDoublette.id,
         concoursId: widget.tableDoublette.concoursId,
         doubletteId: widget.tableDoublette.doubletteId,
-        mancheId: widget.mancheId,
         dealNumber: dealNumber,
         points: points,
       );
       // Invalidate deal points provider to update total score
       ref.invalidate(
         dealPointsByTableDoubletteProvider(
-          (
-            tableId: widget.tableDoublette.tableId,
-            concoursId: widget.tableDoublette.concoursId,
-            doubletteId: widget.tableDoublette.doubletteId,
-            mancheId: widget.mancheId,
-          ),
+          widget.tableDoublette.id,
         ),
       );
       widget.onRefresh();
@@ -547,12 +536,7 @@ class _TableSumRow extends ConsumerWidget {
           allDealPointsAsync.add(
             ref.watch(
               dealPointsByTableDoubletteProvider(
-                (
-                  tableId: table.id,
-                  concoursId: td.concoursId,
-                  doubletteId: td.doubletteId,
-                  mancheId: mancheId,
-                ),
+                td.id,
               ),
             ),
           );
