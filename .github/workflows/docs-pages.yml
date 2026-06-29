@@ -34,7 +34,7 @@ jobs:
 
       - name: Build documentation
         env:
-          ENABLE_PDF_EXPORT: "0"
+          ENABLE_PDF_EXPORT: "1"
         run: mkdocs build --strict --config-file user-docs/mkdocs.yml
 
       - name: Upload Pages artifact
