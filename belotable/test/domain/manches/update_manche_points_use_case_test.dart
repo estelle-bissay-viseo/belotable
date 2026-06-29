@@ -1,9 +1,9 @@
 import 'package:belotable/domain/manches/update_manche_points_use_case.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../test/helpers/in_memory_deal_points_repository.dart';
-import '../../../test/helpers/in_memory_doublette_repository.dart';
-import '../../../test/helpers/in_memory_manche_repository.dart';
+import '../../helpers/in_memory_deal_points_repository.dart';
+import '../../helpers/in_memory_doublette_repository.dart';
+import '../../helpers/in_memory_manche_repository.dart';
 
 void main() {
   group('UpdateManchePointsUseCase', () {
