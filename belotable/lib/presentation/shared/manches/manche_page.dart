@@ -286,6 +286,14 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
     // Attach listeners to focus nodes
     for (var i = 0; i < _dealFocusNodes.length; i++) {
       _dealFocusNodes[i].addListener(() async {
+        // select all existing text when focused
+        if (_dealFocusNodes[i].hasFocus) {
+          _dealControllers[i].selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: _dealControllers[i].text.length,
+          );
+        }
+        // Save points when focus is lost
         if (!_dealFocusNodes[i].hasFocus) {
           await _saveDealPoints(i + 1);
         }
