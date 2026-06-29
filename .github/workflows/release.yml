@@ -149,19 +149,19 @@ jobs:
           fetch-depth: 0
 
       - name: Download Windows installer artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-installer
           path: release-assets/windows
 
       - name: Download docs PDF artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs-pdf
           path: release-assets/docs
 
       - name: Download SBOM artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: trivy-reports
           path: release-assets/trivy-reports
