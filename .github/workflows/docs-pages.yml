@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - user-docs/**
-      - .github/workflows/docs-pages.yml
   workflow_dispatch:
 
 permissions:
@@ -23,30 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: Install MkDocs
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs mkdocs-material mkdocs-pdf-export-plugin
+          pip install "mkdocs>=1.5,<2.0" mkdocs-material mkdocs-with-pdf
 
       - name: Build documentation
         env:
-          ENABLE_PDF_EXPORT: "1"
+          ENABLE_PDF_EXPORT: "0"
         run: mkdocs build --strict --config-file user-docs/mkdocs.yml
-
-      - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs-pdf
-          path: user-docs/site/pdf/belotable-documentation.pdf
-          if-no-files-found: error
-          retention-days: 7
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
