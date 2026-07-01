@@ -3,32 +3,16 @@ import 'package:belotable/domain/manches/deal_points_repository.dart';
 
 /// In-memory implementation of DealPointsRepository for testing.
 class InMemoryDealPointsRepository implements DealPointsRepository {
-  final _dealPoints =
-      <
-        ({
-          int tableId,
-          String concoursId,
-          int doubletteId,
-          int mancheId,
-          int dealNumber,
-        }),
-        int
-      >{};
+  final _dealPoints = <({int tableDoubletteId, int dealNumber}), int>{};
 
   @override
   Future<void> initializeDealPoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
     required int numberOfDeals,
   }) async {
     for (var dealNumber = 1; dealNumber <= numberOfDeals; dealNumber++) {
       _dealPoints[(
-            tableId: tableId,
-            concoursId: concoursId,
-            doubletteId: doubletteId,
-            mancheId: mancheId,
+            tableDoubletteId: tableDoubletteId,
             dealNumber: dealNumber,
           )] =
           0;
@@ -37,23 +21,14 @@ class InMemoryDealPointsRepository implements DealPointsRepository {
 
   @override
   Future<List<DealPoints>> findDealPointsForTableDoublette({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
   }) async {
     final result = <DealPoints>[];
     for (final entry in _dealPoints.entries) {
-      if (entry.key.tableId == tableId &&
-          entry.key.concoursId == concoursId &&
-          entry.key.doubletteId == doubletteId &&
-          entry.key.mancheId == mancheId) {
+      if (entry.key.tableDoubletteId == tableDoubletteId) {
         result.add(
           DealPoints(
-            tableId: entry.key.tableId,
-            concoursId: entry.key.concoursId,
-            doubletteId: entry.key.doubletteId,
-            mancheId: entry.key.mancheId,
+            tableDoubletteId: entry.key.tableDoubletteId,
             dealNumber: entry.key.dealNumber,
             points: entry.value,
           ),
@@ -66,18 +41,12 @@ class InMemoryDealPointsRepository implements DealPointsRepository {
 
   @override
   Future<void> updateDealPoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
     required int dealNumber,
     required int points,
   }) async {
     _dealPoints[(
-          tableId: tableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          mancheId: mancheId,
+          tableDoubletteId: tableDoubletteId,
           dealNumber: dealNumber,
         )] =
         points;
@@ -85,17 +54,11 @@ class InMemoryDealPointsRepository implements DealPointsRepository {
 
   @override
   Future<int> calculateTotalPointsFromDeals({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
   }) async {
     var total = 0;
     for (final entry in _dealPoints.entries) {
-      if (entry.key.tableId == tableId &&
-          entry.key.concoursId == concoursId &&
-          entry.key.doubletteId == doubletteId &&
-          entry.key.mancheId == mancheId) {
+      if (entry.key.tableDoubletteId == tableDoubletteId) {
         total += entry.value;
       }
     }

@@ -51,20 +51,16 @@ void main() {
         dealPointsRepo,
       );
       await useCase(
-        tableId: tableDoublette.tableId,
+        tableDoubletteId: tableDoublette.id,
         concoursId: concoursId,
         doubletteId: doubletteId,
-        mancheId: manche.id,
         dealNumber: dealNumber,
         points: 50,
       );
 
       // Verify deal points updated
       final dealPoints = await dealPointsRepo.findDealPointsForTableDoublette(
-        tableId: tableDoublette.tableId,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
-        mancheId: manche.id,
+        tableDoubletteId: tableDoublette.id,
       );
       expect(dealPoints[dealNumber - 1].points, 50);
 
@@ -122,10 +118,9 @@ void main() {
       );
       expect(
         () => useCase(
-          tableId: tableDoublette.tableId,
+          tableDoubletteId: tableDoublette.id,
           concoursId: concoursId,
           doubletteId: doubletteId,
-          mancheId: manche.id,
           dealNumber: 1,
           points: -10,
         ),
