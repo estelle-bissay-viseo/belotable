@@ -16,17 +16,22 @@ typedef _Deps = ({
   InMemoryConcoursRepository concoursRepository,
 });
 
+_Deps _makeDeps() {
+  final doubletteRepository = InMemoryDoubletteRepository();
+  return (
+    doubletteRepository: doubletteRepository,
+    mancheRepository: InMemoryMancheRepository(doubletteRepository),
+    concoursRepository: InMemoryConcoursRepository(),
+  );
+}
+
 void main() {
   group('CreateNextMancheUseCase', () {
     // Create a new manche beyond first, with blocking check if previous
     // manche is not finished.
     useCaseTest<_Deps, CreateNextMancheUseCase>(
       'Creates manche 2 when manche 1 is terminée',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateNextMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,
@@ -74,9 +79,7 @@ void main() {
         for (final table in tables1) {
           for (final doublette in table.doublettes) {
             await deps.mancheRepository.updateStatut(
-              tableId: table.id,
-              concoursId: 'c-1',
-              doubletteId: doublette.doubletteId,
+              tableDoubletteId: doublette.id,
               statut: TableDoubletteStatut.gagne,
             );
           }
@@ -98,11 +101,7 @@ void main() {
     // Block creation if previous manche is not finished.
     useCaseTest<_Deps, CreateNextMancheUseCase>(
       'Blocks creation of manche 2 if manche 1 is en cours',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateNextMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,
@@ -160,11 +159,7 @@ void main() {
     // date asc, excluding doublettes with Abandon history.
     useCaseTest<_Deps, CreateNextMancheUseCase>(
       'Distributes doublettes sorted by points desc, then date asc',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateNextMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,
@@ -232,9 +227,7 @@ void main() {
         for (final table in tables1) {
           for (final doublette in table.doublettes) {
             await deps.mancheRepository.updateStatut(
-              tableId: table.id,
-              concoursId: 'c-1',
-              doubletteId: doublette.doubletteId,
+              tableDoubletteId: doublette.id,
               statut: TableDoubletteStatut.gagne,
             );
           }
@@ -260,11 +253,7 @@ void main() {
     // Exclude doublettes with Abandon history from distribution.
     useCaseTest<_Deps, CreateNextMancheUseCase>(
       'Excludes doublettes with Abandon history',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateNextMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,
@@ -316,9 +305,7 @@ void main() {
         final table1 = tables1.first;
         final d1 = table1.doublettes.firstWhere((d) => d.doubletteId == 1);
         await deps.mancheRepository.updateStatut(
-          tableId: table1.id,
-          concoursId: 'c-1',
-          doubletteId: d1.doubletteId,
+          tableDoubletteId: d1.id,
           statut: TableDoubletteStatut.abandon,
         );
 
@@ -327,9 +314,7 @@ void main() {
           for (final doublette in table.doublettes) {
             if (doublette.doubletteId != 1) {
               await deps.mancheRepository.updateStatut(
-                tableId: table.id,
-                concoursId: 'c-1',
-                doubletteId: doublette.doubletteId,
+                tableDoubletteId: doublette.id,
                 statut: TableDoubletteStatut.gagne,
               );
             }

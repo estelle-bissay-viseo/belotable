@@ -56,9 +56,7 @@ class CreateNextMancheUseCase {
         .findDoublettesWithAbandonHistory(trimmedId);
 
     // Filter out abandoned doublettes
-    doublettes = doublettes
-        .where((d) => !abandonedIds.contains(d.doubletteId))
-        .toList();
+    doublettes = doublettes.where((d) => !abandonedIds.contains(d.id)).toList();
 
     if (doublettes.isEmpty) {
       throw Exception(
@@ -83,10 +81,9 @@ class CreateNextMancheUseCase {
     // Get concours to retrieve numberOfDeals
     final concours = await _concoursRepository.findById(trimmedId);
     if (concours != null) {
-      // Initialize deal points for all doublettes
-      await _mancheRepository.initializeDealPointsForManche(
+      // Initialize donnes doublettes for all doublettes
+      await _mancheRepository.initializeDonneDoublettesForManche(
         mancheId: manche.id,
-        concoursId: trimmedId,
         numberOfDeals: concours.nombreDonnesParManche,
       );
 

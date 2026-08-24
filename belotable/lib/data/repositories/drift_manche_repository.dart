@@ -50,8 +50,7 @@ class DriftMancheRepository implements MancheRepository {
         for (var i = start; i < end; i++) {
           await _db.manchesDao.addDoubletteToTable(
             tableId: tableRow.id,
-            concoursId: concoursId,
-            doubletteId: doublettes[i].doubletteId,
+            doubletteRowId: doublettes[i].id,
           );
         }
       }
@@ -117,86 +116,68 @@ class DriftMancheRepository implements MancheRepository {
   @override
   Future<void> addDoubletteToTable({
     required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) {
     return _db.manchesDao.addDoubletteToTable(
       tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      doubletteRowId: doubletteRowId,
     );
   }
 
   @override
   Future<void> assignDoubletteToLatestManche({
     required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) {
     return _db.manchesDao.assignDoubletteToManche1Only(
       concoursId: concoursId,
-      doubletteId: doubletteId,
+      doubletteRowId: doubletteRowId,
     );
   }
 
   @override
   Future<void> removeDoubletteFromTable({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) {
     return _db.manchesDao.removeDoubletteFromTable(
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      doubletteRowId: doubletteRowId,
     );
   }
 
   @override
   Future<TableDoublette?> findTableDoublette({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) {
-    return _db.manchesDao.findTableDoublette(
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-    );
+    return _db.manchesDao.findTableDoublette(doubletteRowId: doubletteRowId);
   }
 
   @override
-  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
-    required String concoursId,
-    required int doubletteId,
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteRowId({
+    required int doubletteRowId,
   }) {
-    return _db.manchesDao.findTableDoublettesByDoubletteId(
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+    return _db.manchesDao.findTableDoublettesByDoubletteRowId(
+      doubletteRowId: doubletteRowId,
     );
   }
 
   @override
   Future<void> updatePoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required int points,
   }) {
     return _db.manchesDao.updatePoints(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      tableDoubletteId: tableDoubletteId,
       points: points,
     );
   }
 
   @override
   Future<TableDeJeu> updateStatut({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required TableDoubletteStatut statut,
   }) {
     return _db.manchesDao.updateStatutWithRules(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      tableDoubletteId: tableDoubletteId,
       statut: statut,
     );
   }
@@ -210,29 +191,28 @@ class DriftMancheRepository implements MancheRepository {
   Future<void> mergeTableDoublettes({
     required int targetTableId,
     required int sourceTableId,
-    required String concoursId,
   }) {
     return _db.manchesDao.mergeTableDoublettes(
       targetTableId: targetTableId,
       sourceTableId: sourceTableId,
-      concoursId: concoursId,
     );
   }
 
   @override
-  Future<void> initializeDealPointsForManche({
+  Future<int> recalculateDoubletteTotalPoints(int tableDoubletteId) {
+    return _db.manchesDao.recalculateDoubletteTotalPoints(tableDoubletteId);
+  }
+
+  @override
+  Future<void> initializeDonneDoublettesForManche({
     required int mancheId,
-    required String concoursId,
     required int numberOfDeals,
   }) async {
     final tables = await _db.manchesDao.findTablesDeJeuByMancheId(mancheId);
     for (final table in tables) {
       for (final doublette in table.doublettes) {
-        await _db.manchesDao.initializeDealPoints(
-          tableId: table.id,
-          concoursId: concoursId,
-          doubletteId: doublette.doubletteId,
-          mancheId: mancheId,
+        await _db.manchesDao.initializeDonneDoublettes(
+          tableDoubletteId: doublette.id,
           numberOfDeals: numberOfDeals,
         );
       }

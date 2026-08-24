@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:belotable/domain/manches/deal_points.dart';
+import 'package:belotable/domain/manches/donne_doublette.dart';
 import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
@@ -87,7 +87,6 @@ class ManchePage extends ConsumerWidget {
                     ),
                     child: _TableDeJeuCard(
                       table: tables[index],
-                      mancheId: mancheId,
                       onRefresh: () => ref.invalidate(
                         tablesDeJeuByMancheProvider(mancheId),
                       ),
@@ -105,12 +104,10 @@ class ManchePage extends ConsumerWidget {
 class _TableDeJeuCard extends ConsumerWidget {
   const _TableDeJeuCard({
     required this.table,
-    required this.mancheId,
     required this.onRefresh,
   });
 
   final TableDeJeu table;
-  final int mancheId;
   final VoidCallback onRefresh;
 
   @override
@@ -140,15 +137,12 @@ class _TableDeJeuCard extends ConsumerWidget {
                 (td) => _TableDoubletteRow(
                   key: Key('td_row_${table.numero}_${td.doubletteId}'),
                   tableDoublette: td,
-                  tableId: table.id,
                   tableNumero: table.numero,
-                  mancheId: mancheId,
                   onRefresh: onRefresh,
                 ),
               ),
               _TableSumRow(
                 table: table,
-                mancheId: mancheId,
               ),
             ],
           ],
@@ -189,33 +183,22 @@ class _StatutChip extends StatelessWidget {
 class _TableDoubletteRow extends ConsumerWidget {
   const _TableDoubletteRow({
     required this.tableDoublette,
-    required this.tableId,
     required this.tableNumero,
-    required this.mancheId,
     required this.onRefresh,
     super.key,
   });
 
   final TableDoublette tableDoublette;
-  final int tableId;
   final int tableNumero;
-  final int mancheId;
   final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dealPointsAsync = ref.watch(
-      dealPointsByTableDoubletteProvider(
-        (
-          tableId: tableId,
-          concoursId: tableDoublette.concoursId,
-          doubletteId: tableDoublette.doubletteId,
-          mancheId: mancheId,
-        ),
-      ),
+    final donneDoublettesAsync = ref.watch(
+      donneDoublettesByTableDoubletteProvider(tableDoublette.id),
     );
 
-    return dealPointsAsync.when(
+    return donneDoublettesAsync.when(
       loading: () => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
@@ -232,40 +215,35 @@ class _TableDoubletteRow extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Text('Erreur: $e'),
       ),
-      data: (dealPoints) => _DealPointsRow(
+      data: (donneDoublettes) => _DonneDoublettesRow(
         tableDoublette: tableDoublette,
-        tableId: tableId,
         tableNumero: tableNumero,
-        mancheId: mancheId,
-        dealPoints: dealPoints,
+        donneDoublettes: donneDoublettes,
         onRefresh: onRefresh,
       ),
     );
   }
 }
 
-class _DealPointsRow extends ConsumerStatefulWidget {
-  const _DealPointsRow({
+class _DonneDoublettesRow extends ConsumerStatefulWidget {
+  const _DonneDoublettesRow({
     required this.tableDoublette,
-    required this.tableId,
     required this.tableNumero,
-    required this.mancheId,
-    required this.dealPoints,
+    required this.donneDoublettes,
     required this.onRefresh,
   });
 
   final TableDoublette tableDoublette;
-  final int tableId;
   final int tableNumero;
-  final int mancheId;
-  final List<DealPoints> dealPoints;
+  final List<DonneDoublette> donneDoublettes;
   final VoidCallback onRefresh;
 
   @override
-  ConsumerState<_DealPointsRow> createState() => _DealPointsRowState();
+  ConsumerState<_DonneDoublettesRow> createState() =>
+      _DonneDoublettesRowState();
 }
 
-class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
+class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
   late final List<TextEditingController> _dealControllers;
   late final List<FocusNode> _dealFocusNodes;
   bool _isSaving = false;
@@ -274,13 +252,13 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
   void initState() {
     super.initState();
     _dealControllers = List.generate(
-      widget.dealPoints.length,
+      widget.donneDoublettes.length,
       (i) => TextEditingController(
-        text: widget.dealPoints[i].points.toString(),
+        text: widget.donneDoublettes[i].points.toString(),
       ),
     );
     _dealFocusNodes = List.generate(
-      widget.dealPoints.length,
+      widget.donneDoublettes.length,
       (i) => FocusNode(),
     );
     // Attach listeners to focus nodes
@@ -295,7 +273,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
         }
         // Save points when focus is lost
         if (!_dealFocusNodes[i].hasFocus) {
-          await _saveDealPoints(i + 1);
+          await _saveDonneDoublette(i + 1);
         }
       });
     }
@@ -312,9 +290,9 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
     super.dispose();
   }
 
-  Future<void> _saveDealPoints(int dealNumber) async {
+  Future<void> _saveDonneDoublette(int donneNumero) async {
     final points =
-        int.tryParse(_dealControllers[dealNumber - 1].text.trim()) ?? 0;
+        int.tryParse(_dealControllers[donneNumero - 1].text.trim()) ?? 0;
 
     // Validate >= 0
     if (points < 0) {
@@ -327,8 +305,8 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
         );
       }
       // Reset to previous value
-      _dealControllers[dealNumber - 1].text = widget
-          .dealPoints[dealNumber - 1]
+      _dealControllers[donneNumero - 1].text = widget
+          .donneDoublettes[donneNumero - 1]
           .points
           .toString();
       return;
@@ -338,23 +316,13 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
     try {
       final updateUseCase = ref.read(updateManchePointsUseCaseProvider);
       await updateUseCase(
-        tableId: widget.tableDoublette.tableId,
-        concoursId: widget.tableDoublette.concoursId,
-        doubletteId: widget.tableDoublette.doubletteId,
-        mancheId: widget.mancheId,
-        dealNumber: dealNumber,
+        tableDoubletteId: widget.tableDoublette.id,
+        donneNumero: donneNumero,
         points: points,
       );
-      // Invalidate deal points provider to update total score
+      // Invalidate donnes doublettes provider to update total score
       ref.invalidate(
-        dealPointsByTableDoubletteProvider(
-          (
-            tableId: widget.tableDoublette.tableId,
-            concoursId: widget.tableDoublette.concoursId,
-            doubletteId: widget.tableDoublette.doubletteId,
-            mancheId: widget.mancheId,
-          ),
-        ),
+        donneDoublettesByTableDoubletteProvider(widget.tableDoublette.id),
       );
       widget.onRefresh();
     } on Exception catch (e) {
@@ -379,9 +347,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
     try {
       final repo = ref.read(mancheRepositoryProvider);
       await repo.updateStatut(
-        tableId: widget.tableDoublette.tableId,
-        concoursId: widget.tableDoublette.concoursId,
-        doubletteId: widget.tableDoublette.doubletteId,
+        tableDoubletteId: widget.tableDoublette.id,
         statut: statut,
       );
       widget.onRefresh();
@@ -398,7 +364,10 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
   @override
   Widget build(BuildContext context) {
     final td = widget.tableDoublette;
-    final total = widget.dealPoints.fold<int>(0, (sum, dp) => sum + dp.points);
+    final total = widget.donneDoublettes.fold<int>(
+      0,
+      (sum, dp) => sum + dp.points,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -431,9 +400,9 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: List.generate(
-                      widget.dealPoints.length,
+                      widget.donneDoublettes.length,
                       (i) {
-                        final dealNumber = i + 1;
+                        final donneNumero = i + 1;
                         return Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: SizedBox(
@@ -441,7 +410,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                             child: TextField(
                               key: Key(
                                 // ignore: lines_longer_than_80_chars because UI key
-                                'points_field_${widget.tableNumero}_${td.doubletteId}_$dealNumber',
+                                'points_field_${widget.tableNumero}_${td.doubletteId}_$donneNumero',
                               ),
                               controller: _dealControllers[i],
                               focusNode: _dealFocusNodes[i],
@@ -449,7 +418,7 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
-                                labelText: 'D$dealNumber',
+                                labelText: 'D$donneNumero',
                                 isDense: true,
                               ),
                               enabled: !_isSaving,
@@ -514,11 +483,9 @@ class _DealPointsRowState extends ConsumerState<_DealPointsRow> {
 class _TableSumRow extends ConsumerWidget {
   const _TableSumRow({
     required this.table,
-    required this.mancheId,
   });
 
   final TableDeJeu table;
-  final int mancheId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -541,34 +508,25 @@ class _TableSumRow extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        // Fetch dealPoints for all doublettes
-        final allDealPointsAsync = <AsyncValue<List<DealPoints>>>[];
+        // Fetch donnes doublettes for all doublettes
+        final allDonneDoublettesAsync = <AsyncValue<List<DonneDoublette>>>[];
         for (final td in table.doublettes) {
-          allDealPointsAsync.add(
-            ref.watch(
-              dealPointsByTableDoubletteProvider(
-                (
-                  tableId: table.id,
-                  concoursId: td.concoursId,
-                  doubletteId: td.doubletteId,
-                  mancheId: mancheId,
-                ),
-              ),
-            ),
+          allDonneDoublettesAsync.add(
+            ref.watch(donneDoublettesByTableDoubletteProvider(td.id)),
           );
         }
 
         // Check if any are loading or error
-        final isLoading = allDealPointsAsync.any((av) => av.isLoading);
-        final hasError = allDealPointsAsync.any((av) => av.hasError);
+        final isLoading = allDonneDoublettesAsync.any((av) => av.isLoading);
+        final hasError = allDonneDoublettesAsync.any((av) => av.hasError);
 
         if (isLoading || hasError) {
           return const SizedBox.shrink();
         }
 
-        // Combine all dealPoints
-        final combinedPoints = <DealPoints>[];
-        for (final dpAsync in allDealPointsAsync) {
+        // Combine all donnes doublettes
+        final combinedPoints = <DonneDoublette>[];
+        for (final dpAsync in allDonneDoublettesAsync) {
           dpAsync.whenData(combinedPoints.addAll);
         }
 
@@ -593,7 +551,7 @@ class _TableSumRow extends ConsumerWidget {
                   children: List.generate(
                     sums.length,
                     (i) {
-                      final dealNumber = i + 1;
+                      final donneNumero = i + 1;
                       final dealSum = sums[i];
                       final errorHint = getDealSumError(
                         dealSum,
@@ -605,7 +563,7 @@ class _TableSumRow extends ConsumerWidget {
                           width: 60,
                           child: InputDecorator(
                             key: Key(
-                              'table_sum_${table.numero}_$dealNumber',
+                              'table_sum_${table.numero}_$donneNumero',
                             ),
                             decoration: InputDecoration(
                               border: const OutlineInputBorder(
@@ -618,7 +576,7 @@ class _TableSumRow extends ConsumerWidget {
                                   color: Colors.grey,
                                 ),
                               ),
-                              labelText: 'D$dealNumber',
+                              labelText: 'D$donneNumero',
                               labelStyle: const TextStyle(fontSize: 10),
                               isDense: true,
                               errorText: errorHint,

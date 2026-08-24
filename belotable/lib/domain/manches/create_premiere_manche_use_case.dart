@@ -54,10 +54,9 @@ class CreatePremiereMancheUseCase {
     // Get concours to retrieve numberOfDeals
     final concours = await _concoursRepository.findById(trimmedId);
     if (concours != null) {
-      // Initialize deal points for all doublettes
-      await _mancheRepository.initializeDealPointsForManche(
+      // Initialize donnes doublettes for all doublettes
+      await _mancheRepository.initializeDonneDoublettesForManche(
         mancheId: manche.id,
-        concoursId: trimmedId,
         numberOfDeals: concours.nombreDonnesParManche,
       );
 

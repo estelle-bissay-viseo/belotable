@@ -46,16 +46,29 @@ class UpdateDoubletteUseCase {
       );
     }
 
-    final exists = await _repository.teamNameExists(
+    final exists = await _repository.findById(
+      concoursId: trimmedConcoursId,
+      doubletteId: doubletteId,
+    );
+    if (exists == null) {
+      throw ArgumentError.value(
+        doubletteId,
+        'doubletteId',
+        'doublette introuvable',
+      );
+    }
+
+    final duplicate = await _repository.teamNameExists(
       concoursId: trimmedConcoursId,
       nomEquipe: trimmedNomEquipe,
-      excludingDoubletteId: doubletteId,
+      excludingId: exists.id,
     );
-    if (exists) {
+    if (duplicate) {
       throw DuplicateTeamNameException(trimmedNomEquipe);
     }
 
     final doublette = Doublette(
+      id: exists.id,
       concoursId: trimmedConcoursId,
       doubletteId: doubletteId,
       joueurA: trimmedJoueurA,

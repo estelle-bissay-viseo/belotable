@@ -1,4 +1,4 @@
-import 'package:belotable/domain/manches/deal_points.dart';
+import 'package:belotable/domain/manches/donne_doublette.dart';
 import 'package:belotable/presentation/shared/manches/deal_sum_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,83 +6,59 @@ void main() {
   group('deal_sum_utils', () {
     group('computeTableDealSums', () {
       test('computes table sums for 2 doublettes across 3 deals', () {
-        final allDealPoints = [
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 1,
-            mancheId: 1,
-            dealNumber: 1,
+        final allDonneDoublettes = [
+          const DonneDoublette(
+            tableDoubletteId: 1,
+            donneNumero: 1,
             points: 15,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 2,
-            mancheId: 1,
-            dealNumber: 1,
+          const DonneDoublette(
+            tableDoubletteId: 2,
+            donneNumero: 1,
             points: 14,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 1,
-            mancheId: 1,
-            dealNumber: 2,
+          const DonneDoublette(
+            tableDoubletteId: 1,
+            donneNumero: 2,
             points: 10,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 2,
-            mancheId: 1,
-            dealNumber: 2,
+          const DonneDoublette(
+            tableDoubletteId: 2,
+            donneNumero: 2,
             points: 11,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 1,
-            mancheId: 1,
-            dealNumber: 3,
+          const DonneDoublette(
+            tableDoubletteId: 1,
+            donneNumero: 3,
             points: 20,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 2,
-            mancheId: 1,
-            dealNumber: 3,
+          const DonneDoublette(
+            tableDoubletteId: 2,
+            donneNumero: 3,
             points: 25,
           ),
         ];
 
-        final sums = computeTableDealSums(allDealPoints);
+        final sums = computeTableDealSums(allDonneDoublettes);
 
         expect(sums, equals([29, 21, 45]));
       });
 
       test('computes sums with zero values', () {
-        final allDealPoints = [
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 1,
-            mancheId: 1,
-            dealNumber: 1,
+        final allDonneDoublettes = [
+          const DonneDoublette(
+            tableDoubletteId: 1,
+            donneNumero: 1,
             points: 0,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 2,
-            mancheId: 1,
-            dealNumber: 1,
+          const DonneDoublette(
+            tableDoubletteId: 2,
+            donneNumero: 1,
             points: 0,
           ),
         ];
 
-        final sums = computeTableDealSums(allDealPoints);
+        final sums = computeTableDealSums(allDonneDoublettes);
 
         expect(sums, equals([0]));
       });
@@ -94,42 +70,30 @@ void main() {
       });
 
       test('handles unordered dealNumbers', () {
-        final allDealPoints = [
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 1,
-            mancheId: 1,
-            dealNumber: 3,
+        final allDonneDoublettes = [
+          const DonneDoublette(
+            tableDoubletteId: 1,
+            donneNumero: 3,
             points: 10,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 2,
-            mancheId: 1,
-            dealNumber: 1,
+          const DonneDoublette(
+            tableDoubletteId: 2,
+            donneNumero: 1,
             points: 5,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 1,
-            mancheId: 1,
-            dealNumber: 1,
+          const DonneDoublette(
+            tableDoubletteId: 1,
+            donneNumero: 1,
             points: 6,
           ),
-          const DealPoints(
-            tableId: 1,
-            concoursId: 'concours1',
-            doubletteId: 2,
-            mancheId: 1,
-            dealNumber: 3,
+          const DonneDoublette(
+            tableDoubletteId: 2,
+            donneNumero: 3,
             points: 12,
           ),
         ];
 
-        final sums = computeTableDealSums(allDealPoints);
+        final sums = computeTableDealSums(allDonneDoublettes);
 
         expect(sums, equals([11, 22]));
       });

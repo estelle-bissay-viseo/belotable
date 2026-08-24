@@ -14,15 +14,20 @@ typedef _Deps = ({
   InMemoryConcoursRepository concoursRepository,
 });
 
+_Deps _makeDeps() {
+  final doubletteRepository = InMemoryDoubletteRepository();
+  return (
+    doubletteRepository: doubletteRepository,
+    mancheRepository: InMemoryMancheRepository(doubletteRepository),
+    concoursRepository: InMemoryConcoursRepository(),
+  );
+}
+
 void main() {
   group('CreatePremiereMancheUseCase', () {
     useCaseTest<_Deps, CreatePremiereMancheUseCase>(
       'creates first manche and distributes doublettes by registration order',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreatePremiereMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,
@@ -65,11 +70,7 @@ void main() {
 
     useCaseTest<_Deps, CreatePremiereMancheUseCase>(
       'throws when no doublette registered',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreatePremiereMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,
@@ -85,11 +86,7 @@ void main() {
 
     useCaseTest<_Deps, CreatePremiereMancheUseCase>(
       'updates concours status to EnCours after creating first manche',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreatePremiereMancheUseCase(
         deps.doubletteRepository,
         deps.mancheRepository,

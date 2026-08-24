@@ -32,6 +32,7 @@ void main() {
     test('fromDoublettes returns enCours when any doublette has enAttente', () {
       final doublettes = [
         const TableDoublette(
+          id: 1,
           tableId: 1,
           concoursId: 'c1',
           doubletteId: 1,
@@ -40,6 +41,7 @@ void main() {
           nomEquipe: 'Team A',
         ),
         const TableDoublette(
+          id: 2,
           tableId: 1,
           concoursId: 'c1',
           doubletteId: 2,
@@ -56,6 +58,7 @@ void main() {
     test('fromDoublettes returns enCours when any doublette has enJeu', () {
       final doublettes = [
         const TableDoublette(
+          id: 3,
           tableId: 1,
           concoursId: 'c1',
           doubletteId: 1,
@@ -64,6 +67,7 @@ void main() {
           nomEquipe: 'Team A',
         ),
         const TableDoublette(
+          id: 4,
           tableId: 1,
           concoursId: 'c1',
           doubletteId: 2,
@@ -83,6 +87,7 @@ void main() {
       () {
         final doublettes = [
           const TableDoublette(
+            id: 5,
             tableId: 1,
             concoursId: 'c1',
             doubletteId: 1,
@@ -91,6 +96,7 @@ void main() {
             nomEquipe: 'Team A',
           ),
           const TableDoublette(
+            id: 6,
             tableId: 1,
             concoursId: 'c1',
             doubletteId: 2,
@@ -111,6 +117,7 @@ void main() {
       () {
         final doublettes = [
           const TableDoublette(
+            id: 7,
             tableId: 1,
             concoursId: 'c1',
             doubletteId: 1,
@@ -119,6 +126,7 @@ void main() {
             nomEquipe: 'Team A',
           ),
           const TableDoublette(
+            id: 8,
             tableId: 1,
             concoursId: 'c1',
             doubletteId: 2,
@@ -127,6 +135,7 @@ void main() {
             nomEquipe: 'Team B',
           ),
           const TableDoublette(
+            id: 9,
             tableId: 1,
             concoursId: 'c1',
             doubletteId: 3,

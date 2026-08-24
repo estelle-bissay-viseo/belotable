@@ -52,6 +52,7 @@ enum TableDoubletteStatut {
 class TableDoublette {
   /// Creates a table-doublette link.
   const TableDoublette({
+    required this.id,
     required this.tableId,
     required this.concoursId,
     required this.doubletteId,
@@ -60,13 +61,16 @@ class TableDoublette {
     required this.nomEquipe,
   });
 
+  /// Auto-generated surrogate primary key.
+  final int id;
+
   /// Owning table id.
   final int tableId;
 
-  /// Owning concours id.
+  /// Owning concours id (denormalized from the linked doublette).
   final String concoursId;
 
-  /// Doublette registration id.
+  /// Doublette registration id (display only).
   final int doubletteId;
 
   /// Points achieved in this table.
@@ -84,6 +88,7 @@ class TableDoublette {
     TableDoubletteStatut? statut,
   }) {
     return TableDoublette(
+      id: id,
       tableId: tableId,
       concoursId: concoursId,
       doubletteId: doubletteId,

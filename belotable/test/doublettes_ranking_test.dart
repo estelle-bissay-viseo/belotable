@@ -6,6 +6,7 @@ void main() {
     test('Doublettes sort by total points descending', () {
       final doublettes = [
         const Doublette(
+          id: 1,
           concoursId: 'c1',
           doubletteId: 1,
           joueurA: 'Player A1',
@@ -14,6 +15,7 @@ void main() {
           totalPoints: 100,
         ),
         const Doublette(
+          id: 2,
           concoursId: 'c1',
           doubletteId: 2,
           joueurA: 'Player A2',
@@ -22,6 +24,7 @@ void main() {
           totalPoints: 150,
         ),
         const Doublette(
+          id: 3,
           concoursId: 'c1',
           doubletteId: 3,
           joueurA: 'Player A3',
@@ -56,6 +59,7 @@ void main() {
     test('Single doublette returns single element list', () {
       final doublettes = [
         const Doublette(
+          id: 4,
           concoursId: 'c1',
           doubletteId: 1,
           joueurA: 'Player A',
@@ -75,6 +79,7 @@ void main() {
     test('Doublettes with equal points maintain relative order', () {
       final doublettes = [
         const Doublette(
+          id: 5,
           concoursId: 'c1',
           doubletteId: 1,
           joueurA: 'Player A1',
@@ -83,6 +88,7 @@ void main() {
           totalPoints: 100,
         ),
         const Doublette(
+          id: 6,
           concoursId: 'c1',
           doubletteId: 2,
           joueurA: 'Player A2',

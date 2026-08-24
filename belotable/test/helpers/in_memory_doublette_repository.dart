@@ -3,8 +3,20 @@ import 'package:belotable/domain/doublettes/doublette_repository.dart';
 
 class InMemoryDoubletteRepository implements DoubletteRepository {
   final _items = <Doublette>[];
+  var _nextSurrogateId = 1;
 
   List<Doublette> get savedDoublettes => List.unmodifiable(_items);
+
+  /// Test-only helper to resolve a doublette by its surrogate row id,
+  /// mimicking the join production DAOs perform against DoublettesTable.
+  Doublette? findByRowId(int id) {
+    for (final item in _items) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
 
   @override
   Future<Doublette> create({
@@ -19,6 +31,7 @@ class InMemoryDoubletteRepository implements DoubletteRepository {
         .fold<int>(0, (prev, id) => id > prev ? id : prev);
 
     final created = Doublette(
+      id: _nextSurrogateId++,
       concoursId: concoursId,
       doubletteId: maxId + 1,
       joueurA: joueurA,
@@ -31,11 +44,7 @@ class InMemoryDoubletteRepository implements DoubletteRepository {
 
   @override
   Future<Doublette> update(Doublette doublette) async {
-    final index = _items.indexWhere(
-      (item) =>
-          item.concoursId == doublette.concoursId &&
-          item.doubletteId == doublette.doubletteId,
-    );
+    final index = _items.indexWhere((item) => item.id == doublette.id);
     if (index == -1) {
       _items.add(doublette);
     } else {
@@ -65,15 +74,9 @@ class InMemoryDoubletteRepository implements DoubletteRepository {
   }
 
   @override
-  Future<bool> delete({
-    required String concoursId,
-    required int doubletteId,
-  }) async {
+  Future<bool> delete(int id) async {
     final before = _items.length;
-    _items.removeWhere(
-      (item) =>
-          item.concoursId == concoursId && item.doubletteId == doubletteId,
-    );
+    _items.removeWhere((item) => item.id == id);
     return _items.length < before;
   }
 
@@ -81,15 +84,14 @@ class InMemoryDoubletteRepository implements DoubletteRepository {
   Future<bool> teamNameExists({
     required String concoursId,
     required String nomEquipe,
-    int? excludingDoubletteId,
+    int? excludingId,
   }) async {
     final normalizedTeamName = nomEquipe.toLowerCase();
     for (final item in _items) {
       if (item.concoursId != concoursId) {
         continue;
       }
-      if (excludingDoubletteId != null &&
-          item.doubletteId == excludingDoubletteId) {
+      if (excludingId != null && item.id == excludingId) {
         continue;
       }
       if (item.nomEquipe.toLowerCase() == normalizedTeamName) {
@@ -104,6 +106,7 @@ class InMemoryDoubletteRepository implements DoubletteRepository {
     if (index != -1) {
       final d = _items[index];
       _items[index] = Doublette(
+        id: d.id,
         concoursId: d.concoursId,
         doubletteId: d.doubletteId,
         joueurA: d.joueurA,

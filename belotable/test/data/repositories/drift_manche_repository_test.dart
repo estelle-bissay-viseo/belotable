@@ -59,9 +59,9 @@ void main() {
       expect(tables.first.statut.label, 'En attente');
 
       final updated = await repos.mancheRepository.updateStatut(
-        tableId: tables.first.id,
-        concoursId: 'c-1',
-        doubletteId: 2,
+        tableDoubletteId: tables.first.doublettes
+            .firstWhere((d) => d.doubletteId == 2)
+            .id,
         statut: TableDoubletteStatut.perdu,
       );
 
@@ -134,9 +134,9 @@ void main() {
         manche.id,
       );
       await repos.mancheRepository.updateStatut(
-        tableId: tables.first.id,
-        concoursId: 'c-manche-status',
-        doubletteId: 2,
+        tableDoubletteId: tables.first.doublettes
+            .firstWhere((d) => d.doubletteId == 2)
+            .id,
         statut: TableDoubletteStatut.perdu,
       );
 
@@ -202,14 +202,12 @@ void main() {
 
       await repos.mancheRepository.addDoubletteToTable(
         tableId: tableOne.id,
-        concoursId: 'c-2',
-        doubletteId: 3,
+        doubletteRowId: doublettes.firstWhere((d) => d.doubletteId == 3).id,
       );
 
       await repos.mancheRepository.addDoubletteToTable(
         tableId: tableTwo.id,
-        concoursId: 'c-2',
-        doubletteId: 1,
+        doubletteRowId: doublettes.firstWhere((d) => d.doubletteId == 1).id,
       );
 
       final updatedTables = await repos.mancheRepository
@@ -278,7 +276,7 @@ void main() {
 
       await repos.mancheRepository.assignDoubletteToLatestManche(
         concoursId: 'c-3',
-        doubletteId: 3,
+        doubletteRowId: seeded.firstWhere((d) => d.doubletteId == 3).id,
       );
 
       final tables = await repos.mancheRepository.findTablesDeJeuByMancheId(

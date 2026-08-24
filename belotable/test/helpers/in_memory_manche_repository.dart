@@ -5,9 +5,36 @@ import 'package:belotable/domain/manches/manche_statut.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
 import 'package:belotable/domain/manches/table_doublette.dart';
 
+import 'in_memory_doublette_repository.dart';
+
 class InMemoryMancheRepository implements MancheRepository {
+  InMemoryMancheRepository(this._doubletteRepository);
+
+  final InMemoryDoubletteRepository _doubletteRepository;
   final manches = <Manche>[];
   final _tablesByManche = <int, List<TableDeJeu>>{};
+  final _doubletteRowIdByTableDoubletteId = <int, int>{};
+  var _nextTableDoubletteId = 1;
+
+  TableDoublette _buildTableDoublette({
+    required int tableId,
+    required int doubletteRowId,
+    int points = 0,
+    TableDoubletteStatut statut = TableDoubletteStatut.enAttente,
+  }) {
+    final id = _nextTableDoubletteId++;
+    _doubletteRowIdByTableDoubletteId[id] = doubletteRowId;
+    final doublette = _doubletteRepository.findByRowId(doubletteRowId);
+    return TableDoublette(
+      id: id,
+      tableId: tableId,
+      concoursId: doublette?.concoursId ?? '',
+      doubletteId: doublette?.doubletteId ?? doubletteRowId,
+      points: points,
+      statut: statut,
+      nomEquipe: doublette?.nomEquipe ?? 'Equipe $doubletteRowId',
+    );
+  }
 
   @override
   Future<Manche> createPremiereManche({
@@ -35,23 +62,9 @@ class InMemoryMancheRepository implements MancheRepository {
 
       final tableId = tables.length + 1;
       final participants = <TableDoublette>[
-        TableDoublette(
-          tableId: tableId,
-          concoursId: concoursId,
-          doubletteId: first.doubletteId,
-          points: 0,
-          statut: TableDoubletteStatut.enAttente,
-          nomEquipe: first.nomEquipe,
-        ),
+        _buildTableDoublette(tableId: tableId, doubletteRowId: first.id),
         if (second != null)
-          TableDoublette(
-            tableId: tableId,
-            concoursId: concoursId,
-            doubletteId: second.doubletteId,
-            points: 0,
-            statut: TableDoubletteStatut.enAttente,
-            nomEquipe: second.nomEquipe,
-          ),
+          _buildTableDoublette(tableId: tableId, doubletteRowId: second.id),
       ];
 
       tables.add(
@@ -72,8 +85,7 @@ class InMemoryMancheRepository implements MancheRepository {
   @override
   Future<void> addDoubletteToTable({
     required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     for (final entry in _tablesByManche.entries) {
       final tableIndex = entry.value.indexWhere((t) => t.id == tableId);
@@ -83,7 +95,7 @@ class InMemoryMancheRepository implements MancheRepository {
 
       final alreadyAssignedInManche = entry.value.any(
         (t) => t.doublettes.any(
-          (td) => td.concoursId == concoursId && td.doubletteId == doubletteId,
+          (td) => _doubletteRowIdByTableDoubletteId[td.id] == doubletteRowId,
         ),
       );
       if (alreadyAssignedInManche) {
@@ -97,14 +109,7 @@ class InMemoryMancheRepository implements MancheRepository {
 
       final updated = [
         ...table.doublettes,
-        TableDoublette(
-          tableId: tableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          points: 0,
-          statut: TableDoubletteStatut.enAttente,
-          nomEquipe: 'Equipe $doubletteId',
-        ),
+        _buildTableDoublette(tableId: tableId, doubletteRowId: doubletteRowId),
       ];
       entry.value[tableIndex] = TableDeJeu(
         id: table.id,
@@ -120,7 +125,7 @@ class InMemoryMancheRepository implements MancheRepository {
   @override
   Future<void> assignDoubletteToLatestManche({
     required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     final concoursManches =
         manches.where((m) => m.concoursId == concoursId).toList(growable: false)
@@ -135,7 +140,7 @@ class InMemoryMancheRepository implements MancheRepository {
 
     final alreadyAssigned = tables.any(
       (t) => t.doublettes.any(
-        (td) => td.concoursId == concoursId && td.doubletteId == doubletteId,
+        (td) => _doubletteRowIdByTableDoubletteId[td.id] == doubletteRowId,
       ),
     );
     if (alreadyAssigned) {
@@ -146,8 +151,7 @@ class InMemoryMancheRepository implements MancheRepository {
     if (availableIndex != -1) {
       await addDoubletteToTable(
         tableId: tables[availableIndex].id,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
+        doubletteRowId: doubletteRowId,
       );
       return;
     }
@@ -159,15 +163,12 @@ class InMemoryMancheRepository implements MancheRepository {
         ? 1
         : tables.map((t) => t.numero).reduce((a, b) => a > b ? a : b) + 1;
 
-    final newDoublette = TableDoublette(
-      tableId: nextTableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-      points: 0,
-      statut: TableDoubletteStatut.enAttente,
-      nomEquipe: 'Equipe $doubletteId',
-    );
-    final participants = <TableDoublette>[newDoublette];
+    final participants = <TableDoublette>[
+      _buildTableDoublette(
+        tableId: nextTableId,
+        doubletteRowId: doubletteRowId,
+      ),
+    ];
 
     tables.add(
       TableDeJeu(
@@ -238,7 +239,10 @@ class InMemoryMancheRepository implements MancheRepository {
         for (final td in table.doublettes) {
           if (td.concoursId == concoursId &&
               td.statut == TableDoubletteStatut.abandon) {
-            result.add(td.doubletteId);
+            final rowId = _doubletteRowIdByTableDoubletteId[td.id];
+            if (rowId != null) {
+              result.add(rowId);
+            }
           }
         }
       }
@@ -248,13 +252,12 @@ class InMemoryMancheRepository implements MancheRepository {
 
   @override
   Future<TableDoublette?> findTableDoublette({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     for (final tables in _tablesByManche.values) {
       for (final table in tables) {
         for (final td in table.doublettes) {
-          if (td.concoursId == concoursId && td.doubletteId == doubletteId) {
+          if (_doubletteRowIdByTableDoubletteId[td.id] == doubletteRowId) {
             return td;
           }
         }
@@ -264,9 +267,8 @@ class InMemoryMancheRepository implements MancheRepository {
   }
 
   @override
-  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
-    required String concoursId,
-    required int doubletteId,
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteRowId({
+    required int doubletteRowId,
   }) async {
     final result = <TableDoublette>[];
     final tablesByMancheNum = <int, List<TableDeJeu>>{};
@@ -284,7 +286,7 @@ class InMemoryMancheRepository implements MancheRepository {
       }
       for (final table in tables) {
         for (final td in table.doublettes) {
-          if (td.concoursId == concoursId && td.doubletteId == doubletteId) {
+          if (_doubletteRowIdByTableDoubletteId[td.id] == doubletteRowId) {
             result.add(td);
           }
         }
@@ -306,8 +308,7 @@ class InMemoryMancheRepository implements MancheRepository {
 
   @override
   Future<void> removeDoubletteFromTable({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     for (final entry in _tablesByManche.entries) {
       final tables = entry.value;
@@ -316,8 +317,7 @@ class InMemoryMancheRepository implements MancheRepository {
         final updated = table.doublettes
             .where(
               (td) =>
-                  !(td.concoursId == concoursId &&
-                      td.doubletteId == doubletteId),
+                  _doubletteRowIdByTableDoubletteId[td.id] != doubletteRowId,
             )
             .toList(growable: false);
         if (updated.length != table.doublettes.length) {
@@ -340,32 +340,24 @@ class InMemoryMancheRepository implements MancheRepository {
 
   @override
   Future<void> updatePoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required int points,
   }) async {
     await _updateTableDoublette(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      tableDoubletteId: tableDoubletteId,
       mapper: (td) => td.copyWith(points: points),
     );
   }
 
   @override
   Future<TableDeJeu> updateStatut({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required TableDoubletteStatut statut,
   }) async {
     late TableDeJeu updatedTable;
 
     await _updateTableDoublette(
-      tableId: tableId,
-      concoursId: concoursId,
-      doubletteId: doubletteId,
+      tableDoubletteId: tableDoubletteId,
       mapper: (td) => td.copyWith(statut: statut),
       afterMap: (doublettes) {
         if (statut != TableDoubletteStatut.gagne) {
@@ -376,7 +368,7 @@ class InMemoryMancheRepository implements MancheRepository {
           }
           return doublettes
               .map(
-                (d) => d.doubletteId == doubletteId
+                (d) => d.id == tableDoubletteId
                     ? d
                     : d.copyWith(statut: opponentStatut),
               )
@@ -391,9 +383,7 @@ class InMemoryMancheRepository implements MancheRepository {
   }
 
   Future<void> _updateTableDoublette({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required TableDoublette Function(TableDoublette) mapper,
     List<TableDoublette> Function(List<TableDoublette>)? afterMap,
     void Function(TableDeJeu table)? onTableUpdated,
@@ -402,25 +392,16 @@ class InMemoryMancheRepository implements MancheRepository {
       final tables = entry.value;
       for (var i = 0; i < tables.length; i++) {
         final table = tables[i];
-        if (table.id != tableId) {
+        final hasTarget = table.doublettes.any(
+          (td) => td.id == tableDoubletteId,
+        );
+        if (!hasTarget) {
           continue;
         }
 
-        var changed = false;
         var updatedDoublettes = table.doublettes
-            .map((td) {
-              if (td.concoursId == concoursId &&
-                  td.doubletteId == doubletteId) {
-                changed = true;
-                return mapper(td);
-              }
-              return td;
-            })
+            .map((td) => td.id == tableDoubletteId ? mapper(td) : td)
             .toList(growable: false);
-
-        if (!changed) {
-          continue;
-        }
 
         if (afterMap != null) {
           updatedDoublettes = afterMap(updatedDoublettes);
@@ -459,7 +440,6 @@ class InMemoryMancheRepository implements MancheRepository {
   Future<void> mergeTableDoublettes({
     required int targetTableId,
     required int sourceTableId,
-    required String concoursId,
   }) async {
     for (final entry in _tablesByManche.entries) {
       final tables = entry.value;
@@ -508,12 +488,33 @@ class InMemoryMancheRepository implements MancheRepository {
   }
 
   @override
-  Future<void> initializeDealPointsForManche({
+  Future<void> initializeDonneDoublettesForManche({
     required int mancheId,
-    required String concoursId,
     required int numberOfDeals,
   }) async {
     // No-op for in-memory implementation
-    // Deal points are handled by InMemoryDealPointsRepository
+    // Donnes doublettes are handled by InMemoryDonneDoubletteRepository
+  }
+
+  @override
+  Future<int> recalculateDoubletteTotalPoints(int tableDoubletteId) async {
+    final doubletteRowId = _doubletteRowIdByTableDoubletteId[tableDoubletteId];
+    if (doubletteRowId == null) {
+      return 0;
+    }
+
+    var total = 0;
+    for (final tables in _tablesByManche.values) {
+      for (final table in tables) {
+        for (final td in table.doublettes) {
+          if (_doubletteRowIdByTableDoubletteId[td.id] == doubletteRowId) {
+            total += td.points;
+          }
+        }
+      }
+    }
+
+    await _doubletteRepository.updateTotalPoints(doubletteRowId, total);
+    return total;
   }
 }

@@ -16,15 +16,20 @@ typedef _CreateDoubletteDeps = ({
   InMemoryConcoursRepository concoursRepository,
 });
 
+_CreateDoubletteDeps _makeDeps() {
+  final repository = InMemoryDoubletteRepository();
+  return (
+    repository: repository,
+    mancheRepository: InMemoryMancheRepository(repository),
+    concoursRepository: InMemoryConcoursRepository(),
+  );
+}
+
 void main() {
   group('CreateDoubletteUseCase', () {
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'creates doublette with trimmed values',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -46,11 +51,7 @@ void main() {
 
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'throws when team name already exists in same concours',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -77,11 +78,7 @@ void main() {
 
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'throws when team name differs only by case in same concours',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -108,11 +105,7 @@ void main() {
 
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'fills existing partial table in latest manche after create',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -162,11 +155,7 @@ void main() {
 
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'creates new table in latest manche when all tables are full',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -213,11 +202,7 @@ void main() {
     // open (not terminée).
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'Assigns new doublette to manche 1 when open',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -269,11 +254,7 @@ void main() {
     // Block doublette creation once manche 1 is "terminée".
     useCaseTest<_CreateDoubletteDeps, CreateDoubletteUseCase>(
       'Blocks creation when manche 1 is terminée',
-      dependenciesFactory: () => (
-        repository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => CreateDoubletteUseCase(
         deps.repository,
         mancheRepository: deps.mancheRepository,
@@ -309,9 +290,7 @@ void main() {
         for (final table in tables) {
           for (final doublette in table.doublettes) {
             await deps.mancheRepository.updateStatut(
-              tableId: table.id,
-              concoursId: 'concours-3',
-              doubletteId: doublette.doubletteId,
+              tableDoubletteId: doublette.id,
               statut: TableDoubletteStatut.gagne,
             );
           }

@@ -44,10 +44,11 @@ mixin _$ManchesDaoMixin on DatabaseAccessor<AppDatabase> {
   $ManchesTableTable get manchesTable => attachedDatabase.manchesTable;
   $TablesDeJeuTableTable get tablesDeJeuTable =>
       attachedDatabase.tablesDeJeuTable;
+  $DoublettesTableTable get doublettesTable => attachedDatabase.doublettesTable;
   $TableDoublettesTableTable get tableDoublettesTable =>
       attachedDatabase.tableDoublettesTable;
-  $DealPointsTableTable get dealPointsTable => attachedDatabase.dealPointsTable;
-  $DoublettesTableTable get doublettesTable => attachedDatabase.doublettesTable;
+  $DonneDoublettesTableTable get donneDoublettesTable =>
+      attachedDatabase.donneDoublettesTable;
   ManchesDaoManager get managers => ManchesDaoManager(this);
 }
 
@@ -63,20 +64,20 @@ class ManchesDaoManager {
         _db.attachedDatabase,
         _db.tablesDeJeuTable,
       );
+  $$DoublettesTableTableTableManager get doublettesTable =>
+      $$DoublettesTableTableTableManager(
+        _db.attachedDatabase,
+        _db.doublettesTable,
+      );
   $$TableDoublettesTableTableTableManager get tableDoublettesTable =>
       $$TableDoublettesTableTableTableManager(
         _db.attachedDatabase,
         _db.tableDoublettesTable,
       );
-  $$DealPointsTableTableTableManager get dealPointsTable =>
-      $$DealPointsTableTableTableManager(
+  $$DonneDoublettesTableTableTableManager get donneDoublettesTable =>
+      $$DonneDoublettesTableTableTableManager(
         _db.attachedDatabase,
-        _db.dealPointsTable,
-      );
-  $$DoublettesTableTableTableManager get doublettesTable =>
-      $$DoublettesTableTableTableManager(
-        _db.attachedDatabase,
-        _db.doublettesTable,
+        _db.donneDoublettesTable,
       );
 }
 
@@ -638,6 +639,19 @@ class $DoublettesTableTable extends DoublettesTable
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $DoublettesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
   static const VerificationMeta _concoursIdMeta = const VerificationMeta(
     'concoursId',
   );
@@ -710,6 +724,7 @@ class $DoublettesTableTable extends DoublettesTable
   );
   @override
   List<GeneratedColumn> get $columns => [
+    id,
     concoursId,
     doubletteId,
     joueurA,
@@ -729,6 +744,9 @@ class $DoublettesTableTable extends DoublettesTable
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
     if (data.containsKey('concours_id')) {
       context.handle(
         _concoursIdMeta,
@@ -785,15 +803,20 @@ class $DoublettesTableTable extends DoublettesTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {concoursId, doubletteId};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
+    {concoursId, doubletteId},
     {concoursId, nomEquipe},
   ];
   @override
   DoublettesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DoublettesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
       concoursId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}concours_id'],
@@ -829,6 +852,9 @@ class $DoublettesTableTable extends DoublettesTable
 
 class DoublettesTableData extends DataClass
     implements Insertable<DoublettesTableData> {
+  /// Auto-generated surrogate primary key.
+  final int id;
+
   /// Owning concours id.
   final String concoursId;
 
@@ -847,6 +873,7 @@ class DoublettesTableData extends DataClass
   /// Aggregated points across all manches.
   final int totalPoints;
   const DoublettesTableData({
+    required this.id,
     required this.concoursId,
     required this.doubletteId,
     required this.joueurA,
@@ -857,6 +884,7 @@ class DoublettesTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
     map['concours_id'] = Variable<String>(concoursId);
     map['doublette_id'] = Variable<int>(doubletteId);
     map['joueur_a'] = Variable<String>(joueurA);
@@ -868,6 +896,7 @@ class DoublettesTableData extends DataClass
 
   DoublettesTableCompanion toCompanion(bool nullToAbsent) {
     return DoublettesTableCompanion(
+      id: Value(id),
       concoursId: Value(concoursId),
       doubletteId: Value(doubletteId),
       joueurA: Value(joueurA),
@@ -883,6 +912,7 @@ class DoublettesTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DoublettesTableData(
+      id: serializer.fromJson<int>(json['id']),
       concoursId: serializer.fromJson<String>(json['concoursId']),
       doubletteId: serializer.fromJson<int>(json['doubletteId']),
       joueurA: serializer.fromJson<String>(json['joueurA']),
@@ -895,6 +925,7 @@ class DoublettesTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
       'concoursId': serializer.toJson<String>(concoursId),
       'doubletteId': serializer.toJson<int>(doubletteId),
       'joueurA': serializer.toJson<String>(joueurA),
@@ -905,6 +936,7 @@ class DoublettesTableData extends DataClass
   }
 
   DoublettesTableData copyWith({
+    int? id,
     String? concoursId,
     int? doubletteId,
     String? joueurA,
@@ -912,6 +944,7 @@ class DoublettesTableData extends DataClass
     String? nomEquipe,
     int? totalPoints,
   }) => DoublettesTableData(
+    id: id ?? this.id,
     concoursId: concoursId ?? this.concoursId,
     doubletteId: doubletteId ?? this.doubletteId,
     joueurA: joueurA ?? this.joueurA,
@@ -921,6 +954,7 @@ class DoublettesTableData extends DataClass
   );
   DoublettesTableData copyWithCompanion(DoublettesTableCompanion data) {
     return DoublettesTableData(
+      id: data.id.present ? data.id.value : this.id,
       concoursId: data.concoursId.present
           ? data.concoursId.value
           : this.concoursId,
@@ -939,6 +973,7 @@ class DoublettesTableData extends DataClass
   @override
   String toString() {
     return (StringBuffer('DoublettesTableData(')
+          ..write('id: $id, ')
           ..write('concoursId: $concoursId, ')
           ..write('doubletteId: $doubletteId, ')
           ..write('joueurA: $joueurA, ')
@@ -951,6 +986,7 @@ class DoublettesTableData extends DataClass
 
   @override
   int get hashCode => Object.hash(
+    id,
     concoursId,
     doubletteId,
     joueurA,
@@ -962,6 +998,7 @@ class DoublettesTableData extends DataClass
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DoublettesTableData &&
+          other.id == this.id &&
           other.concoursId == this.concoursId &&
           other.doubletteId == this.doubletteId &&
           other.joueurA == this.joueurA &&
@@ -971,78 +1008,81 @@ class DoublettesTableData extends DataClass
 }
 
 class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
+  final Value<int> id;
   final Value<String> concoursId;
   final Value<int> doubletteId;
   final Value<String> joueurA;
   final Value<String> joueurB;
   final Value<String> nomEquipe;
   final Value<int> totalPoints;
-  final Value<int> rowid;
   const DoublettesTableCompanion({
+    this.id = const Value.absent(),
     this.concoursId = const Value.absent(),
     this.doubletteId = const Value.absent(),
     this.joueurA = const Value.absent(),
     this.joueurB = const Value.absent(),
     this.nomEquipe = const Value.absent(),
     this.totalPoints = const Value.absent(),
-    this.rowid = const Value.absent(),
   });
   DoublettesTableCompanion.insert({
+    this.id = const Value.absent(),
     required String concoursId,
     required int doubletteId,
     required String joueurA,
     required String joueurB,
     required String nomEquipe,
     this.totalPoints = const Value.absent(),
-    this.rowid = const Value.absent(),
   }) : concoursId = Value(concoursId),
        doubletteId = Value(doubletteId),
        joueurA = Value(joueurA),
        joueurB = Value(joueurB),
        nomEquipe = Value(nomEquipe);
   static Insertable<DoublettesTableData> custom({
+    Expression<int>? id,
     Expression<String>? concoursId,
     Expression<int>? doubletteId,
     Expression<String>? joueurA,
     Expression<String>? joueurB,
     Expression<String>? nomEquipe,
     Expression<int>? totalPoints,
-    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (concoursId != null) 'concours_id': concoursId,
       if (doubletteId != null) 'doublette_id': doubletteId,
       if (joueurA != null) 'joueur_a': joueurA,
       if (joueurB != null) 'joueur_b': joueurB,
       if (nomEquipe != null) 'nom_equipe': nomEquipe,
       if (totalPoints != null) 'total_points': totalPoints,
-      if (rowid != null) 'rowid': rowid,
     });
   }
 
   DoublettesTableCompanion copyWith({
+    Value<int>? id,
     Value<String>? concoursId,
     Value<int>? doubletteId,
     Value<String>? joueurA,
     Value<String>? joueurB,
     Value<String>? nomEquipe,
     Value<int>? totalPoints,
-    Value<int>? rowid,
   }) {
     return DoublettesTableCompanion(
+      id: id ?? this.id,
       concoursId: concoursId ?? this.concoursId,
       doubletteId: doubletteId ?? this.doubletteId,
       joueurA: joueurA ?? this.joueurA,
       joueurB: joueurB ?? this.joueurB,
       nomEquipe: nomEquipe ?? this.nomEquipe,
       totalPoints: totalPoints ?? this.totalPoints,
-      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
     if (concoursId.present) {
       map['concours_id'] = Variable<String>(concoursId.value);
     }
@@ -1061,22 +1101,19 @@ class DoublettesTableCompanion extends UpdateCompanion<DoublettesTableData> {
     if (totalPoints.present) {
       map['total_points'] = Variable<int>(totalPoints.value);
     }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('DoublettesTableCompanion(')
+          ..write('id: $id, ')
           ..write('concoursId: $concoursId, ')
           ..write('doubletteId: $doubletteId, ')
           ..write('joueurA: $joueurA, ')
           ..write('joueurB: $joueurB, ')
           ..write('nomEquipe: $nomEquipe, ')
-          ..write('totalPoints: $totalPoints, ')
-          ..write('rowid: $rowid')
+          ..write('totalPoints: $totalPoints')
           ..write(')'))
         .toString();
   }
@@ -1700,6 +1737,19 @@ class $TableDoublettesTableTable extends TableDoublettesTable
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $TableDoublettesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
   static const VerificationMeta _tableIdMeta = const VerificationMeta(
     'tableId',
   );
@@ -1714,27 +1764,19 @@ class $TableDoublettesTableTable extends TableDoublettesTable
       'REFERENCES tables_de_jeu_table (id) ON DELETE CASCADE',
     ),
   );
-  static const VerificationMeta _concoursIdMeta = const VerificationMeta(
-    'concoursId',
+  static const VerificationMeta _doubletteRowIdMeta = const VerificationMeta(
+    'doubletteRowId',
   );
   @override
-  late final GeneratedColumn<String> concoursId = GeneratedColumn<String>(
-    'concours_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _doubletteIdMeta = const VerificationMeta(
-    'doubletteId',
-  );
-  @override
-  late final GeneratedColumn<int> doubletteId = GeneratedColumn<int>(
-    'doublette_id',
+  late final GeneratedColumn<int> doubletteRowId = GeneratedColumn<int>(
+    'doublette_row_id',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES doublettes_table (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _pointsMeta = const VerificationMeta('points');
   @override
@@ -1758,9 +1800,9 @@ class $TableDoublettesTableTable extends TableDoublettesTable
   );
   @override
   List<GeneratedColumn> get $columns => [
+    id,
     tableId,
-    concoursId,
-    doubletteId,
+    doubletteRowId,
     points,
     statut,
   ];
@@ -1776,6 +1818,9 @@ class $TableDoublettesTableTable extends TableDoublettesTable
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
     if (data.containsKey('table_id')) {
       context.handle(
         _tableIdMeta,
@@ -1784,24 +1829,16 @@ class $TableDoublettesTableTable extends TableDoublettesTable
     } else if (isInserting) {
       context.missing(_tableIdMeta);
     }
-    if (data.containsKey('concours_id')) {
+    if (data.containsKey('doublette_row_id')) {
       context.handle(
-        _concoursIdMeta,
-        concoursId.isAcceptableOrUnknown(data['concours_id']!, _concoursIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_concoursIdMeta);
-    }
-    if (data.containsKey('doublette_id')) {
-      context.handle(
-        _doubletteIdMeta,
-        doubletteId.isAcceptableOrUnknown(
-          data['doublette_id']!,
-          _doubletteIdMeta,
+        _doubletteRowIdMeta,
+        doubletteRowId.isAcceptableOrUnknown(
+          data['doublette_row_id']!,
+          _doubletteRowIdMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_doubletteIdMeta);
+      context.missing(_doubletteRowIdMeta);
     }
     if (data.containsKey('points')) {
       context.handle(
@@ -1819,7 +1856,11 @@ class $TableDoublettesTableTable extends TableDoublettesTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {tableId, concoursId, doubletteId};
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {tableId, doubletteRowId},
+  ];
   @override
   TableDoublettesTableData map(
     Map<String, dynamic> data, {
@@ -1827,17 +1868,17 @@ class $TableDoublettesTableTable extends TableDoublettesTable
   }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TableDoublettesTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
       tableId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}table_id'],
       )!,
-      concoursId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}concours_id'],
-      )!,
-      doubletteId: attachedDatabase.typeMapping.read(
+      doubletteRowId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}doublette_id'],
+        data['${effectivePrefix}doublette_row_id'],
       )!,
       points: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -1858,14 +1899,14 @@ class $TableDoublettesTableTable extends TableDoublettesTable
 
 class TableDoublettesTableData extends DataClass
     implements Insertable<TableDoublettesTableData> {
+  /// Auto-generated surrogate primary key.
+  final int id;
+
   /// Owning table id.
   final int tableId;
 
-  /// Owning concours id (matches doublette scope).
-  final String concoursId;
-
-  /// Doublette registration id.
-  final int doubletteId;
+  /// Owning doublette row id (FK to DoublettesTable.id).
+  final int doubletteRowId;
 
   /// Points achieved in this table.
   final int points;
@@ -1873,18 +1914,18 @@ class TableDoublettesTableData extends DataClass
   /// Team status in this table stored as string.
   final String statut;
   const TableDoublettesTableData({
+    required this.id,
     required this.tableId,
-    required this.concoursId,
-    required this.doubletteId,
+    required this.doubletteRowId,
     required this.points,
     required this.statut,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
     map['table_id'] = Variable<int>(tableId);
-    map['concours_id'] = Variable<String>(concoursId);
-    map['doublette_id'] = Variable<int>(doubletteId);
+    map['doublette_row_id'] = Variable<int>(doubletteRowId);
     map['points'] = Variable<int>(points);
     map['statut'] = Variable<String>(statut);
     return map;
@@ -1892,9 +1933,9 @@ class TableDoublettesTableData extends DataClass
 
   TableDoublettesTableCompanion toCompanion(bool nullToAbsent) {
     return TableDoublettesTableCompanion(
+      id: Value(id),
       tableId: Value(tableId),
-      concoursId: Value(concoursId),
-      doubletteId: Value(doubletteId),
+      doubletteRowId: Value(doubletteRowId),
       points: Value(points),
       statut: Value(statut),
     );
@@ -1906,9 +1947,9 @@ class TableDoublettesTableData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TableDoublettesTableData(
+      id: serializer.fromJson<int>(json['id']),
       tableId: serializer.fromJson<int>(json['tableId']),
-      concoursId: serializer.fromJson<String>(json['concoursId']),
-      doubletteId: serializer.fromJson<int>(json['doubletteId']),
+      doubletteRowId: serializer.fromJson<int>(json['doubletteRowId']),
       points: serializer.fromJson<int>(json['points']),
       statut: serializer.fromJson<String>(json['statut']),
     );
@@ -1917,24 +1958,24 @@ class TableDoublettesTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
       'tableId': serializer.toJson<int>(tableId),
-      'concoursId': serializer.toJson<String>(concoursId),
-      'doubletteId': serializer.toJson<int>(doubletteId),
+      'doubletteRowId': serializer.toJson<int>(doubletteRowId),
       'points': serializer.toJson<int>(points),
       'statut': serializer.toJson<String>(statut),
     };
   }
 
   TableDoublettesTableData copyWith({
+    int? id,
     int? tableId,
-    String? concoursId,
-    int? doubletteId,
+    int? doubletteRowId,
     int? points,
     String? statut,
   }) => TableDoublettesTableData(
+    id: id ?? this.id,
     tableId: tableId ?? this.tableId,
-    concoursId: concoursId ?? this.concoursId,
-    doubletteId: doubletteId ?? this.doubletteId,
+    doubletteRowId: doubletteRowId ?? this.doubletteRowId,
     points: points ?? this.points,
     statut: statut ?? this.statut,
   );
@@ -1942,13 +1983,11 @@ class TableDoublettesTableData extends DataClass
     TableDoublettesTableCompanion data,
   ) {
     return TableDoublettesTableData(
+      id: data.id.present ? data.id.value : this.id,
       tableId: data.tableId.present ? data.tableId.value : this.tableId,
-      concoursId: data.concoursId.present
-          ? data.concoursId.value
-          : this.concoursId,
-      doubletteId: data.doubletteId.present
-          ? data.doubletteId.value
-          : this.doubletteId,
+      doubletteRowId: data.doubletteRowId.present
+          ? data.doubletteRowId.value
+          : this.doubletteRowId,
       points: data.points.present ? data.points.value : this.points,
       statut: data.statut.present ? data.statut.value : this.statut,
     );
@@ -1957,9 +1996,9 @@ class TableDoublettesTableData extends DataClass
   @override
   String toString() {
     return (StringBuffer('TableDoublettesTableData(')
+          ..write('id: $id, ')
           ..write('tableId: $tableId, ')
-          ..write('concoursId: $concoursId, ')
-          ..write('doubletteId: $doubletteId, ')
+          ..write('doubletteRowId: $doubletteRowId, ')
           ..write('points: $points, ')
           ..write('statut: $statut')
           ..write(')'))
@@ -1967,92 +2006,83 @@ class TableDoublettesTableData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(tableId, concoursId, doubletteId, points, statut);
+  int get hashCode => Object.hash(id, tableId, doubletteRowId, points, statut);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TableDoublettesTableData &&
+          other.id == this.id &&
           other.tableId == this.tableId &&
-          other.concoursId == this.concoursId &&
-          other.doubletteId == this.doubletteId &&
+          other.doubletteRowId == this.doubletteRowId &&
           other.points == this.points &&
           other.statut == this.statut);
 }
 
 class TableDoublettesTableCompanion
     extends UpdateCompanion<TableDoublettesTableData> {
+  final Value<int> id;
   final Value<int> tableId;
-  final Value<String> concoursId;
-  final Value<int> doubletteId;
+  final Value<int> doubletteRowId;
   final Value<int> points;
   final Value<String> statut;
-  final Value<int> rowid;
   const TableDoublettesTableCompanion({
+    this.id = const Value.absent(),
     this.tableId = const Value.absent(),
-    this.concoursId = const Value.absent(),
-    this.doubletteId = const Value.absent(),
+    this.doubletteRowId = const Value.absent(),
     this.points = const Value.absent(),
     this.statut = const Value.absent(),
-    this.rowid = const Value.absent(),
   });
   TableDoublettesTableCompanion.insert({
+    this.id = const Value.absent(),
     required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
     this.points = const Value.absent(),
     this.statut = const Value.absent(),
-    this.rowid = const Value.absent(),
   }) : tableId = Value(tableId),
-       concoursId = Value(concoursId),
-       doubletteId = Value(doubletteId);
+       doubletteRowId = Value(doubletteRowId);
   static Insertable<TableDoublettesTableData> custom({
+    Expression<int>? id,
     Expression<int>? tableId,
-    Expression<String>? concoursId,
-    Expression<int>? doubletteId,
+    Expression<int>? doubletteRowId,
     Expression<int>? points,
     Expression<String>? statut,
-    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (tableId != null) 'table_id': tableId,
-      if (concoursId != null) 'concours_id': concoursId,
-      if (doubletteId != null) 'doublette_id': doubletteId,
+      if (doubletteRowId != null) 'doublette_row_id': doubletteRowId,
       if (points != null) 'points': points,
       if (statut != null) 'statut': statut,
-      if (rowid != null) 'rowid': rowid,
     });
   }
 
   TableDoublettesTableCompanion copyWith({
+    Value<int>? id,
     Value<int>? tableId,
-    Value<String>? concoursId,
-    Value<int>? doubletteId,
+    Value<int>? doubletteRowId,
     Value<int>? points,
     Value<String>? statut,
-    Value<int>? rowid,
   }) {
     return TableDoublettesTableCompanion(
+      id: id ?? this.id,
       tableId: tableId ?? this.tableId,
-      concoursId: concoursId ?? this.concoursId,
-      doubletteId: doubletteId ?? this.doubletteId,
+      doubletteRowId: doubletteRowId ?? this.doubletteRowId,
       points: points ?? this.points,
       statut: statut ?? this.statut,
-      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
     if (tableId.present) {
       map['table_id'] = Variable<int>(tableId.value);
     }
-    if (concoursId.present) {
-      map['concours_id'] = Variable<String>(concoursId.value);
-    }
-    if (doubletteId.present) {
-      map['doublette_id'] = Variable<int>(doubletteId.value);
+    if (doubletteRowId.present) {
+      map['doublette_row_id'] = Variable<int>(doubletteRowId.value);
     }
     if (points.present) {
       map['points'] = Variable<int>(points.value);
@@ -2060,88 +2090,61 @@ class TableDoublettesTableCompanion
     if (statut.present) {
       map['statut'] = Variable<String>(statut.value);
     }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('TableDoublettesTableCompanion(')
+          ..write('id: $id, ')
           ..write('tableId: $tableId, ')
-          ..write('concoursId: $concoursId, ')
-          ..write('doubletteId: $doubletteId, ')
+          ..write('doubletteRowId: $doubletteRowId, ')
           ..write('points: $points, ')
-          ..write('statut: $statut, ')
-          ..write('rowid: $rowid')
+          ..write('statut: $statut')
           ..write(')'))
         .toString();
   }
 }
 
-class $DealPointsTableTable extends DealPointsTable
-    with TableInfo<$DealPointsTableTable, DealPointsTableData> {
+class $DonneDoublettesTableTable extends DonneDoublettesTable
+    with TableInfo<$DonneDoublettesTableTable, DonneDoublettesTableData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $DealPointsTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _tableIdMeta = const VerificationMeta(
-    'tableId',
+  $DonneDoublettesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _tableDoubletteIdMeta = const VerificationMeta(
+    'tableDoubletteId',
   );
   @override
-  late final GeneratedColumn<int> tableId = GeneratedColumn<int>(
-    'table_id',
+  late final GeneratedColumn<int> tableDoubletteId = GeneratedColumn<int>(
+    'table_doublette_id',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES tables_de_jeu_table (id) ON DELETE CASCADE',
+      'REFERENCES table_doublettes_table (id) ON DELETE CASCADE',
     ),
   );
-  static const VerificationMeta _concoursIdMeta = const VerificationMeta(
-    'concoursId',
+  static const VerificationMeta _donneNumeroMeta = const VerificationMeta(
+    'donneNumero',
   );
   @override
-  late final GeneratedColumn<String> concoursId = GeneratedColumn<String>(
-    'concours_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _doubletteIdMeta = const VerificationMeta(
-    'doubletteId',
-  );
-  @override
-  late final GeneratedColumn<int> doubletteId = GeneratedColumn<int>(
-    'doublette_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _mancheIdMeta = const VerificationMeta(
-    'mancheId',
-  );
-  @override
-  late final GeneratedColumn<int> mancheId = GeneratedColumn<int>(
-    'manche_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES manches_table (id) ON DELETE CASCADE',
-    ),
-  );
-  static const VerificationMeta _dealNumberMeta = const VerificationMeta(
-    'dealNumber',
-  );
-  @override
-  late final GeneratedColumn<int> dealNumber = GeneratedColumn<int>(
-    'deal_number',
+  late final GeneratedColumn<int> donneNumero = GeneratedColumn<int>(
+    'donne_numero',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -2159,67 +2162,47 @@ class $DealPointsTableTable extends DealPointsTable
   );
   @override
   List<GeneratedColumn> get $columns => [
-    tableId,
-    concoursId,
-    doubletteId,
-    mancheId,
-    dealNumber,
+    id,
+    tableDoubletteId,
+    donneNumero,
     points,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'deal_points_table';
+  static const String $name = 'donne_doublettes_table';
   @override
   VerificationContext validateIntegrity(
-    Insertable<DealPointsTableData> instance, {
+    Insertable<DonneDoublettesTableData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('table_id')) {
-      context.handle(
-        _tableIdMeta,
-        tableId.isAcceptableOrUnknown(data['table_id']!, _tableIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_tableIdMeta);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('concours_id')) {
+    if (data.containsKey('table_doublette_id')) {
       context.handle(
-        _concoursIdMeta,
-        concoursId.isAcceptableOrUnknown(data['concours_id']!, _concoursIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_concoursIdMeta);
-    }
-    if (data.containsKey('doublette_id')) {
-      context.handle(
-        _doubletteIdMeta,
-        doubletteId.isAcceptableOrUnknown(
-          data['doublette_id']!,
-          _doubletteIdMeta,
+        _tableDoubletteIdMeta,
+        tableDoubletteId.isAcceptableOrUnknown(
+          data['table_doublette_id']!,
+          _tableDoubletteIdMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_doubletteIdMeta);
+      context.missing(_tableDoubletteIdMeta);
     }
-    if (data.containsKey('manche_id')) {
+    if (data.containsKey('donne_numero')) {
       context.handle(
-        _mancheIdMeta,
-        mancheId.isAcceptableOrUnknown(data['manche_id']!, _mancheIdMeta),
+        _donneNumeroMeta,
+        donneNumero.isAcceptableOrUnknown(
+          data['donne_numero']!,
+          _donneNumeroMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_mancheIdMeta);
-    }
-    if (data.containsKey('deal_number')) {
-      context.handle(
-        _dealNumberMeta,
-        dealNumber.isAcceptableOrUnknown(data['deal_number']!, _dealNumberMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_dealNumberMeta);
+      context.missing(_donneNumeroMeta);
     }
     if (data.containsKey('points')) {
       context.handle(
@@ -2231,36 +2214,29 @@ class $DealPointsTableTable extends DealPointsTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {
-    tableId,
-    concoursId,
-    doubletteId,
-    mancheId,
-    dealNumber,
-  };
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  DealPointsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {tableDoubletteId, donneNumero},
+  ];
+  @override
+  DonneDoublettesTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DealPointsTableData(
-      tableId: attachedDatabase.typeMapping.read(
+    return DonneDoublettesTableData(
+      id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}table_id'],
+        data['${effectivePrefix}id'],
       )!,
-      concoursId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}concours_id'],
-      )!,
-      doubletteId: attachedDatabase.typeMapping.read(
+      tableDoubletteId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}doublette_id'],
+        data['${effectivePrefix}table_doublette_id'],
       )!,
-      mancheId: attachedDatabase.typeMapping.read(
+      donneNumero: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}manche_id'],
-      )!,
-      dealNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}deal_number'],
+        data['${effectivePrefix}donne_numero'],
       )!,
       points: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -2270,72 +2246,58 @@ class $DealPointsTableTable extends DealPointsTable
   }
 
   @override
-  $DealPointsTableTable createAlias(String alias) {
-    return $DealPointsTableTable(attachedDatabase, alias);
+  $DonneDoublettesTableTable createAlias(String alias) {
+    return $DonneDoublettesTableTable(attachedDatabase, alias);
   }
 }
 
-class DealPointsTableData extends DataClass
-    implements Insertable<DealPointsTableData> {
-  /// Owning table id.
-  final int tableId;
+class DonneDoublettesTableData extends DataClass
+    implements Insertable<DonneDoublettesTableData> {
+  /// Auto-generated surrogate primary key.
+  final int id;
 
-  /// Owning concours id.
-  final String concoursId;
+  /// Owning table-doublette row id (FK to TableDoublettesTable.id).
+  final int tableDoubletteId;
 
-  /// Doublette registration id.
-  final int doubletteId;
-
-  /// Owning manche id.
-  final int mancheId;
-
-  /// Deal number (1-based), e.g. 1, 2, ..., 10.
-  final int dealNumber;
+  /// Donne number within the table (1-based), e.g. 1, 2, ..., 10.
+  final int donneNumero;
 
   /// Points for this deal.
   final int points;
-  const DealPointsTableData({
-    required this.tableId,
-    required this.concoursId,
-    required this.doubletteId,
-    required this.mancheId,
-    required this.dealNumber,
+  const DonneDoublettesTableData({
+    required this.id,
+    required this.tableDoubletteId,
+    required this.donneNumero,
     required this.points,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['table_id'] = Variable<int>(tableId);
-    map['concours_id'] = Variable<String>(concoursId);
-    map['doublette_id'] = Variable<int>(doubletteId);
-    map['manche_id'] = Variable<int>(mancheId);
-    map['deal_number'] = Variable<int>(dealNumber);
+    map['id'] = Variable<int>(id);
+    map['table_doublette_id'] = Variable<int>(tableDoubletteId);
+    map['donne_numero'] = Variable<int>(donneNumero);
     map['points'] = Variable<int>(points);
     return map;
   }
 
-  DealPointsTableCompanion toCompanion(bool nullToAbsent) {
-    return DealPointsTableCompanion(
-      tableId: Value(tableId),
-      concoursId: Value(concoursId),
-      doubletteId: Value(doubletteId),
-      mancheId: Value(mancheId),
-      dealNumber: Value(dealNumber),
+  DonneDoublettesTableCompanion toCompanion(bool nullToAbsent) {
+    return DonneDoublettesTableCompanion(
+      id: Value(id),
+      tableDoubletteId: Value(tableDoubletteId),
+      donneNumero: Value(donneNumero),
       points: Value(points),
     );
   }
 
-  factory DealPointsTableData.fromJson(
+  factory DonneDoublettesTableData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DealPointsTableData(
-      tableId: serializer.fromJson<int>(json['tableId']),
-      concoursId: serializer.fromJson<String>(json['concoursId']),
-      doubletteId: serializer.fromJson<int>(json['doubletteId']),
-      mancheId: serializer.fromJson<int>(json['mancheId']),
-      dealNumber: serializer.fromJson<int>(json['dealNumber']),
+    return DonneDoublettesTableData(
+      id: serializer.fromJson<int>(json['id']),
+      tableDoubletteId: serializer.fromJson<int>(json['tableDoubletteId']),
+      donneNumero: serializer.fromJson<int>(json['donneNumero']),
       points: serializer.fromJson<int>(json['points']),
     );
   }
@@ -2343,188 +2305,134 @@ class DealPointsTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'tableId': serializer.toJson<int>(tableId),
-      'concoursId': serializer.toJson<String>(concoursId),
-      'doubletteId': serializer.toJson<int>(doubletteId),
-      'mancheId': serializer.toJson<int>(mancheId),
-      'dealNumber': serializer.toJson<int>(dealNumber),
+      'id': serializer.toJson<int>(id),
+      'tableDoubletteId': serializer.toJson<int>(tableDoubletteId),
+      'donneNumero': serializer.toJson<int>(donneNumero),
       'points': serializer.toJson<int>(points),
     };
   }
 
-  DealPointsTableData copyWith({
-    int? tableId,
-    String? concoursId,
-    int? doubletteId,
-    int? mancheId,
-    int? dealNumber,
+  DonneDoublettesTableData copyWith({
+    int? id,
+    int? tableDoubletteId,
+    int? donneNumero,
     int? points,
-  }) => DealPointsTableData(
-    tableId: tableId ?? this.tableId,
-    concoursId: concoursId ?? this.concoursId,
-    doubletteId: doubletteId ?? this.doubletteId,
-    mancheId: mancheId ?? this.mancheId,
-    dealNumber: dealNumber ?? this.dealNumber,
+  }) => DonneDoublettesTableData(
+    id: id ?? this.id,
+    tableDoubletteId: tableDoubletteId ?? this.tableDoubletteId,
+    donneNumero: donneNumero ?? this.donneNumero,
     points: points ?? this.points,
   );
-  DealPointsTableData copyWithCompanion(DealPointsTableCompanion data) {
-    return DealPointsTableData(
-      tableId: data.tableId.present ? data.tableId.value : this.tableId,
-      concoursId: data.concoursId.present
-          ? data.concoursId.value
-          : this.concoursId,
-      doubletteId: data.doubletteId.present
-          ? data.doubletteId.value
-          : this.doubletteId,
-      mancheId: data.mancheId.present ? data.mancheId.value : this.mancheId,
-      dealNumber: data.dealNumber.present
-          ? data.dealNumber.value
-          : this.dealNumber,
+  DonneDoublettesTableData copyWithCompanion(
+    DonneDoublettesTableCompanion data,
+  ) {
+    return DonneDoublettesTableData(
+      id: data.id.present ? data.id.value : this.id,
+      tableDoubletteId: data.tableDoubletteId.present
+          ? data.tableDoubletteId.value
+          : this.tableDoubletteId,
+      donneNumero: data.donneNumero.present
+          ? data.donneNumero.value
+          : this.donneNumero,
       points: data.points.present ? data.points.value : this.points,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('DealPointsTableData(')
-          ..write('tableId: $tableId, ')
-          ..write('concoursId: $concoursId, ')
-          ..write('doubletteId: $doubletteId, ')
-          ..write('mancheId: $mancheId, ')
-          ..write('dealNumber: $dealNumber, ')
+    return (StringBuffer('DonneDoublettesTableData(')
+          ..write('id: $id, ')
+          ..write('tableDoubletteId: $tableDoubletteId, ')
+          ..write('donneNumero: $donneNumero, ')
           ..write('points: $points')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    tableId,
-    concoursId,
-    doubletteId,
-    mancheId,
-    dealNumber,
-    points,
-  );
+  int get hashCode => Object.hash(id, tableDoubletteId, donneNumero, points);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is DealPointsTableData &&
-          other.tableId == this.tableId &&
-          other.concoursId == this.concoursId &&
-          other.doubletteId == this.doubletteId &&
-          other.mancheId == this.mancheId &&
-          other.dealNumber == this.dealNumber &&
+      (other is DonneDoublettesTableData &&
+          other.id == this.id &&
+          other.tableDoubletteId == this.tableDoubletteId &&
+          other.donneNumero == this.donneNumero &&
           other.points == this.points);
 }
 
-class DealPointsTableCompanion extends UpdateCompanion<DealPointsTableData> {
-  final Value<int> tableId;
-  final Value<String> concoursId;
-  final Value<int> doubletteId;
-  final Value<int> mancheId;
-  final Value<int> dealNumber;
+class DonneDoublettesTableCompanion
+    extends UpdateCompanion<DonneDoublettesTableData> {
+  final Value<int> id;
+  final Value<int> tableDoubletteId;
+  final Value<int> donneNumero;
   final Value<int> points;
-  final Value<int> rowid;
-  const DealPointsTableCompanion({
-    this.tableId = const Value.absent(),
-    this.concoursId = const Value.absent(),
-    this.doubletteId = const Value.absent(),
-    this.mancheId = const Value.absent(),
-    this.dealNumber = const Value.absent(),
+  const DonneDoublettesTableCompanion({
+    this.id = const Value.absent(),
+    this.tableDoubletteId = const Value.absent(),
+    this.donneNumero = const Value.absent(),
     this.points = const Value.absent(),
-    this.rowid = const Value.absent(),
   });
-  DealPointsTableCompanion.insert({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
-    required int dealNumber,
+  DonneDoublettesTableCompanion.insert({
+    this.id = const Value.absent(),
+    required int tableDoubletteId,
+    required int donneNumero,
     this.points = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : tableId = Value(tableId),
-       concoursId = Value(concoursId),
-       doubletteId = Value(doubletteId),
-       mancheId = Value(mancheId),
-       dealNumber = Value(dealNumber);
-  static Insertable<DealPointsTableData> custom({
-    Expression<int>? tableId,
-    Expression<String>? concoursId,
-    Expression<int>? doubletteId,
-    Expression<int>? mancheId,
-    Expression<int>? dealNumber,
+  }) : tableDoubletteId = Value(tableDoubletteId),
+       donneNumero = Value(donneNumero);
+  static Insertable<DonneDoublettesTableData> custom({
+    Expression<int>? id,
+    Expression<int>? tableDoubletteId,
+    Expression<int>? donneNumero,
     Expression<int>? points,
-    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (tableId != null) 'table_id': tableId,
-      if (concoursId != null) 'concours_id': concoursId,
-      if (doubletteId != null) 'doublette_id': doubletteId,
-      if (mancheId != null) 'manche_id': mancheId,
-      if (dealNumber != null) 'deal_number': dealNumber,
+      if (id != null) 'id': id,
+      if (tableDoubletteId != null) 'table_doublette_id': tableDoubletteId,
+      if (donneNumero != null) 'donne_numero': donneNumero,
       if (points != null) 'points': points,
-      if (rowid != null) 'rowid': rowid,
     });
   }
 
-  DealPointsTableCompanion copyWith({
-    Value<int>? tableId,
-    Value<String>? concoursId,
-    Value<int>? doubletteId,
-    Value<int>? mancheId,
-    Value<int>? dealNumber,
+  DonneDoublettesTableCompanion copyWith({
+    Value<int>? id,
+    Value<int>? tableDoubletteId,
+    Value<int>? donneNumero,
     Value<int>? points,
-    Value<int>? rowid,
   }) {
-    return DealPointsTableCompanion(
-      tableId: tableId ?? this.tableId,
-      concoursId: concoursId ?? this.concoursId,
-      doubletteId: doubletteId ?? this.doubletteId,
-      mancheId: mancheId ?? this.mancheId,
-      dealNumber: dealNumber ?? this.dealNumber,
+    return DonneDoublettesTableCompanion(
+      id: id ?? this.id,
+      tableDoubletteId: tableDoubletteId ?? this.tableDoubletteId,
+      donneNumero: donneNumero ?? this.donneNumero,
       points: points ?? this.points,
-      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (tableId.present) {
-      map['table_id'] = Variable<int>(tableId.value);
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
     }
-    if (concoursId.present) {
-      map['concours_id'] = Variable<String>(concoursId.value);
+    if (tableDoubletteId.present) {
+      map['table_doublette_id'] = Variable<int>(tableDoubletteId.value);
     }
-    if (doubletteId.present) {
-      map['doublette_id'] = Variable<int>(doubletteId.value);
-    }
-    if (mancheId.present) {
-      map['manche_id'] = Variable<int>(mancheId.value);
-    }
-    if (dealNumber.present) {
-      map['deal_number'] = Variable<int>(dealNumber.value);
+    if (donneNumero.present) {
+      map['donne_numero'] = Variable<int>(donneNumero.value);
     }
     if (points.present) {
       map['points'] = Variable<int>(points.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('DealPointsTableCompanion(')
-          ..write('tableId: $tableId, ')
-          ..write('concoursId: $concoursId, ')
-          ..write('doubletteId: $doubletteId, ')
-          ..write('mancheId: $mancheId, ')
-          ..write('dealNumber: $dealNumber, ')
-          ..write('points: $points, ')
-          ..write('rowid: $rowid')
+    return (StringBuffer('DonneDoublettesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tableDoubletteId: $tableDoubletteId, ')
+          ..write('donneNumero: $donneNumero, ')
+          ..write('points: $points')
           ..write(')'))
         .toString();
   }
@@ -2543,9 +2451,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $TableDoublettesTableTable tableDoublettesTable =
       $TableDoublettesTableTable(this);
-  late final $DealPointsTableTable dealPointsTable = $DealPointsTableTable(
-    this,
-  );
+  late final $DonneDoublettesTableTable donneDoublettesTable =
+      $DonneDoublettesTableTable(this);
   late final ConcoursDao concoursDao = ConcoursDao(this as AppDatabase);
   late final DoublettesDao doublettesDao = DoublettesDao(this as AppDatabase);
   late final ManchesDao manchesDao = ManchesDao(this as AppDatabase);
@@ -2559,7 +2466,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     manchesTable,
     tablesDeJeuTable,
     tableDoublettesTable,
-    dealPointsTable,
+    donneDoublettesTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2593,17 +2500,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'tables_de_jeu_table',
+        'doublettes_table',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('deal_points_table', kind: UpdateKind.delete)],
+      result: [TableUpdate('table_doublettes_table', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'manches_table',
+        'table_doublettes_table',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('deal_points_table', kind: UpdateKind.delete)],
+      result: [TableUpdate('donne_doublettes_table', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2645,10 +2552,7 @@ final class $$ConcoursTableTableReferences
   static MultiTypedResultKey<$DoublettesTableTable, List<DoublettesTableData>>
   _doublettesTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.doublettesTable,
-    aliasName: $_aliasNameGenerator(
-      db.concoursTable.id,
-      db.doublettesTable.concoursId,
-    ),
+    aliasName: 'concours_table__id__doublettes_table__concours_id',
   );
 
   $$DoublettesTableTableProcessedTableManager get doublettesTableRefs {
@@ -2668,10 +2572,7 @@ final class $$ConcoursTableTableReferences
   static MultiTypedResultKey<$ManchesTableTable, List<ManchesTableData>>
   _manchesTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.manchesTable,
-    aliasName: $_aliasNameGenerator(
-      db.concoursTable.id,
-      db.manchesTable.concoursId,
-    ),
+    aliasName: 'concours_table__id__manches_table__concours_id',
   );
 
   $$ManchesTableTableProcessedTableManager get manchesTableRefs {
@@ -3087,23 +2988,23 @@ typedef $$ConcoursTableTableProcessedTableManager =
     >;
 typedef $$DoublettesTableTableCreateCompanionBuilder =
     DoublettesTableCompanion Function({
+      Value<int> id,
       required String concoursId,
       required int doubletteId,
       required String joueurA,
       required String joueurB,
       required String nomEquipe,
       Value<int> totalPoints,
-      Value<int> rowid,
     });
 typedef $$DoublettesTableTableUpdateCompanionBuilder =
     DoublettesTableCompanion Function({
+      Value<int> id,
       Value<String> concoursId,
       Value<int> doubletteId,
       Value<String> joueurA,
       Value<String> joueurB,
       Value<String> nomEquipe,
       Value<int> totalPoints,
-      Value<int> rowid,
     });
 
 final class $$DoublettesTableTableReferences
@@ -3119,13 +3020,9 @@ final class $$DoublettesTableTableReferences
     super.$_typedResult,
   );
 
-  static $ConcoursTableTable _concoursIdTable(_$AppDatabase db) =>
-      db.concoursTable.createAlias(
-        $_aliasNameGenerator(
-          db.doublettesTable.concoursId,
-          db.concoursTable.id,
-        ),
-      );
+  static $ConcoursTableTable _concoursIdTable(_$AppDatabase db) => db
+      .concoursTable
+      .createAlias('doublettes_table__concours_id__concours_table__id');
 
   $$ConcoursTableTableProcessedTableManager get concoursId {
     final $_column = $_itemColumn<String>('concours_id')!;
@@ -3140,6 +3037,32 @@ final class $$DoublettesTableTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<
+    $TableDoublettesTableTable,
+    List<TableDoublettesTableData>
+  >
+  _tableDoublettesTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.tableDoublettesTable,
+        aliasName:
+            'doublettes_table__id__table_doublettes_table__doublette_row_id',
+      );
+
+  $$TableDoublettesTableTableProcessedTableManager
+  get tableDoublettesTableRefs {
+    final manager = $$TableDoublettesTableTableTableManager(
+      $_db,
+      $_db.tableDoublettesTable,
+    ).filter((f) => f.doubletteRowId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _tableDoublettesTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$DoublettesTableTableFilterComposer
@@ -3151,6 +3074,11 @@ class $$DoublettesTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get doubletteId => $composableBuilder(
     column: $table.doubletteId,
     builder: (column) => ColumnFilters(column),
@@ -3198,6 +3126,31 @@ class $$DoublettesTableTableFilterComposer
     );
     return composer;
   }
+
+  Expression<bool> tableDoublettesTableRefs(
+    Expression<bool> Function($$TableDoublettesTableTableFilterComposer f) f,
+  ) {
+    final $$TableDoublettesTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tableDoublettesTable,
+      getReferencedColumn: (t) => t.doubletteRowId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TableDoublettesTableTableFilterComposer(
+            $db: $db,
+            $table: $db.tableDoublettesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DoublettesTableTableOrderingComposer
@@ -3209,6 +3162,11 @@ class $$DoublettesTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get doubletteId => $composableBuilder(
     column: $table.doubletteId,
     builder: (column) => ColumnOrderings(column),
@@ -3267,6 +3225,9 @@ class $$DoublettesTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
   GeneratedColumn<int> get doubletteId => $composableBuilder(
     column: $table.doubletteId,
     builder: (column) => column,
@@ -3308,6 +3269,32 @@ class $$DoublettesTableTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> tableDoublettesTableRefs<T extends Object>(
+    Expression<T> Function($$TableDoublettesTableTableAnnotationComposer a) f,
+  ) {
+    final $$TableDoublettesTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.tableDoublettesTable,
+          getReferencedColumn: (t) => t.doubletteRowId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$TableDoublettesTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.tableDoublettesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$DoublettesTableTableTableManager
@@ -3323,7 +3310,10 @@ class $$DoublettesTableTableTableManager
           $$DoublettesTableTableUpdateCompanionBuilder,
           (DoublettesTableData, $$DoublettesTableTableReferences),
           DoublettesTableData,
-          PrefetchHooks Function({bool concoursId})
+          PrefetchHooks Function({
+            bool concoursId,
+            bool tableDoublettesTableRefs,
+          })
         > {
   $$DoublettesTableTableTableManager(
     _$AppDatabase db,
@@ -3340,39 +3330,39 @@ class $$DoublettesTableTableTableManager
               $$DoublettesTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 Value<String> concoursId = const Value.absent(),
                 Value<int> doubletteId = const Value.absent(),
                 Value<String> joueurA = const Value.absent(),
                 Value<String> joueurB = const Value.absent(),
                 Value<String> nomEquipe = const Value.absent(),
                 Value<int> totalPoints = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => DoublettesTableCompanion(
+                id: id,
                 concoursId: concoursId,
                 doubletteId: doubletteId,
                 joueurA: joueurA,
                 joueurB: joueurB,
                 nomEquipe: nomEquipe,
                 totalPoints: totalPoints,
-                rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 required String concoursId,
                 required int doubletteId,
                 required String joueurA,
                 required String joueurB,
                 required String nomEquipe,
                 Value<int> totalPoints = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => DoublettesTableCompanion.insert(
+                id: id,
                 concoursId: concoursId,
                 doubletteId: doubletteId,
                 joueurA: joueurA,
                 joueurB: joueurB,
                 nomEquipe: nomEquipe,
                 totalPoints: totalPoints,
-                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3382,49 +3372,74 @@ class $$DoublettesTableTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({concoursId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (concoursId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.concoursId,
-                                referencedTable:
-                                    $$DoublettesTableTableReferences
-                                        ._concoursIdTable(db),
-                                referencedColumn:
-                                    $$DoublettesTableTableReferences
-                                        ._concoursIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({concoursId = false, tableDoublettesTableRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (tableDoublettesTableRefs) db.tableDoublettesTable,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (concoursId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.concoursId,
+                                    referencedTable:
+                                        $$DoublettesTableTableReferences
+                                            ._concoursIdTable(db),
+                                    referencedColumn:
+                                        $$DoublettesTableTableReferences
+                                            ._concoursIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (tableDoublettesTableRefs)
+                        await $_getPrefetchedData<
+                          DoublettesTableData,
+                          $DoublettesTableTable,
+                          TableDoublettesTableData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DoublettesTableTableReferences
+                              ._tableDoublettesTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DoublettesTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).tableDoublettesTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.doubletteRowId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3441,7 +3456,7 @@ typedef $$DoublettesTableTableProcessedTableManager =
       $$DoublettesTableTableUpdateCompanionBuilder,
       (DoublettesTableData, $$DoublettesTableTableReferences),
       DoublettesTableData,
-      PrefetchHooks Function({bool concoursId})
+      PrefetchHooks Function({bool concoursId, bool tableDoublettesTableRefs})
     >;
 typedef $$ManchesTableTableCreateCompanionBuilder =
     ManchesTableCompanion Function({
@@ -3463,10 +3478,9 @@ final class $$ManchesTableTableReferences
         BaseReferences<_$AppDatabase, $ManchesTableTable, ManchesTableData> {
   $$ManchesTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $ConcoursTableTable _concoursIdTable(_$AppDatabase db) =>
-      db.concoursTable.createAlias(
-        $_aliasNameGenerator(db.manchesTable.concoursId, db.concoursTable.id),
-      );
+  static $ConcoursTableTable _concoursIdTable(_$AppDatabase db) => db
+      .concoursTable
+      .createAlias('manches_table__concours_id__concours_table__id');
 
   $$ConcoursTableTableProcessedTableManager get concoursId {
     final $_column = $_itemColumn<String>('concours_id')!;
@@ -3485,10 +3499,7 @@ final class $$ManchesTableTableReferences
   static MultiTypedResultKey<$TablesDeJeuTableTable, List<TablesDeJeuTableData>>
   _tablesDeJeuTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.tablesDeJeuTable,
-    aliasName: $_aliasNameGenerator(
-      db.manchesTable.id,
-      db.tablesDeJeuTable.mancheId,
-    ),
+    aliasName: 'manches_table__id__tables_de_jeu_table__manche_id',
   );
 
   $$TablesDeJeuTableTableProcessedTableManager get tablesDeJeuTableRefs {
@@ -3499,29 +3510,6 @@ final class $$ManchesTableTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _tablesDeJeuTableRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$DealPointsTableTable, List<DealPointsTableData>>
-  _dealPointsTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.dealPointsTable,
-    aliasName: $_aliasNameGenerator(
-      db.manchesTable.id,
-      db.dealPointsTable.mancheId,
-    ),
-  );
-
-  $$DealPointsTableTableProcessedTableManager get dealPointsTableRefs {
-    final manager = $$DealPointsTableTableTableManager(
-      $_db,
-      $_db.dealPointsTable,
-    ).filter((f) => f.mancheId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _dealPointsTableRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -3592,31 +3580,6 @@ class $$ManchesTableTableFilterComposer
           }) => $$TablesDeJeuTableTableFilterComposer(
             $db: $db,
             $table: $db.tablesDeJeuTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> dealPointsTableRefs(
-    Expression<bool> Function($$DealPointsTableTableFilterComposer f) f,
-  ) {
-    final $$DealPointsTableTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.dealPointsTable,
-      getReferencedColumn: (t) => t.mancheId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DealPointsTableTableFilterComposer(
-            $db: $db,
-            $table: $db.dealPointsTable,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3740,31 +3703,6 @@ class $$ManchesTableTableAnnotationComposer
     );
     return f(composer);
   }
-
-  Expression<T> dealPointsTableRefs<T extends Object>(
-    Expression<T> Function($$DealPointsTableTableAnnotationComposer a) f,
-  ) {
-    final $$DealPointsTableTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.dealPointsTable,
-      getReferencedColumn: (t) => t.mancheId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DealPointsTableTableAnnotationComposer(
-            $db: $db,
-            $table: $db.dealPointsTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$ManchesTableTableTableManager
@@ -3780,11 +3718,7 @@ class $$ManchesTableTableTableManager
           $$ManchesTableTableUpdateCompanionBuilder,
           (ManchesTableData, $$ManchesTableTableReferences),
           ManchesTableData,
-          PrefetchHooks Function({
-            bool concoursId,
-            bool tablesDeJeuTableRefs,
-            bool dealPointsTableRefs,
-          })
+          PrefetchHooks Function({bool concoursId, bool tablesDeJeuTableRefs})
         > {
   $$ManchesTableTableTableManager(_$AppDatabase db, $ManchesTableTable table)
     : super(
@@ -3830,16 +3764,11 @@ class $$ManchesTableTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                concoursId = false,
-                tablesDeJeuTableRefs = false,
-                dealPointsTableRefs = false,
-              }) {
+              ({concoursId = false, tablesDeJeuTableRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (tablesDeJeuTableRefs) db.tablesDeJeuTable,
-                    if (dealPointsTableRefs) db.dealPointsTable,
                   ],
                   addJoins:
                       <
@@ -3898,27 +3827,6 @@ class $$ManchesTableTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (dealPointsTableRefs)
-                        await $_getPrefetchedData<
-                          ManchesTableData,
-                          $ManchesTableTable,
-                          DealPointsTableData
-                        >(
-                          currentTable: table,
-                          referencedTable: $$ManchesTableTableReferences
-                              ._dealPointsTableRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$ManchesTableTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).dealPointsTableRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.mancheId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                     ];
                   },
                 );
@@ -3939,11 +3847,7 @@ typedef $$ManchesTableTableProcessedTableManager =
       $$ManchesTableTableUpdateCompanionBuilder,
       (ManchesTableData, $$ManchesTableTableReferences),
       ManchesTableData,
-      PrefetchHooks Function({
-        bool concoursId,
-        bool tablesDeJeuTableRefs,
-        bool dealPointsTableRefs,
-      })
+      PrefetchHooks Function({bool concoursId, bool tablesDeJeuTableRefs})
     >;
 typedef $$TablesDeJeuTableTableCreateCompanionBuilder =
     TablesDeJeuTableCompanion Function({
@@ -3973,10 +3877,8 @@ final class $$TablesDeJeuTableTableReferences
     super.$_typedResult,
   );
 
-  static $ManchesTableTable _mancheIdTable(_$AppDatabase db) =>
-      db.manchesTable.createAlias(
-        $_aliasNameGenerator(db.tablesDeJeuTable.mancheId, db.manchesTable.id),
-      );
+  static $ManchesTableTable _mancheIdTable(_$AppDatabase db) => db.manchesTable
+      .createAlias('tables_de_jeu_table__manche_id__manches_table__id');
 
   $$ManchesTableTableProcessedTableManager get mancheId {
     final $_column = $_itemColumn<int>('manche_id')!;
@@ -3999,10 +3901,7 @@ final class $$TablesDeJeuTableTableReferences
   _tableDoublettesTableRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.tableDoublettesTable,
-        aliasName: $_aliasNameGenerator(
-          db.tablesDeJeuTable.id,
-          db.tableDoublettesTable.tableId,
-        ),
+        aliasName: 'tables_de_jeu_table__id__table_doublettes_table__table_id',
       );
 
   $$TableDoublettesTableTableProcessedTableManager
@@ -4014,29 +3913,6 @@ final class $$TablesDeJeuTableTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _tableDoublettesTableRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$DealPointsTableTable, List<DealPointsTableData>>
-  _dealPointsTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.dealPointsTable,
-    aliasName: $_aliasNameGenerator(
-      db.tablesDeJeuTable.id,
-      db.dealPointsTable.tableId,
-    ),
-  );
-
-  $$DealPointsTableTableProcessedTableManager get dealPointsTableRefs {
-    final manager = $$DealPointsTableTableTableManager(
-      $_db,
-      $_db.dealPointsTable,
-    ).filter((f) => f.tableId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _dealPointsTableRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -4107,31 +3983,6 @@ class $$TablesDeJeuTableTableFilterComposer
           }) => $$TableDoublettesTableTableFilterComposer(
             $db: $db,
             $table: $db.tableDoublettesTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> dealPointsTableRefs(
-    Expression<bool> Function($$DealPointsTableTableFilterComposer f) f,
-  ) {
-    final $$DealPointsTableTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.dealPointsTable,
-      getReferencedColumn: (t) => t.tableId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DealPointsTableTableFilterComposer(
-            $db: $db,
-            $table: $db.dealPointsTable,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4256,31 +4107,6 @@ class $$TablesDeJeuTableTableAnnotationComposer
         );
     return f(composer);
   }
-
-  Expression<T> dealPointsTableRefs<T extends Object>(
-    Expression<T> Function($$DealPointsTableTableAnnotationComposer a) f,
-  ) {
-    final $$DealPointsTableTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.dealPointsTable,
-      getReferencedColumn: (t) => t.tableId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DealPointsTableTableAnnotationComposer(
-            $db: $db,
-            $table: $db.dealPointsTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$TablesDeJeuTableTableTableManager
@@ -4296,11 +4122,7 @@ class $$TablesDeJeuTableTableTableManager
           $$TablesDeJeuTableTableUpdateCompanionBuilder,
           (TablesDeJeuTableData, $$TablesDeJeuTableTableReferences),
           TablesDeJeuTableData,
-          PrefetchHooks Function({
-            bool mancheId,
-            bool tableDoublettesTableRefs,
-            bool dealPointsTableRefs,
-          })
+          PrefetchHooks Function({bool mancheId, bool tableDoublettesTableRefs})
         > {
   $$TablesDeJeuTableTableTableManager(
     _$AppDatabase db,
@@ -4348,16 +4170,11 @@ class $$TablesDeJeuTableTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                mancheId = false,
-                tableDoublettesTableRefs = false,
-                dealPointsTableRefs = false,
-              }) {
+              ({mancheId = false, tableDoublettesTableRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (tableDoublettesTableRefs) db.tableDoublettesTable,
-                    if (dealPointsTableRefs) db.dealPointsTable,
                   ],
                   addJoins:
                       <
@@ -4416,27 +4233,6 @@ class $$TablesDeJeuTableTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (dealPointsTableRefs)
-                        await $_getPrefetchedData<
-                          TablesDeJeuTableData,
-                          $TablesDeJeuTableTable,
-                          DealPointsTableData
-                        >(
-                          currentTable: table,
-                          referencedTable: $$TablesDeJeuTableTableReferences
-                              ._dealPointsTableRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$TablesDeJeuTableTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).dealPointsTableRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.tableId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                     ];
                   },
                 );
@@ -4457,29 +4253,23 @@ typedef $$TablesDeJeuTableTableProcessedTableManager =
       $$TablesDeJeuTableTableUpdateCompanionBuilder,
       (TablesDeJeuTableData, $$TablesDeJeuTableTableReferences),
       TablesDeJeuTableData,
-      PrefetchHooks Function({
-        bool mancheId,
-        bool tableDoublettesTableRefs,
-        bool dealPointsTableRefs,
-      })
+      PrefetchHooks Function({bool mancheId, bool tableDoublettesTableRefs})
     >;
 typedef $$TableDoublettesTableTableCreateCompanionBuilder =
     TableDoublettesTableCompanion Function({
+      Value<int> id,
       required int tableId,
-      required String concoursId,
-      required int doubletteId,
+      required int doubletteRowId,
       Value<int> points,
       Value<String> statut,
-      Value<int> rowid,
     });
 typedef $$TableDoublettesTableTableUpdateCompanionBuilder =
     TableDoublettesTableCompanion Function({
+      Value<int> id,
       Value<int> tableId,
-      Value<String> concoursId,
-      Value<int> doubletteId,
+      Value<int> doubletteRowId,
       Value<int> points,
       Value<String> statut,
-      Value<int> rowid,
     });
 
 final class $$TableDoublettesTableTableReferences
@@ -4495,13 +4285,9 @@ final class $$TableDoublettesTableTableReferences
     super.$_typedResult,
   );
 
-  static $TablesDeJeuTableTable _tableIdTable(_$AppDatabase db) =>
-      db.tablesDeJeuTable.createAlias(
-        $_aliasNameGenerator(
-          db.tableDoublettesTable.tableId,
-          db.tablesDeJeuTable.id,
-        ),
-      );
+  static $TablesDeJeuTableTable _tableIdTable(_$AppDatabase db) => db
+      .tablesDeJeuTable
+      .createAlias('table_doublettes_table__table_id__tables_de_jeu_table__id');
 
   $$TablesDeJeuTableTableProcessedTableManager get tableId {
     final $_column = $_itemColumn<int>('table_id')!;
@@ -4516,6 +4302,52 @@ final class $$TableDoublettesTableTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $DoublettesTableTable _doubletteRowIdTable(_$AppDatabase db) =>
+      db.doublettesTable.createAlias(
+        'table_doublettes_table__doublette_row_id__doublettes_table__id',
+      );
+
+  $$DoublettesTableTableProcessedTableManager get doubletteRowId {
+    final $_column = $_itemColumn<int>('doublette_row_id')!;
+
+    final manager = $$DoublettesTableTableTableManager(
+      $_db,
+      $_db.doublettesTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_doubletteRowIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $DonneDoublettesTableTable,
+    List<DonneDoublettesTableData>
+  >
+  _donneDoublettesTableRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.donneDoublettesTable,
+    aliasName:
+        'table_doublettes_table__id__donne_doublettes_table__table_doublette_id',
+  );
+
+  $$DonneDoublettesTableTableProcessedTableManager
+  get donneDoublettesTableRefs {
+    final manager = $$DonneDoublettesTableTableTableManager(
+      $_db,
+      $_db.donneDoublettesTable,
+    ).filter((f) => f.tableDoubletteId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _donneDoublettesTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$TableDoublettesTableTableFilterComposer
@@ -4527,13 +4359,8 @@ class $$TableDoublettesTableTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get concoursId => $composableBuilder(
-    column: $table.concoursId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get doubletteId => $composableBuilder(
-    column: $table.doubletteId,
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4569,6 +4396,54 @@ class $$TableDoublettesTableTableFilterComposer
     );
     return composer;
   }
+
+  $$DoublettesTableTableFilterComposer get doubletteRowId {
+    final $$DoublettesTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.doubletteRowId,
+      referencedTable: $db.doublettesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DoublettesTableTableFilterComposer(
+            $db: $db,
+            $table: $db.doublettesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> donneDoublettesTableRefs(
+    Expression<bool> Function($$DonneDoublettesTableTableFilterComposer f) f,
+  ) {
+    final $$DonneDoublettesTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.donneDoublettesTable,
+      getReferencedColumn: (t) => t.tableDoubletteId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DonneDoublettesTableTableFilterComposer(
+            $db: $db,
+            $table: $db.donneDoublettesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TableDoublettesTableTableOrderingComposer
@@ -4580,13 +4455,8 @@ class $$TableDoublettesTableTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get concoursId => $composableBuilder(
-    column: $table.concoursId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get doubletteId => $composableBuilder(
-    column: $table.doubletteId,
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4622,6 +4492,29 @@ class $$TableDoublettesTableTableOrderingComposer
     );
     return composer;
   }
+
+  $$DoublettesTableTableOrderingComposer get doubletteRowId {
+    final $$DoublettesTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.doubletteRowId,
+      referencedTable: $db.doublettesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DoublettesTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.doublettesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TableDoublettesTableTableAnnotationComposer
@@ -4633,15 +4526,8 @@ class $$TableDoublettesTableTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get concoursId => $composableBuilder(
-    column: $table.concoursId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get doubletteId => $composableBuilder(
-    column: $table.doubletteId,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<int> get points =>
       $composableBuilder(column: $table.points, builder: (column) => column);
@@ -4671,6 +4557,55 @@ class $$TableDoublettesTableTableAnnotationComposer
     );
     return composer;
   }
+
+  $$DoublettesTableTableAnnotationComposer get doubletteRowId {
+    final $$DoublettesTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.doubletteRowId,
+      referencedTable: $db.doublettesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DoublettesTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.doublettesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> donneDoublettesTableRefs<T extends Object>(
+    Expression<T> Function($$DonneDoublettesTableTableAnnotationComposer a) f,
+  ) {
+    final $$DonneDoublettesTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.donneDoublettesTable,
+          getReferencedColumn: (t) => t.tableDoubletteId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DonneDoublettesTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.donneDoublettesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$TableDoublettesTableTableTableManager
@@ -4686,7 +4621,11 @@ class $$TableDoublettesTableTableTableManager
           $$TableDoublettesTableTableUpdateCompanionBuilder,
           (TableDoublettesTableData, $$TableDoublettesTableTableReferences),
           TableDoublettesTableData,
-          PrefetchHooks Function({bool tableId})
+          PrefetchHooks Function({
+            bool tableId,
+            bool doubletteRowId,
+            bool donneDoublettesTableRefs,
+          })
         > {
   $$TableDoublettesTableTableTableManager(
     _$AppDatabase db,
@@ -4709,35 +4648,31 @@ class $$TableDoublettesTableTableTableManager
               ),
           updateCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 Value<int> tableId = const Value.absent(),
-                Value<String> concoursId = const Value.absent(),
-                Value<int> doubletteId = const Value.absent(),
+                Value<int> doubletteRowId = const Value.absent(),
                 Value<int> points = const Value.absent(),
                 Value<String> statut = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => TableDoublettesTableCompanion(
+                id: id,
                 tableId: tableId,
-                concoursId: concoursId,
-                doubletteId: doubletteId,
+                doubletteRowId: doubletteRowId,
                 points: points,
                 statut: statut,
-                rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 required int tableId,
-                required String concoursId,
-                required int doubletteId,
+                required int doubletteRowId,
                 Value<int> points = const Value.absent(),
                 Value<String> statut = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => TableDoublettesTableCompanion.insert(
+                id: id,
                 tableId: tableId,
-                concoursId: concoursId,
-                doubletteId: doubletteId,
+                doubletteRowId: doubletteRowId,
                 points: points,
                 statut: statut,
-                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4747,49 +4682,93 @@ class $$TableDoublettesTableTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({tableId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (tableId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.tableId,
-                                referencedTable:
-                                    $$TableDoublettesTableTableReferences
-                                        ._tableIdTable(db),
-                                referencedColumn:
-                                    $$TableDoublettesTableTableReferences
-                                        ._tableIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                tableId = false,
+                doubletteRowId = false,
+                donneDoublettesTableRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (donneDoublettesTableRefs) db.donneDoublettesTable,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (tableId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.tableId,
+                                    referencedTable:
+                                        $$TableDoublettesTableTableReferences
+                                            ._tableIdTable(db),
+                                    referencedColumn:
+                                        $$TableDoublettesTableTableReferences
+                                            ._tableIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (doubletteRowId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.doubletteRowId,
+                                    referencedTable:
+                                        $$TableDoublettesTableTableReferences
+                                            ._doubletteRowIdTable(db),
+                                    referencedColumn:
+                                        $$TableDoublettesTableTableReferences
+                                            ._doubletteRowIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (donneDoublettesTableRefs)
+                        await $_getPrefetchedData<
+                          TableDoublettesTableData,
+                          $TableDoublettesTableTable,
+                          DonneDoublettesTableData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TableDoublettesTableTableReferences
+                              ._donneDoublettesTableRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TableDoublettesTableTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).donneDoublettesTableRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.tableDoubletteId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4806,77 +4785,54 @@ typedef $$TableDoublettesTableTableProcessedTableManager =
       $$TableDoublettesTableTableUpdateCompanionBuilder,
       (TableDoublettesTableData, $$TableDoublettesTableTableReferences),
       TableDoublettesTableData,
-      PrefetchHooks Function({bool tableId})
+      PrefetchHooks Function({
+        bool tableId,
+        bool doubletteRowId,
+        bool donneDoublettesTableRefs,
+      })
     >;
-typedef $$DealPointsTableTableCreateCompanionBuilder =
-    DealPointsTableCompanion Function({
-      required int tableId,
-      required String concoursId,
-      required int doubletteId,
-      required int mancheId,
-      required int dealNumber,
+typedef $$DonneDoublettesTableTableCreateCompanionBuilder =
+    DonneDoublettesTableCompanion Function({
+      Value<int> id,
+      required int tableDoubletteId,
+      required int donneNumero,
       Value<int> points,
-      Value<int> rowid,
     });
-typedef $$DealPointsTableTableUpdateCompanionBuilder =
-    DealPointsTableCompanion Function({
-      Value<int> tableId,
-      Value<String> concoursId,
-      Value<int> doubletteId,
-      Value<int> mancheId,
-      Value<int> dealNumber,
+typedef $$DonneDoublettesTableTableUpdateCompanionBuilder =
+    DonneDoublettesTableCompanion Function({
+      Value<int> id,
+      Value<int> tableDoubletteId,
+      Value<int> donneNumero,
       Value<int> points,
-      Value<int> rowid,
     });
 
-final class $$DealPointsTableTableReferences
+final class $$DonneDoublettesTableTableReferences
     extends
         BaseReferences<
           _$AppDatabase,
-          $DealPointsTableTable,
-          DealPointsTableData
+          $DonneDoublettesTableTable,
+          DonneDoublettesTableData
         > {
-  $$DealPointsTableTableReferences(
+  $$DonneDoublettesTableTableReferences(
     super.$_db,
     super.$_table,
     super.$_typedResult,
   );
 
-  static $TablesDeJeuTableTable _tableIdTable(_$AppDatabase db) =>
-      db.tablesDeJeuTable.createAlias(
-        $_aliasNameGenerator(
-          db.dealPointsTable.tableId,
-          db.tablesDeJeuTable.id,
-        ),
-      );
+  static $TableDoublettesTableTable _tableDoubletteIdTable(
+    _$AppDatabase db,
+  ) => db.tableDoublettesTable.createAlias(
+    'donne_doublettes_table__table_doublette_id__table_doublettes_table__id',
+  );
 
-  $$TablesDeJeuTableTableProcessedTableManager get tableId {
-    final $_column = $_itemColumn<int>('table_id')!;
+  $$TableDoublettesTableTableProcessedTableManager get tableDoubletteId {
+    final $_column = $_itemColumn<int>('table_doublette_id')!;
 
-    final manager = $$TablesDeJeuTableTableTableManager(
+    final manager = $$TableDoublettesTableTableTableManager(
       $_db,
-      $_db.tablesDeJeuTable,
+      $_db.tableDoublettesTable,
     ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_tableIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $ManchesTableTable _mancheIdTable(_$AppDatabase db) =>
-      db.manchesTable.createAlias(
-        $_aliasNameGenerator(db.dealPointsTable.mancheId, db.manchesTable.id),
-      );
-
-  $$ManchesTableTableProcessedTableManager get mancheId {
-    final $_column = $_itemColumn<int>('manche_id')!;
-
-    final manager = $$ManchesTableTableTableManager(
-      $_db,
-      $_db.manchesTable,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_mancheIdTable($_db));
+    final item = $_typedResult.readTableOrNull(_tableDoubletteIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -4884,27 +4840,22 @@ final class $$DealPointsTableTableReferences
   }
 }
 
-class $$DealPointsTableTableFilterComposer
-    extends Composer<_$AppDatabase, $DealPointsTableTable> {
-  $$DealPointsTableTableFilterComposer({
+class $$DonneDoublettesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DonneDoublettesTableTable> {
+  $$DonneDoublettesTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get concoursId => $composableBuilder(
-    column: $table.concoursId,
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get doubletteId => $composableBuilder(
-    column: $table.doubletteId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get dealNumber => $composableBuilder(
-    column: $table.dealNumber,
+  ColumnFilters<int> get donneNumero => $composableBuilder(
+    column: $table.donneNumero,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4913,43 +4864,20 @@ class $$DealPointsTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$TablesDeJeuTableTableFilterComposer get tableId {
-    final $$TablesDeJeuTableTableFilterComposer composer = $composerBuilder(
+  $$TableDoublettesTableTableFilterComposer get tableDoubletteId {
+    final $$TableDoublettesTableTableFilterComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.tableId,
-      referencedTable: $db.tablesDeJeuTable,
+      getCurrentColumn: (t) => t.tableDoubletteId,
+      referencedTable: $db.tableDoublettesTable,
       getReferencedColumn: (t) => t.id,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$TablesDeJeuTableTableFilterComposer(
+          }) => $$TableDoublettesTableTableFilterComposer(
             $db: $db,
-            $table: $db.tablesDeJeuTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$ManchesTableTableFilterComposer get mancheId {
-    final $$ManchesTableTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mancheId,
-      referencedTable: $db.manchesTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ManchesTableTableFilterComposer(
-            $db: $db,
-            $table: $db.manchesTable,
+            $table: $db.tableDoublettesTable,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4960,27 +4888,22 @@ class $$DealPointsTableTableFilterComposer
   }
 }
 
-class $$DealPointsTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $DealPointsTableTable> {
-  $$DealPointsTableTableOrderingComposer({
+class $$DonneDoublettesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DonneDoublettesTableTable> {
+  $$DonneDoublettesTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get concoursId => $composableBuilder(
-    column: $table.concoursId,
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get doubletteId => $composableBuilder(
-    column: $table.doubletteId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get dealNumber => $composableBuilder(
-    column: $table.dealNumber,
+  ColumnOrderings<int> get donneNumero => $composableBuilder(
+    column: $table.donneNumero,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4989,200 +4912,143 @@ class $$DealPointsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$TablesDeJeuTableTableOrderingComposer get tableId {
-    final $$TablesDeJeuTableTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.tableId,
-      referencedTable: $db.tablesDeJeuTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TablesDeJeuTableTableOrderingComposer(
-            $db: $db,
-            $table: $db.tablesDeJeuTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
+  $$TableDoublettesTableTableOrderingComposer get tableDoubletteId {
+    final $$TableDoublettesTableTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.tableDoubletteId,
+          referencedTable: $db.tableDoublettesTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$ManchesTableTableOrderingComposer get mancheId {
-    final $$ManchesTableTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mancheId,
-      referencedTable: $db.manchesTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ManchesTableTableOrderingComposer(
-            $db: $db,
-            $table: $db.manchesTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+              }) => $$TableDoublettesTableTableOrderingComposer(
+                $db: $db,
+                $table: $db.tableDoublettesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return composer;
   }
 }
 
-class $$DealPointsTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $DealPointsTableTable> {
-  $$DealPointsTableTableAnnotationComposer({
+class $$DonneDoublettesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DonneDoublettesTableTable> {
+  $$DonneDoublettesTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get concoursId => $composableBuilder(
-    column: $table.concoursId,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get doubletteId => $composableBuilder(
-    column: $table.doubletteId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get dealNumber => $composableBuilder(
-    column: $table.dealNumber,
+  GeneratedColumn<int> get donneNumero => $composableBuilder(
+    column: $table.donneNumero,
     builder: (column) => column,
   );
 
   GeneratedColumn<int> get points =>
       $composableBuilder(column: $table.points, builder: (column) => column);
 
-  $$TablesDeJeuTableTableAnnotationComposer get tableId {
-    final $$TablesDeJeuTableTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.tableId,
-      referencedTable: $db.tablesDeJeuTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TablesDeJeuTableTableAnnotationComposer(
-            $db: $db,
-            $table: $db.tablesDeJeuTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
+  $$TableDoublettesTableTableAnnotationComposer get tableDoubletteId {
+    final $$TableDoublettesTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.tableDoubletteId,
+          referencedTable: $db.tableDoublettesTable,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$ManchesTableTableAnnotationComposer get mancheId {
-    final $$ManchesTableTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mancheId,
-      referencedTable: $db.manchesTable,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ManchesTableTableAnnotationComposer(
-            $db: $db,
-            $table: $db.manchesTable,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+              }) => $$TableDoublettesTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.tableDoublettesTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return composer;
   }
 }
 
-class $$DealPointsTableTableTableManager
+class $$DonneDoublettesTableTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $DealPointsTableTable,
-          DealPointsTableData,
-          $$DealPointsTableTableFilterComposer,
-          $$DealPointsTableTableOrderingComposer,
-          $$DealPointsTableTableAnnotationComposer,
-          $$DealPointsTableTableCreateCompanionBuilder,
-          $$DealPointsTableTableUpdateCompanionBuilder,
-          (DealPointsTableData, $$DealPointsTableTableReferences),
-          DealPointsTableData,
-          PrefetchHooks Function({bool tableId, bool mancheId})
+          $DonneDoublettesTableTable,
+          DonneDoublettesTableData,
+          $$DonneDoublettesTableTableFilterComposer,
+          $$DonneDoublettesTableTableOrderingComposer,
+          $$DonneDoublettesTableTableAnnotationComposer,
+          $$DonneDoublettesTableTableCreateCompanionBuilder,
+          $$DonneDoublettesTableTableUpdateCompanionBuilder,
+          (DonneDoublettesTableData, $$DonneDoublettesTableTableReferences),
+          DonneDoublettesTableData,
+          PrefetchHooks Function({bool tableDoubletteId})
         > {
-  $$DealPointsTableTableTableManager(
+  $$DonneDoublettesTableTableTableManager(
     _$AppDatabase db,
-    $DealPointsTableTable table,
+    $DonneDoublettesTableTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$DealPointsTableTableFilterComposer($db: db, $table: table),
+              $$DonneDoublettesTableTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$DealPointsTableTableOrderingComposer($db: db, $table: table),
+              $$DonneDoublettesTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
-              $$DealPointsTableTableAnnotationComposer($db: db, $table: table),
+              $$DonneDoublettesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
           updateCompanionCallback:
               ({
-                Value<int> tableId = const Value.absent(),
-                Value<String> concoursId = const Value.absent(),
-                Value<int> doubletteId = const Value.absent(),
-                Value<int> mancheId = const Value.absent(),
-                Value<int> dealNumber = const Value.absent(),
+                Value<int> id = const Value.absent(),
+                Value<int> tableDoubletteId = const Value.absent(),
+                Value<int> donneNumero = const Value.absent(),
                 Value<int> points = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => DealPointsTableCompanion(
-                tableId: tableId,
-                concoursId: concoursId,
-                doubletteId: doubletteId,
-                mancheId: mancheId,
-                dealNumber: dealNumber,
+              }) => DonneDoublettesTableCompanion(
+                id: id,
+                tableDoubletteId: tableDoubletteId,
+                donneNumero: donneNumero,
                 points: points,
-                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required int tableId,
-                required String concoursId,
-                required int doubletteId,
-                required int mancheId,
-                required int dealNumber,
+                Value<int> id = const Value.absent(),
+                required int tableDoubletteId,
+                required int donneNumero,
                 Value<int> points = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => DealPointsTableCompanion.insert(
-                tableId: tableId,
-                concoursId: concoursId,
-                doubletteId: doubletteId,
-                mancheId: mancheId,
-                dealNumber: dealNumber,
+              }) => DonneDoublettesTableCompanion.insert(
+                id: id,
+                tableDoubletteId: tableDoubletteId,
+                donneNumero: donneNumero,
                 points: points,
-                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
                   e.readTable(table),
-                  $$DealPointsTableTableReferences(db, table, e),
+                  $$DonneDoublettesTableTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({tableId = false, mancheId = false}) {
+          prefetchHooksCallback: ({tableDoubletteId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -5202,32 +5068,17 @@ class $$DealPointsTableTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (tableId) {
+                    if (tableDoubletteId) {
                       state =
                           state.withJoin(
                                 currentTable: table,
-                                currentColumn: table.tableId,
+                                currentColumn: table.tableDoubletteId,
                                 referencedTable:
-                                    $$DealPointsTableTableReferences
-                                        ._tableIdTable(db),
+                                    $$DonneDoublettesTableTableReferences
+                                        ._tableDoubletteIdTable(db),
                                 referencedColumn:
-                                    $$DealPointsTableTableReferences
-                                        ._tableIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-                    if (mancheId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.mancheId,
-                                referencedTable:
-                                    $$DealPointsTableTableReferences
-                                        ._mancheIdTable(db),
-                                referencedColumn:
-                                    $$DealPointsTableTableReferences
-                                        ._mancheIdTable(db)
+                                    $$DonneDoublettesTableTableReferences
+                                        ._tableDoubletteIdTable(db)
                                         .id,
                               )
                               as T;
@@ -5244,19 +5095,19 @@ class $$DealPointsTableTableTableManager
       );
 }
 
-typedef $$DealPointsTableTableProcessedTableManager =
+typedef $$DonneDoublettesTableTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $DealPointsTableTable,
-      DealPointsTableData,
-      $$DealPointsTableTableFilterComposer,
-      $$DealPointsTableTableOrderingComposer,
-      $$DealPointsTableTableAnnotationComposer,
-      $$DealPointsTableTableCreateCompanionBuilder,
-      $$DealPointsTableTableUpdateCompanionBuilder,
-      (DealPointsTableData, $$DealPointsTableTableReferences),
-      DealPointsTableData,
-      PrefetchHooks Function({bool tableId, bool mancheId})
+      $DonneDoublettesTableTable,
+      DonneDoublettesTableData,
+      $$DonneDoublettesTableTableFilterComposer,
+      $$DonneDoublettesTableTableOrderingComposer,
+      $$DonneDoublettesTableTableAnnotationComposer,
+      $$DonneDoublettesTableTableCreateCompanionBuilder,
+      $$DonneDoublettesTableTableUpdateCompanionBuilder,
+      (DonneDoublettesTableData, $$DonneDoublettesTableTableReferences),
+      DonneDoublettesTableData,
+      PrefetchHooks Function({bool tableDoubletteId})
     >;
 
 class $AppDatabaseManager {
@@ -5272,6 +5123,6 @@ class $AppDatabaseManager {
       $$TablesDeJeuTableTableTableManager(_db, _db.tablesDeJeuTable);
   $$TableDoublettesTableTableTableManager get tableDoublettesTable =>
       $$TableDoublettesTableTableTableManager(_db, _db.tableDoublettesTable);
-  $$DealPointsTableTableTableManager get dealPointsTable =>
-      $$DealPointsTableTableTableManager(_db, _db.dealPointsTable);
+  $$DonneDoublettesTableTableTableManager get donneDoublettesTable =>
+      $$DonneDoublettesTableTableTableManager(_db, _db.donneDoublettesTable);
 }

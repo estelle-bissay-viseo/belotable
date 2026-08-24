@@ -94,7 +94,7 @@ class CreateDoubletteUseCase {
     if (mancheRepo != null) {
       await mancheRepo.assignDoubletteToLatestManche(
         concoursId: concoursId,
-        doubletteId: doublette.doubletteId,
+        doubletteRowId: doublette.id,
       );
     }
 
