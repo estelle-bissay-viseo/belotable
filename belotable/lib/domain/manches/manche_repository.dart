@@ -19,8 +19,8 @@ abstract interface class MancheRepository {
   /// or null if none exists.
   Future<Manche?> findLatestManche(String concoursId);
 
-  /// Returns ids of doublettes that have at least one "Abandon" status
-  /// across any manche in the concours.
+  /// Returns surrogate row ids (Doublette.id) of doublettes that have at
+  /// least one "Abandon" status across any manche in the concours.
   Future<List<int>> findDoublettesWithAbandonHistory(String concoursId);
 
   /// Returns tables with doublettes for a given manche id.
@@ -39,50 +39,42 @@ abstract interface class MancheRepository {
   /// Adds a doublette to a specific table.
   Future<void> addDoubletteToTable({
     required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   });
 
   /// Assigns a doublette to latest manche table, creating new table when all
   /// existing tables are full. No-op if no manche exists.
   Future<void> assignDoubletteToLatestManche({
     required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   });
 
   /// Removes a doublette from its table. Deletes the table if it becomes empty.
   Future<void> removeDoubletteFromTable({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   });
 
   /// Returns active table-doublette record for a doublette, or null.
   Future<TableDoublette?> findTableDoublette({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   });
 
   /// Returns all table-doublette records for a doublette across all manches,
   /// ordered by manche numero ascending.
-  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
-    required String concoursId,
-    required int doubletteId,
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteRowId({
+    required int doubletteRowId,
   });
 
-  /// Updates points for a doublette in a table.
+  /// Updates points for a table-doublette row.
   Future<void> updatePoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required int points,
   });
 
   /// Updates statut of a doublette in a table and its opponent if applicable.
   /// Returns the updated table with recomputed status.
   Future<TableDeJeu> updateStatut({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required TableDoubletteStatut statut,
   });
 
@@ -92,13 +84,16 @@ abstract interface class MancheRepository {
   Future<void> mergeTableDoublettes({
     required int targetTableId,
     required int sourceTableId,
-    required String concoursId,
   });
 
-  /// Initializes deal points for all doublettes in all tables of a manche.
-  Future<void> initializeDealPointsForManche({
+  /// Initializes donnes doublettes for all doublettes in all tables
+  /// of a manche.
+  Future<void> initializeDonneDoublettesForManche({
     required int mancheId,
-    required String concoursId,
     required int numberOfDeals,
   });
+
+  /// Recomputes and persists a doublette's total points across all manches,
+  /// given any of its table-doublette row ids.
+  Future<int> recalculateDoubletteTotalPoints(int tableDoubletteId);
 }

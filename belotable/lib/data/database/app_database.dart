@@ -49,6 +49,9 @@ class ConcoursTable extends Table {
 
 /// Table schema for storing registered doublettes per concours.
 class DoublettesTable extends Table {
+  /// Auto-generated surrogate primary key.
+  IntColumn get id => integer().autoIncrement()();
+
   /// Owning concours id.
   TextColumn get concoursId =>
       text().references(ConcoursTable, #id, onDelete: KeyAction.cascade)();
@@ -69,10 +72,8 @@ class DoublettesTable extends Table {
   IntColumn get totalPoints => integer().withDefault(const Constant(0))();
 
   @override
-  Set<Column<Object>> get primaryKey => {concoursId, doubletteId};
-
-  @override
   List<Set<Column<Object>>> get uniqueKeys => [
+    {concoursId, doubletteId},
     {concoursId, nomEquipe},
   ];
 }
@@ -111,6 +112,9 @@ class TablesDeJeuTable extends Table {
 
 /// Table schema for doublette participation in a match table.
 class TableDoublettesTable extends Table {
+  /// Auto-generated surrogate primary key.
+  IntColumn get id => integer().autoIncrement()();
+
   /// Owning table id.
   IntColumn get tableId => integer().references(
     TablesDeJeuTable,
@@ -118,11 +122,12 @@ class TableDoublettesTable extends Table {
     onDelete: KeyAction.cascade,
   )();
 
-  /// Owning concours id (matches doublette scope).
-  TextColumn get concoursId => text()();
-
-  /// Doublette registration id.
-  IntColumn get doubletteId => integer()();
+  /// Owning doublette row id (FK to DoublettesTable.id).
+  IntColumn get doubletteRowId => integer().references(
+    DoublettesTable,
+    #id,
+    onDelete: KeyAction.cascade,
+  )();
 
   /// Points achieved in this table.
   IntColumn get points => integer().withDefault(const Constant(0))();
@@ -131,42 +136,34 @@ class TableDoublettesTable extends Table {
   TextColumn get statut => text().withDefault(const Constant('En attente'))();
 
   @override
-  Set<Column<Object>> get primaryKey => {tableId, concoursId, doubletteId};
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {tableId, doubletteRowId},
+  ];
 }
 
-/// Table schema for deal-level points per doublette in a table.
-class DealPointsTable extends Table {
-  /// Owning table id.
-  IntColumn get tableId => integer().references(
-    TablesDeJeuTable,
+/// Table schema for deal-level points (donnes doublettes) per doublette
+///  in a table.
+class DonneDoublettesTable extends Table {
+  /// Auto-generated surrogate primary key.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Owning table-doublette row id (FK to TableDoublettesTable.id).
+  IntColumn get tableDoubletteId => integer().references(
+    TableDoublettesTable,
     #id,
     onDelete: KeyAction.cascade,
   )();
 
-  /// Owning concours id.
-  TextColumn get concoursId => text()();
-
-  /// Doublette registration id.
-  IntColumn get doubletteId => integer()();
-
-  /// Owning manche id.
-  IntColumn get mancheId =>
-      integer().references(ManchesTable, #id, onDelete: KeyAction.cascade)();
-
-  /// Deal number (1-based), e.g. 1, 2, ..., 10.
-  IntColumn get dealNumber => integer()();
+  /// Donne number within the table (1-based), e.g. 1, 2, ..., 10.
+  IntColumn get donneNumero => integer()();
 
   /// Points for this deal.
   IntColumn get points => integer().withDefault(const Constant(0))();
 
   @override
-  Set<Column<Object>> get primaryKey => {
-    tableId,
-    concoursId,
-    doubletteId,
-    mancheId,
-    dealNumber,
-  };
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {tableDoubletteId, donneNumero},
+  ];
 }
 
 /// Data Access Object for Concours table operations.
@@ -301,7 +298,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
               .getSingle();
       final nextId = (maxIdRow.read(maxIdExpr) ?? 0) + 1;
 
-      await into(doublettesTable).insert(
+      final id = await into(doublettesTable).insert(
         DoublettesTableCompanion.insert(
           concoursId: concoursId,
           doubletteId: nextId,
@@ -312,6 +309,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
       );
 
       return Doublette(
+        id: id,
         concoursId: concoursId,
         doubletteId: nextId,
         joueurA: joueurA,
@@ -321,12 +319,10 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
-  /// Updates one doublette by composite key.
+  /// Updates one doublette by surrogate id.
   Future<Doublette> updateDoublette(Doublette doublette) async {
     await (update(doublettesTable)..where(
-          (tbl) =>
-              tbl.concoursId.equals(doublette.concoursId) &
-              tbl.doubletteId.equals(doublette.doubletteId),
+          (tbl) => tbl.id.equals(doublette.id),
         ))
         .write(
           DoublettesTableCompanion(
@@ -340,7 +336,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
     return doublette;
   }
 
-  /// Returns one doublette by composite key.
+  /// Returns one doublette by composite (concoursId, business doubletteId).
   Future<Doublette?> findDoubletteById({
     required String concoursId,
     required int doubletteId,
@@ -358,6 +354,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
     }
 
     return Doublette(
+      id: row.id,
       concoursId: row.concoursId,
       doubletteId: row.doubletteId,
       joueurA: row.joueurA,
@@ -378,6 +375,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
     return rows
         .map(
           (row) => Doublette(
+            id: row.id,
             concoursId: row.concoursId,
             doubletteId: row.doubletteId,
             joueurA: row.joueurA,
@@ -393,34 +391,27 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
   Future<bool> teamNameExists({
     required String concoursId,
     required String nomEquipe,
-    int? excludingDoubletteId,
+    int? excludingId,
   }) async {
     final normalizedTeamName = nomEquipe.toLowerCase();
     final query = selectOnly(doublettesTable)
-      ..addColumns([doublettesTable.doubletteId.count()])
+      ..addColumns([doublettesTable.id.count()])
       ..where(doublettesTable.concoursId.equals(concoursId))
       ..where(doublettesTable.nomEquipe.lower().equals(normalizedTeamName));
 
-    if (excludingDoubletteId != null) {
-      query.where(doublettesTable.doubletteId.isNotValue(excludingDoubletteId));
+    if (excludingId != null) {
+      query.where(doublettesTable.id.isNotValue(excludingId));
     }
 
     final row = await query.getSingle();
-    return (row.read(doublettesTable.doubletteId.count()) ?? 0) > 0;
+    return (row.read(doublettesTable.id.count()) ?? 0) > 0;
   }
 
-  /// Deletes one doublette by composite key.
-  Future<bool> deleteDoublette({
-    required String concoursId,
-    required int doubletteId,
-  }) async {
-    final result =
-        await (delete(doublettesTable)..where(
-              (tbl) =>
-                  tbl.concoursId.equals(concoursId) &
-                  tbl.doubletteId.equals(doubletteId),
-            ))
-            .go();
+  /// Deletes one doublette by surrogate id.
+  Future<bool> deleteDoublette(int id) async {
+    final result = await (delete(
+      doublettesTable,
+    )..where((tbl) => tbl.id.equals(id))).go();
 
     return result > 0;
   }
@@ -432,7 +423,7 @@ class DoublettesDao extends DatabaseAccessor<AppDatabase>
     ManchesTable,
     TablesDeJeuTable,
     TableDoublettesTable,
-    DealPointsTable,
+    DonneDoublettesTable,
     DoublettesTable,
   ],
 )
@@ -511,10 +502,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     final rows = await (select(tableDoublettesTable).join([
       innerJoin(
         doublettesTable,
-        doublettesTable.concoursId.equalsExp(tableDoublettesTable.concoursId) &
-            doublettesTable.doubletteId.equalsExp(
-              tableDoublettesTable.doubletteId,
-            ),
+        doublettesTable.id.equalsExp(tableDoublettesTable.doubletteRowId),
       ),
     ])..where(tableDoublettesTable.tableId.equals(tableId))).get();
 
@@ -523,9 +511,10 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
           final td = row.readTable(tableDoublettesTable);
           final d = row.readTable(doublettesTable);
           return TableDoublette(
+            id: td.id,
             tableId: td.tableId,
-            concoursId: td.concoursId,
-            doubletteId: td.doubletteId,
+            concoursId: d.concoursId,
+            doubletteId: d.doubletteId,
             points: td.points,
             statut: TableDoubletteStatut.fromDb(td.statut),
             nomEquipe: d.nomEquipe,
@@ -553,7 +542,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
             .get();
 
     for (final table in tableRows) {
-      final countExpr = tableDoublettesTable.doubletteId.count();
+      final countExpr = tableDoublettesTable.id.count();
       final query = selectOnly(tableDoublettesTable)
         ..addColumns([countExpr])
         ..where(tableDoublettesTable.tableId.equals(table.id));
@@ -570,8 +559,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
   /// Adds a doublette to a specific table.
   Future<void> addDoubletteToTable({
     required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     final targetTable = await (select(
       tablesDeJeuTable,
@@ -580,7 +568,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
       return;
     }
 
-    final countExpr = tableDoublettesTable.doubletteId.count();
+    final countExpr = tableDoublettesTable.id.count();
     final countQuery = selectOnly(tableDoublettesTable)
       ..addColumns([countExpr])
       ..where(tableDoublettesTable.tableId.equals(tableId));
@@ -597,8 +585,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
                 tablesDeJeuTable.id.equalsExp(tableDoublettesTable.tableId),
               ),
             ])..where(
-              tableDoublettesTable.concoursId.equals(concoursId) &
-                  tableDoublettesTable.doubletteId.equals(doubletteId) &
+              tableDoublettesTable.doubletteRowId.equals(doubletteRowId) &
                   tablesDeJeuTable.mancheId.equals(targetTable.mancheId),
             ))
             .getSingleOrNull();
@@ -610,8 +597,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     await into(tableDoublettesTable).insert(
       TableDoublettesTableCompanion.insert(
         tableId: tableId,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
+        doubletteRowId: doubletteRowId,
       ),
     );
   }
@@ -619,7 +605,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
   /// Assigns doublette to latest manche table or creates a new table if needed.
   Future<void> assignDoubletteToLatestManche({
     required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     await transaction(() async {
       final latestManche =
@@ -640,8 +626,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
                   tablesDeJeuTable.id.equalsExp(tableDoublettesTable.tableId),
                 ),
               ])..where(
-                tableDoublettesTable.concoursId.equals(concoursId) &
-                    tableDoublettesTable.doubletteId.equals(doubletteId) &
+                tableDoublettesTable.doubletteRowId.equals(doubletteRowId) &
                     tablesDeJeuTable.mancheId.equals(latestManche.id),
               ))
               .getSingleOrNull();
@@ -667,26 +652,32 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
         );
         targetTableId = newTable.id;
       }
+      final resolvedTableId = targetTableId;
 
       await addDoubletteToTable(
-        tableId: targetTableId,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
+        tableId: resolvedTableId,
+        doubletteRowId: doubletteRowId,
       );
 
-      // Initialize deal points for the newly added doublette
+      // Initialize donnes doublettes for the newly added doublette
       final concours = await (select(
         concoursTable,
       )..where((c) => c.id.equals(concoursId))).getSingleOrNull();
 
       if (concours != null) {
-        await initializeDealPoints(
-          tableId: targetTableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          mancheId: latestManche.id,
-          numberOfDeals: concours.nombreDonnesParManche,
-        );
+        final insertedRow =
+            await (select(tableDoublettesTable)..where(
+                  (t) =>
+                      t.tableId.equals(resolvedTableId) &
+                      t.doubletteRowId.equals(doubletteRowId),
+                ))
+                .getSingleOrNull();
+        if (insertedRow != null) {
+          await initializeDonneDoublettes(
+            tableDoubletteId: insertedRow.id,
+            numberOfDeals: concours.nombreDonnesParManche,
+          );
+        }
       }
     });
   }
@@ -695,7 +686,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
   /// Creates new table in manche 1 when needed, or no-op if conditions not met.
   Future<void> assignDoubletteToManche1Only({
     required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     await transaction(() async {
       // Find manche 1
@@ -727,8 +718,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
                   tablesDeJeuTable.id.equalsExp(tableDoublettesTable.tableId),
                 ),
               ])..where(
-                tableDoublettesTable.concoursId.equals(concoursId) &
-                    tableDoublettesTable.doubletteId.equals(doubletteId) &
+                tableDoublettesTable.doubletteRowId.equals(doubletteRowId) &
                     tablesDeJeuTable.mancheId.equals(manche1.id),
               ))
               .getSingleOrNull();
@@ -755,49 +745,50 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
         );
         targetTableId = newTable.id;
       }
+      final resolvedTableId = targetTableId;
 
       await addDoubletteToTable(
-        tableId: targetTableId,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
+        tableId: resolvedTableId,
+        doubletteRowId: doubletteRowId,
       );
 
-      // Initialize deal points
+      // Initialize donnes doublettes
       final concours = await (select(
         concoursTable,
       )..where((c) => c.id.equals(concoursId))).getSingleOrNull();
 
       if (concours != null) {
-        await initializeDealPoints(
-          tableId: targetTableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          mancheId: manche1.id,
-          numberOfDeals: concours.nombreDonnesParManche,
-        );
+        final insertedRow =
+            await (select(tableDoublettesTable)..where(
+                  (t) =>
+                      t.tableId.equals(resolvedTableId) &
+                      t.doubletteRowId.equals(doubletteRowId),
+                ))
+                .getSingleOrNull();
+        if (insertedRow != null) {
+          await initializeDonneDoublettes(
+            tableDoubletteId: insertedRow.id,
+            numberOfDeals: concours.nombreDonnesParManche,
+          );
+        }
       }
     });
   }
 
   /// Returns the table-doublette record for a doublette, or null.
   Future<TableDoublette?> findTableDoublette({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
     final rows =
         await (select(tableDoublettesTable).join([
               innerJoin(
                 doublettesTable,
-                doublettesTable.concoursId.equalsExp(
-                      tableDoublettesTable.concoursId,
-                    ) &
-                    doublettesTable.doubletteId.equalsExp(
-                      tableDoublettesTable.doubletteId,
-                    ),
+                doublettesTable.id.equalsExp(
+                  tableDoublettesTable.doubletteRowId,
+                ),
               ),
             ])..where(
-              tableDoublettesTable.concoursId.equals(concoursId) &
-                  tableDoublettesTable.doubletteId.equals(doubletteId),
+              tableDoublettesTable.doubletteRowId.equals(doubletteRowId),
             ))
             .get();
 
@@ -809,9 +800,10 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     final td = row.readTable(tableDoublettesTable);
     final d = row.readTable(doublettesTable);
     return TableDoublette(
+      id: td.id,
       tableId: td.tableId,
-      concoursId: td.concoursId,
-      doubletteId: td.doubletteId,
+      concoursId: d.concoursId,
+      doubletteId: d.doubletteId,
       points: td.points,
       statut: TableDoubletteStatut.fromDb(td.statut),
       nomEquipe: d.nomEquipe,
@@ -820,20 +812,16 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
 
   /// Returns all table-doublette records for a doublette across all manches,
   /// ordered by manche numero ascending.
-  Future<List<TableDoublette>> findTableDoublettesByDoubletteId({
-    required String concoursId,
-    required int doubletteId,
+  Future<List<TableDoublette>> findTableDoublettesByDoubletteRowId({
+    required int doubletteRowId,
   }) async {
     final rows =
         await (select(tableDoublettesTable).join([
                 innerJoin(
                   doublettesTable,
-                  doublettesTable.concoursId.equalsExp(
-                        tableDoublettesTable.concoursId,
-                      ) &
-                      doublettesTable.doubletteId.equalsExp(
-                        tableDoublettesTable.doubletteId,
-                      ),
+                  doublettesTable.id.equalsExp(
+                    tableDoublettesTable.doubletteRowId,
+                  ),
                 ),
                 innerJoin(
                   tablesDeJeuTable,
@@ -845,8 +833,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
                 ),
               ])
               ..where(
-                tableDoublettesTable.concoursId.equals(concoursId) &
-                    tableDoublettesTable.doubletteId.equals(doubletteId),
+                tableDoublettesTable.doubletteRowId.equals(doubletteRowId),
               )
               ..orderBy([
                 OrderingTerm.asc(manchesTable.numero),
@@ -858,9 +845,10 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
           final td = row.readTable(tableDoublettesTable);
           final d = row.readTable(doublettesTable);
           return TableDoublette(
+            id: td.id,
             tableId: td.tableId,
-            concoursId: td.concoursId,
-            doubletteId: td.doubletteId,
+            concoursId: d.concoursId,
+            doubletteId: d.doubletteId,
             points: td.points,
             statut: TableDoubletteStatut.fromDb(td.statut),
             nomEquipe: d.nomEquipe,
@@ -871,24 +859,16 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
 
   /// Removes a doublette from its table. Deletes the table if empty.
   Future<void> removeDoubletteFromTable({
-    required String concoursId,
-    required int doubletteId,
+    required int doubletteRowId,
   }) async {
-    final td = await findTableDoublette(
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-    );
+    final td = await findTableDoublette(doubletteRowId: doubletteRowId);
     if (td == null) {
       return;
     }
 
-    await (delete(tableDoublettesTable)..where(
-          (t) =>
-              t.tableId.equals(td.tableId) &
-              t.concoursId.equals(concoursId) &
-              t.doubletteId.equals(doubletteId),
-        ))
-        .go();
+    await (delete(
+      tableDoublettesTable,
+    )..where((t) => t.id.equals(td.id))).go();
 
     // Delete table if now empty
     final remaining = await (select(
@@ -903,32 +883,27 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
 
   /// Updates points of a doublette in a table.
   Future<void> updatePoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required int points,
   }) async {
     await (update(tableDoublettesTable)..where(
-          (t) =>
-              t.tableId.equals(tableId) &
-              t.concoursId.equals(concoursId) &
-              t.doubletteId.equals(doubletteId),
+          (t) => t.id.equals(tableDoubletteId),
         ))
         .write(TableDoublettesTableCompanion(points: Value(points)));
   }
 
   /// Updates statut of a doublette and applies opponent/table status rules.
   Future<TableDeJeu> updateStatutWithRules({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
+    required int tableDoubletteId,
     required TableDoubletteStatut statut,
   }) async {
+    final targetRow = await (select(
+      tableDoublettesTable,
+    )..where((t) => t.id.equals(tableDoubletteId))).getSingle();
+    final tableId = targetRow.tableId;
+
     await (update(tableDoublettesTable)..where(
-          (t) =>
-              t.tableId.equals(tableId) &
-              t.concoursId.equals(concoursId) &
-              t.doubletteId.equals(doubletteId),
+          (t) => t.id.equals(tableDoubletteId),
         ))
         .write(TableDoublettesTableCompanion(statut: Value(statut.label)));
 
@@ -942,9 +917,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
 
       await (update(tableDoublettesTable)..where(
             (t) =>
-                t.tableId.equals(tableId) &
-                t.concoursId.equals(concoursId) &
-                t.doubletteId.isNotValue(doubletteId),
+                t.tableId.equals(tableId) & t.id.isNotValue(tableDoubletteId),
           ))
           .write(
             TableDoublettesTableCompanion(statut: Value(opponentStatut.label)),
@@ -1035,26 +1008,13 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
   Future<void> mergeTableDoublettes({
     required int targetTableId,
     required int sourceTableId,
-    required String concoursId,
   }) async {
     await transaction(() async {
       // Move all doublettes from source to target
-      final sourceDoublettes = await (select(
-        tableDoublettesTable,
-      )..where((t) => t.tableId.equals(sourceTableId))).get();
-
-      for (final sourceTd in sourceDoublettes) {
-        // Update the doublette to point to target table
-        await (update(tableDoublettesTable)..where(
-              (t) =>
-                  t.tableId.equals(sourceTableId) &
-                  t.concoursId.equals(sourceTd.concoursId) &
-                  t.doubletteId.equals(sourceTd.doubletteId),
-            ))
-            .write(
-              TableDoublettesTableCompanion(tableId: Value(targetTableId)),
-            );
-      }
+      await (update(tableDoublettesTable)..where(
+            (t) => t.tableId.equals(sourceTableId),
+          ))
+          .write(TableDoublettesTableCompanion(tableId: Value(targetTableId)));
 
       // Delete source table
       await (delete(
@@ -1073,85 +1033,83 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
     });
   }
 
-  /// Initializes all deals with 0 points for a doublette in a table.
-  Future<void> initializeDealPoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+  /// Initializes all deals with 0 points for a table-doublette.
+  Future<void> initializeDonneDoublettes({
+    required int tableDoubletteId,
     required int numberOfDeals,
   }) async {
-    for (var dealNumber = 1; dealNumber <= numberOfDeals; dealNumber++) {
-      await into(dealPointsTable).insert(
-        DealPointsTableCompanion.insert(
-          tableId: tableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          mancheId: mancheId,
-          dealNumber: dealNumber,
+    for (var donneNumero = 1; donneNumero <= numberOfDeals; donneNumero++) {
+      await into(donneDoublettesTable).insert(
+        DonneDoublettesTableCompanion.insert(
+          tableDoubletteId: tableDoubletteId,
+          donneNumero: donneNumero,
         ),
       );
     }
   }
 
-  /// Returns all deal points for a specific table-doublette.
-  Future<List<DealPointsTableData>> findDealPointsForTableDoublette({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+  /// Returns all donnes doublettes for a specific table-doublette.
+  Future<List<DonneDoublettesTableData>> findDonneDoublettesForTableDoublette({
+    required int tableDoubletteId,
   }) async {
-    return (select(dealPointsTable)
-          ..where(
-            (dp) =>
-                dp.tableId.equals(tableId) &
-                dp.concoursId.equals(concoursId) &
-                dp.doubletteId.equals(doubletteId) &
-                dp.mancheId.equals(mancheId),
-          )
-          ..orderBy([(dp) => OrderingTerm.asc(dp.dealNumber)]))
+    return (select(donneDoublettesTable)
+          ..where((dp) => dp.tableDoubletteId.equals(tableDoubletteId))
+          ..orderBy([(dp) => OrderingTerm.asc(dp.donneNumero)]))
         .get();
   }
 
   /// Updates points for a specific deal.
-  Future<void> updateDealPoints({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
-    required int dealNumber,
+  Future<void> updateDonneDoublette({
+    required int tableDoubletteId,
+    required int donneNumero,
     required int points,
   }) async {
-    await (update(dealPointsTable)..where(
+    await (update(donneDoublettesTable)..where(
           (dp) =>
-              dp.tableId.equals(tableId) &
-              dp.concoursId.equals(concoursId) &
-              dp.doubletteId.equals(doubletteId) &
-              dp.mancheId.equals(mancheId) &
-              dp.dealNumber.equals(dealNumber),
+              dp.tableDoubletteId.equals(tableDoubletteId) &
+              dp.donneNumero.equals(donneNumero),
         ))
-        .write(DealPointsTableCompanion(points: Value(points)));
+        .write(DonneDoublettesTableCompanion(points: Value(points)));
   }
 
-  /// Calculates total points for a doublette in a table from all deals.
+  /// Calculates total points for a table-doublette from all deals.
   Future<int> calculateTotalPointsFromDeals({
-    required int tableId,
-    required String concoursId,
-    required int doubletteId,
-    required int mancheId,
+    required int tableDoubletteId,
   }) async {
-    final pointsExpr = dealPointsTable.points.sum();
-    final query = selectOnly(dealPointsTable)
+    final pointsExpr = donneDoublettesTable.points.sum();
+    final query = selectOnly(donneDoublettesTable)
       ..addColumns([pointsExpr])
-      ..where(
-        dealPointsTable.tableId.equals(tableId) &
-            dealPointsTable.concoursId.equals(concoursId) &
-            dealPointsTable.doubletteId.equals(doubletteId) &
-            dealPointsTable.mancheId.equals(mancheId),
-      );
+      ..where(donneDoublettesTable.tableDoubletteId.equals(tableDoubletteId));
 
     final row = await query.getSingleOrNull();
     return row?.read(pointsExpr) ?? 0;
+  }
+
+  /// Recomputes and persists a doublette's total points across all manches,
+  /// given any of its table-doublette row ids.
+  Future<int> recalculateDoubletteTotalPoints(int tableDoubletteId) async {
+    final row = await (select(
+      tableDoublettesTable,
+    )..where((t) => t.id.equals(tableDoubletteId))).getSingle();
+    final doubletteRowId = row.doubletteRowId;
+
+    final totalExpr = tableDoublettesTable.points.sum();
+    final totalRow =
+        await (selectOnly(tableDoublettesTable)
+              ..addColumns([totalExpr])
+              ..where(
+                tableDoublettesTable.doubletteRowId.equals(doubletteRowId),
+              ))
+            .getSingle();
+    final total = totalRow.read(totalExpr) ?? 0;
+
+    await (update(
+      doublettesTable,
+    )..where((d) => d.id.equals(doubletteRowId))).write(
+      DoublettesTableCompanion(totalPoints: Value(total)),
+    );
+
+    return total;
   }
 
   /// Returns the latest (highest numero) manche for a concours, or null.
@@ -1163,8 +1121,8 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
         .getSingleOrNull();
   }
 
-  /// Returns ids of doublettes with at least one "Abandon" status across
-  /// any manche in the concours.
+  /// Returns surrogate row ids (Doublettes.id) of doublettes with at least
+  /// one "Abandon" status across any manche in the concours.
   Future<List<int>> findDoublettesWithAbandonHistory(
     String concoursId,
   ) async {
@@ -1183,11 +1141,11 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
                 manchesTable.concoursId.equals(concoursId) &
                     tableDoublettesTable.statut.equals('Abandon'),
               )
-              ..groupBy([tableDoublettesTable.doubletteId]))
+              ..groupBy([tableDoublettesTable.doubletteRowId]))
             .get();
 
     return rows
-        .map((row) => row.readTable(tableDoublettesTable).doubletteId)
+        .map((row) => row.readTable(tableDoublettesTable).doubletteRowId)
         .toList(growable: false);
   }
 }
@@ -1208,7 +1166,7 @@ String _dbName() {
     ManchesTable,
     TablesDeJeuTable,
     TableDoublettesTable,
-    DealPointsTable,
+    DonneDoublettesTable,
   ],
   daos: [ConcoursDao, DoublettesDao, ManchesDao],
 )

@@ -96,15 +96,13 @@ void main() {
           await database.manchesDao.insertTableDoublette(
             TableDoublettesTableCompanion.insert(
               tableId: tableRow.id,
-              concoursId: 'id-ranking-with-manche',
-              doubletteId: d1.doubletteId,
+              doubletteRowId: d1.id,
             ),
           );
           await database.manchesDao.insertTableDoublette(
             TableDoublettesTableCompanion.insert(
               tableId: tableRow.id,
-              concoursId: 'id-ranking-with-manche',
-              doubletteId: d2.doubletteId,
+              doubletteRowId: d2.id,
             ),
           );
         },
@@ -176,15 +174,13 @@ void main() {
           await database.manchesDao.insertTableDoublette(
             TableDoublettesTableCompanion.insert(
               tableId: tableRow.id,
-              concoursId: 'id-ranking-nav',
-              doubletteId: d1.doubletteId,
+              doubletteRowId: d1.id,
             ),
           );
           await database.manchesDao.insertTableDoublette(
             TableDoublettesTableCompanion.insert(
               tableId: tableRow.id,
-              concoursId: 'id-ranking-nav',
-              doubletteId: d2.doubletteId,
+              doubletteRowId: d2.id,
             ),
           );
         },

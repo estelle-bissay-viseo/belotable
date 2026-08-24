@@ -46,12 +46,18 @@ class DeleteDoubletteUseCase {
       throw ArgumentError.value(doubletteId, 'doubletteId', 'doubletteId > 0');
     }
 
+    final doublette = await _repository.findById(
+      concoursId: trimmedConcoursId,
+      doubletteId: doubletteId,
+    );
+    if (doublette == null) {
+      return false;
+    }
+
     final mancheRepo = mancheRepository;
     if (mancheRepo != null) {
-      final tableDoublettes = await mancheRepo.findTableDoublettesByDoubletteId(
-        concoursId: trimmedConcoursId,
-        doubletteId: doubletteId,
-      );
+      final tableDoublettes = await mancheRepo
+          .findTableDoublettesByDoubletteRowId(doubletteRowId: doublette.id);
 
       // Check if any record has status other than enAttente
       for (final tableDoublette in tableDoublettes) {
@@ -63,8 +69,7 @@ class DeleteDoubletteUseCase {
       // If there are any enAttente records, remove from table
       if (tableDoublettes.isNotEmpty) {
         await mancheRepo.removeDoubletteFromTable(
-          concoursId: trimmedConcoursId,
-          doubletteId: doubletteId,
+          doubletteRowId: doublette.id,
         );
 
         // Try to merge tables if this deletion leaves a table
@@ -77,10 +82,7 @@ class DeleteDoubletteUseCase {
       }
     }
 
-    return _repository.delete(
-      concoursId: trimmedConcoursId,
-      doubletteId: doubletteId,
-    );
+    return _repository.delete(doublette.id);
   }
 
   /// Merges single-doublette tables if conditions are met.
@@ -142,7 +144,6 @@ class DeleteDoubletteUseCase {
     await mancheRepo.mergeTableDoublettes(
       targetTableId: targetId,
       sourceTableId: sourceId,
-      concoursId: concoursId,
     );
   }
 }

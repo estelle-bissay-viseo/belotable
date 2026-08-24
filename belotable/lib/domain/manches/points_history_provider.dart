@@ -1,3 +1,4 @@
+import 'package:belotable/domain/doublettes/doublette.dart';
 import 'package:belotable/domain/manches/points_history_row.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,19 +11,28 @@ final pointsHistoryProvider = FutureProvider.autoDispose
       final mancheRepo = ref.watch(mancheRepositoryProvider);
       final doubletteRepo = ref.watch(doubletteRepositoryProvider);
 
-      final tableDoublettes = await mancheRepo.findTableDoublettesByDoubletteId(
-        concoursId: concoursId,
-        doubletteId: doubletteId,
-      );
-
-      final allManches = await mancheRepo.findManchesByConcoursId(concoursId);
-      final mancheById = {for (final m in allManches) m.id: m.numero};
-
-      // Get all doublettes to map opponent ids to names
+      // Get all doublettes to map opponent ids to names and resolve
+      // the surrogate row id for the target business doubletteId.
       final allDoublettes = await doubletteRepo.findByConcoursId(concoursId);
       final doubletteNameById = {
         for (final d in allDoublettes) d.doubletteId: d.nomEquipe,
       };
+      Doublette? target;
+      for (final d in allDoublettes) {
+        if (d.doubletteId == doubletteId) {
+          target = d;
+          break;
+        }
+      }
+      if (target == null) {
+        return <PointsHistoryRow>[];
+      }
+
+      final tableDoublettes = await mancheRepo
+          .findTableDoublettesByDoubletteRowId(doubletteRowId: target.id);
+
+      final allManches = await mancheRepo.findManchesByConcoursId(concoursId);
+      final mancheById = {for (final m in allManches) m.id: m.numero};
 
       // Get all tables to map tableId -> opponents in same table
       final allTables = await mancheRepo.findTablesDeJeuByConcoursId(

@@ -16,15 +16,20 @@ typedef _Deps = ({
   InMemoryConcoursRepository concoursRepository,
 });
 
+_Deps _makeDeps() {
+  final doubletteRepository = InMemoryDoubletteRepository();
+  return (
+    doubletteRepository: doubletteRepository,
+    mancheRepository: InMemoryMancheRepository(doubletteRepository),
+    concoursRepository: InMemoryConcoursRepository(),
+  );
+}
+
 void main() {
   group('DeleteDoubletteUseCase', () {
     useCaseTest<_Deps, DeleteDoubletteUseCase>(
       'removes pending doublette from table then deletes it',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => DeleteDoubletteUseCase(
         deps.doubletteRepository,
         mancheRepository: deps.mancheRepository,
@@ -65,11 +70,7 @@ void main() {
 
     useCaseTest<_Deps, DeleteDoubletteUseCase>(
       'throws exception when doublette already in play',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => DeleteDoubletteUseCase(
         deps.doubletteRepository,
         mancheRepository: deps.mancheRepository,
@@ -102,9 +103,9 @@ void main() {
         )).first;
 
         await deps.mancheRepository.updateStatut(
-          tableId: table.id,
-          concoursId: 'c-1',
-          doubletteId: 1,
+          tableDoubletteId: table.doublettes
+              .firstWhere((d) => d.doubletteId == 1)
+              .id,
           statut: TableDoubletteStatut.enJeu,
         );
 
@@ -147,11 +148,7 @@ void main() {
 
     useCaseTest<_Deps, DeleteDoubletteUseCase>(
       'merges tables when both have single doublette in enAttente status',
-      dependenciesFactory: () => (
-        doubletteRepository: InMemoryDoubletteRepository(),
-        mancheRepository: InMemoryMancheRepository(),
-        concoursRepository: InMemoryConcoursRepository(),
-      ),
+      dependenciesFactory: _makeDeps,
       useCaseFactory: (deps) => DeleteDoubletteUseCase(
         deps.doubletteRepository,
         mancheRepository: deps.mancheRepository,

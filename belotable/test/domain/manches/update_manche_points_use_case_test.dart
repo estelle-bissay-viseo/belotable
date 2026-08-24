@@ -1,7 +1,7 @@
 import 'package:belotable/domain/manches/update_manche_points_use_case.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../helpers/in_memory_deal_points_repository.dart';
+import '../../helpers/in_memory_donne_doublette_repository.dart';
 import '../../helpers/in_memory_doublette_repository.dart';
 import '../../helpers/in_memory_manche_repository.dart';
 
@@ -9,12 +9,11 @@ void main() {
   group('UpdateManchePointsUseCase', () {
     test('updates deal points and calculates total', () async {
       const concoursId = 'concours1';
-      const doubletteId = 1;
-      const dealNumber = 1;
+      const donneNumero = 1;
 
-      final mancheRepo = InMemoryMancheRepository();
       final doubletteRepo = InMemoryDoubletteRepository();
-      final dealPointsRepo = InMemoryDealPointsRepository();
+      final mancheRepo = InMemoryMancheRepository(doubletteRepo);
+      final donneDoubletteRepo = InMemoryDonneDoubletteRepository();
 
       // Setup: create doublette with totalPoints = 0
       await doubletteRepo.create(
@@ -31,10 +30,9 @@ void main() {
         doublettes: doublettes,
       );
 
-      // Initialize deal points
-      await mancheRepo.initializeDealPointsForManche(
+      // Initialize donnes doublettes
+      await mancheRepo.initializeDonneDoublettesForManche(
         mancheId: manche.id,
-        concoursId: concoursId,
         numberOfDeals: 10,
       );
 
@@ -47,49 +45,41 @@ void main() {
       // Use case: update deal points
       final useCase = UpdateManchePointsUseCase(
         mancheRepo,
-        doubletteRepo,
-        dealPointsRepo,
+        donneDoubletteRepo,
       );
       await useCase(
-        tableId: tableDoublette.tableId,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
-        mancheId: manche.id,
-        dealNumber: dealNumber,
+        tableDoubletteId: tableDoublette.id,
+        donneNumero: donneNumero,
         points: 50,
       );
 
       // Verify deal points updated
-      final dealPoints = await dealPointsRepo.findDealPointsForTableDoublette(
-        tableId: tableDoublette.tableId,
-        concoursId: concoursId,
-        doubletteId: doubletteId,
-        mancheId: manche.id,
-      );
-      expect(dealPoints[dealNumber - 1].points, 50);
+      final donneDoublettes = await donneDoubletteRepo
+          .findDonneDoublettesForTableDoublette(
+            tableDoubletteId: tableDoublette.id,
+          );
+      expect(donneDoublettes[donneNumero - 1].points, 50);
 
       // Verify total points updated on table doublette
       final updatedTableDoublette = await mancheRepo.findTableDoublette(
-        concoursId: concoursId,
-        doubletteId: doubletteId,
+        doubletteRowId: doublettes.first.id,
       );
       expect(updatedTableDoublette?.points, 50);
 
       // Verify totalPoints updated on doublette
       final updatedDoublette = await doubletteRepo.findById(
         concoursId: concoursId,
-        doubletteId: doubletteId,
+        doubletteId: doublettes.first.doubletteId,
       );
       expect(updatedDoublette?.totalPoints, 50);
     });
 
     test('rejects negative deal points', () async {
       const concoursId = 'concours2';
-      const doubletteId = 1;
 
-      final mancheRepo = InMemoryMancheRepository();
       final doubletteRepo = InMemoryDoubletteRepository();
-      final dealPointsRepo = InMemoryDealPointsRepository();
+      final mancheRepo = InMemoryMancheRepository(doubletteRepo);
+      final donneDoubletteRepo = InMemoryDonneDoubletteRepository();
 
       // Setup
       await doubletteRepo.create(
@@ -105,9 +95,8 @@ void main() {
         doublettes: doublettes,
       );
 
-      await mancheRepo.initializeDealPointsForManche(
+      await mancheRepo.initializeDonneDoublettesForManche(
         mancheId: manche.id,
-        concoursId: concoursId,
         numberOfDeals: 10,
       );
 
@@ -117,16 +106,12 @@ void main() {
       // Use case: try to set negative points
       final useCase = UpdateManchePointsUseCase(
         mancheRepo,
-        doubletteRepo,
-        dealPointsRepo,
+        donneDoubletteRepo,
       );
       expect(
         () => useCase(
-          tableId: tableDoublette.tableId,
-          concoursId: concoursId,
-          doubletteId: doubletteId,
-          mancheId: manche.id,
-          dealNumber: 1,
+          tableDoubletteId: tableDoublette.id,
+          donneNumero: 1,
           points: -10,
         ),
         throwsArgumentError,

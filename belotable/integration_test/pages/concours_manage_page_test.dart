@@ -98,15 +98,13 @@ void main() {
           await database.manchesDao.insertTableDoublette(
             TableDoublettesTableCompanion.insert(
               tableId: tableRow.id,
-              concoursId: 'id-manche-warning',
-              doubletteId: d1.doubletteId,
+              doubletteRowId: d1.id,
             ),
           );
           await database.manchesDao.insertTableDoublette(
             TableDoublettesTableCompanion.insert(
               tableId: tableRow.id,
-              concoursId: 'id-manche-warning',
-              doubletteId: d2.doubletteId,
+              doubletteRowId: d2.id,
             ),
           );
         },

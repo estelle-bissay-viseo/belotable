@@ -47,23 +47,20 @@ class DriftDoubletteRepository implements DoubletteRepository {
   }
 
   @override
-  Future<bool> delete({required String concoursId, required int doubletteId}) {
-    return _doublettesDao.deleteDoublette(
-      concoursId: concoursId,
-      doubletteId: doubletteId,
-    );
+  Future<bool> delete(int id) {
+    return _doublettesDao.deleteDoublette(id);
   }
 
   @override
   Future<bool> teamNameExists({
     required String concoursId,
     required String nomEquipe,
-    int? excludingDoubletteId,
+    int? excludingId,
   }) {
     return _doublettesDao.teamNameExists(
       concoursId: concoursId,
       nomEquipe: nomEquipe,
-      excludingDoubletteId: excludingDoubletteId,
+      excludingId: excludingId,
     );
   }
 }

@@ -36,6 +36,7 @@ fvm flutter run -d chrome
 cd ../
 docker compose -f build/docker/docker-compose.yml up --build -d
 start "http://localhost" # ouvre le navigateur par défaut sur cette adresse (Windows)
+# dans votre navigateur, supprimer la base IndexedDB ou vider les données du site pour repartir d'une base vide si besoin
 docker compose -f build/docker/docker-compose.yml down
 ```
 

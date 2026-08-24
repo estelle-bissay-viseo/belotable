@@ -4,6 +4,7 @@
 - [architecture](reference/architecture.md)
 - [choix-techniques](explanation/choix-techniques.md)
 - [flutter-mettre-a-jour-version-flutter](how-to/flutter-mettre-a-jour-version-flutter.md)
+- [modele-de-donnees](reference/modele-de-donnees.md)
 - [securite-analyser](how-to/securite-analyser.md)
 - [sqlite-et-drift](explanation/sqlite-et-drift.md)
 - [structure-repertoire](reference/structure-repertoire.md)
@@ -22,6 +23,7 @@
 ## database
 - [03-creer-entite-avec-drift](tutorials/03-creer-entite-avec-drift.md)
 - [drift-structure](reference/drift-structure.md)
+- [modele-de-donnees](reference/modele-de-donnees.md)
 - [sqlite-et-drift](explanation/sqlite-et-drift.md)
 
 ## développement

@@ -242,16 +242,20 @@ void main() {
       final tables = await db.manchesDao.findTablesDeJeuByMancheId(
         mancheRows.first.id,
       );
+      final registeredBefore = await db.doublettesDao
+          .findDoublettesByConcoursId('c-2');
+      final doublette1RowId = registeredBefore
+          .firstWhere((d) => d.doubletteId == 1)
+          .id;
       await db.manchesDao.updateStatutWithRules(
-        tableId: tables.first.id,
-        concoursId: 'c-2',
-        doubletteId: 1,
+        tableDoubletteId: tables.first.doublettes
+            .firstWhere((d) => d.doubletteId == 1)
+            .id,
         statut: TableDoubletteStatut.enJeu,
       );
 
       final tdBeforeDelete = await db.manchesDao.findTableDoublette(
-        concoursId: 'c-2',
-        doubletteId: 1,
+        doubletteRowId: doublette1RowId,
       );
       expect(tdBeforeDelete?.statut, TableDoubletteStatut.enJeu);
 
@@ -274,8 +278,7 @@ void main() {
 
       // Doublette status should remain unchanged (not converted to abandon)
       final tdAfterDelete = await db.manchesDao.findTableDoublette(
-        concoursId: 'c-2',
-        doubletteId: 1,
+        doubletteRowId: doublette1RowId,
       );
       expect(tdAfterDelete?.statut, TableDoubletteStatut.enJeu);
 

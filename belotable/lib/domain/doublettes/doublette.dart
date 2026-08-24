@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 class Doublette {
   /// Creates an immutable doublette entity.
   const Doublette({
+    required this.id,
     required this.concoursId,
     required this.doubletteId,
     required this.joueurA,
@@ -13,10 +14,13 @@ class Doublette {
     this.totalPoints = 0,
   });
 
+  /// Auto-generated surrogate primary key.
+  final int id;
+
   /// Owning contest id.
   final String concoursId;
 
-  /// Registration order id within the contest.
+  /// Registration order id within the contest (display only).
   final int doubletteId;
 
   /// Player A full name.
@@ -38,6 +42,7 @@ class Doublette {
     }
 
     return other is Doublette &&
+        other.id == id &&
         other.concoursId == concoursId &&
         other.doubletteId == doubletteId &&
         other.joueurA == joueurA &&
@@ -48,6 +53,7 @@ class Doublette {
 
   @override
   int get hashCode => Object.hash(
+    id,
     concoursId,
     doubletteId,
     joueurA,
