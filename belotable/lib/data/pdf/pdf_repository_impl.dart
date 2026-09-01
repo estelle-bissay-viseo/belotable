@@ -43,7 +43,7 @@ class PdfRepositoryImpl implements PdfRepository {
                       pw.SizedBox(width: 12),
                       pw.Text(
                         'Concours de belote',
-                        style: pw.TextStyle(
+                        style: const pw.TextStyle(
                           fontSize: 24,
                           fontWeight: pw.FontWeight.bold,
                         ),
@@ -190,7 +190,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Donne n°',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -200,7 +200,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Score Doublette A',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -210,7 +210,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Score Doublette B',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -262,7 +262,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Score Total',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -322,7 +322,7 @@ class PdfRepositoryImpl implements PdfRepository {
                       pw.SizedBox(width: 12),
                       pw.Text(
                         'Concours de belote',
-                        style: pw.TextStyle(
+                        style: const pw.TextStyle(
                           fontSize: 24,
                           fontWeight: pw.FontWeight.bold,
                         ),
@@ -413,7 +413,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Donne n°',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -423,7 +423,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Manche  ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -433,7 +433,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Manche  ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -443,7 +443,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Manche  ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -453,7 +453,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Manche  ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -463,7 +463,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Manche  ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
@@ -536,7 +536,7 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Score Total',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
             ),
