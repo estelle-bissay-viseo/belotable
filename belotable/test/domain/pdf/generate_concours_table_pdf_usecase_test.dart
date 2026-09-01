@@ -21,6 +21,7 @@ void main() {
         organisateur: 'Test',
         reglesJeu: '',
         nombreDonnesParManche: 10,
+        maxPointsParDonne: 162,
       ),
     );
   });

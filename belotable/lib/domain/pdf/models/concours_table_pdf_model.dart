@@ -12,6 +12,7 @@ class ConcoursTablePdfModel {
     required this.organisateur,
     required this.reglesJeu,
     required this.nombreDonnesParManche,
+    required this.maxPointsParDonne,
   });
 
   /// Concours date.
@@ -29,6 +30,9 @@ class ConcoursTablePdfModel {
   /// Number of deals per round.
   final int nombreDonnesParManche;
 
+  /// Maximum points per deal.
+  final int maxPointsParDonne;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -40,7 +44,8 @@ class ConcoursTablePdfModel {
         other.lieu == lieu &&
         other.organisateur == organisateur &&
         other.reglesJeu == reglesJeu &&
-        other.nombreDonnesParManche == nombreDonnesParManche;
+        other.nombreDonnesParManche == nombreDonnesParManche &&
+        other.maxPointsParDonne == maxPointsParDonne;
   }
 
   @override
@@ -50,5 +55,6 @@ class ConcoursTablePdfModel {
     organisateur,
     reglesJeu,
     nombreDonnesParManche,
+    maxPointsParDonne,
   );
 }

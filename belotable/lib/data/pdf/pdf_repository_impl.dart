@@ -345,16 +345,7 @@ class PdfRepositoryImpl implements PdfRepository {
                 pw.SizedBox(height: 16),
 
                 // Points section
-                pw.Text(
-                  'Points :',
-                  style: const pw.TextStyle(
-                    fontSize: 10,
-                    decoration: pw.TextDecoration.underline,
-                  ),
-                ),
-                pw.SizedBox(height: 5),
-                _buildScoreHelp(162),
-                pw.SizedBox(height: 10),
+                ..._buildScoreHelp(model.maxPointsParDonne),
 
                 // Rules section
                 pw.Column(
@@ -552,7 +543,10 @@ class PdfRepositoryImpl implements PdfRepository {
     );
   }
 
-  pw.Widget _buildScoreHelp(int maxPointsParDonne) {
+  List<pw.Widget> _buildScoreHelp(int maxPointsParDonne) {
+    if (maxPointsParDonne <= 0) {
+      return [];
+    }
     final pairs = generatePairs(0, maxPointsParDonne);
     final pairsAsPaddings = pairs.map((pair) {
       return pw.Container(
@@ -583,10 +577,21 @@ class PdfRepositoryImpl implements PdfRepository {
       rows.add(pw.TableRow(children: rowChildren));
     }
 
-    return pw.Table(
-      border: pw.TableBorder.all(width: 0.5),
-      children: rows,
-    );
+    return <pw.Widget>[
+      pw.Text(
+        'Points :',
+        style: const pw.TextStyle(
+          fontSize: 10,
+          decoration: pw.TextDecoration.underline,
+        ),
+      ),
+      pw.SizedBox(height: 5),
+      pw.Table(
+        border: pw.TableBorder.all(width: 0.5),
+        children: rows,
+      ),
+      pw.SizedBox(height: 10),
+    ];
   }
 
   /// Returns an empty table cell with optional custom font size.

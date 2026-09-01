@@ -11,6 +11,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
 
       expect(model.date, equals(date));
@@ -28,6 +29,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
       final model2 = ConcoursTablePdfModel(
         date: date,
@@ -35,6 +37,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
 
       expect(model1, equals(model2));
@@ -48,6 +51,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
       final model2 = ConcoursTablePdfModel(
         date: date,
@@ -55,6 +59,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
 
       expect(model1, isNot(equals(model2)));
@@ -70,6 +75,7 @@ void main() {
           organisateur: 'Club de Belote',
           reglesJeu: '8 donnes par manche',
           nombreDonnesParManche: 8,
+          maxPointsParDonne: 162,
         );
         final model2 = ConcoursTablePdfModel(
           date: date,
@@ -77,6 +83,7 @@ void main() {
           organisateur: 'Club de Belote',
           reglesJeu: '8 donnes par manche',
           nombreDonnesParManche: 10,
+          maxPointsParDonne: 162,
         );
 
         expect(model1, isNot(equals(model2)));
@@ -91,6 +98,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
       final model2 = ConcoursTablePdfModel(
         date: date,
@@ -98,6 +106,7 @@ void main() {
         organisateur: 'Club de Belote',
         reglesJeu: '8 donnes par manche',
         nombreDonnesParManche: 8,
+        maxPointsParDonne: 162,
       );
 
       expect(model1.hashCode, equals(model2.hashCode));
