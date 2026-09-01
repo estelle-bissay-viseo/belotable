@@ -5,6 +5,7 @@ import 'package:belotable/domain/pdf/repositories/pdf_repository.dart';
 import 'package:belotable/utils/date_format.dart';
 import 'package:belotable/utils/points_manage.dart';
 import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 const double _iconRotationDegrees = 15;
@@ -279,6 +280,11 @@ class PdfRepositoryImpl implements PdfRepository {
     final pdf = pw.Document()
       ..addPage(
         pw.Page(
+          pageFormat: const PdfPageFormat(
+            21.0 * PdfPageFormat.cm,
+            29.7 * PdfPageFormat.cm,
+            marginAll: 1 * PdfPageFormat.cm,
+          ),
           build: (context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
