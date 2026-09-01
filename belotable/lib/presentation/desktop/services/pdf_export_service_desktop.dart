@@ -10,6 +10,7 @@ class DesktopPdfExportService implements PdfExportService {
   Future<void> save(Uint8List bytes, {String fileName = 'belotable'}) async {
     // Use FilePicker to let the user choose where to save the PDF file.
     final path = await FilePicker.saveFile(
+      bytes: bytes,
       dialogTitle: 'Enregistrer le PDF',
       fileName: '$fileName.pdf',
       type: FileType.custom,
@@ -19,7 +20,7 @@ class DesktopPdfExportService implements PdfExportService {
     // In that case, we simply return without doing anything.
     if (path == null) return;
 
-    final file = File(path);
+    final file = File.fromUri(path);
     await file.writeAsBytes(bytes);
   }
 
@@ -30,6 +31,7 @@ class DesktopPdfExportService implements PdfExportService {
   }) async {
     // Use FilePicker to let the user choose where to save the PDF file.
     final path = await FilePicker.saveFile(
+      bytes: bytes,
       dialogTitle: 'Enregistrer le PDF',
       fileName: '$fileName.pdf',
       type: FileType.custom,
@@ -39,16 +41,16 @@ class DesktopPdfExportService implements PdfExportService {
     // In that case, we simply return without doing anything.
     if (path == null) return;
 
-    final file = File(path);
+    final file = File.fromUri(path);
     await file.writeAsBytes(bytes);
 
     // open the PDF file using the default application for PDF files.
     if (Platform.isWindows) {
-      await Process.run('start', [path], runInShell: true);
+      await Process.run('start', [path.path], runInShell: true);
     } else if (Platform.isMacOS) {
-      await Process.run('open', [path]);
+      await Process.run('open', [path.path]);
     } else if (Platform.isLinux) {
-      await Process.run('xdg-open', [path]);
+      await Process.run('xdg-open', [path.path]);
     } else {
       throw UnsupportedError('Platform not supported');
     }

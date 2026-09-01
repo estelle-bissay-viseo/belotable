@@ -11,9 +11,7 @@
 
 import 'package:flutter/widgets.dart';
 
-class Assets {
-  const Assets._();
-
+abstract final class Assets {
   static const AssetGenImage icon = AssetGenImage('assets/icon.png');
 
   /// List of all assets
