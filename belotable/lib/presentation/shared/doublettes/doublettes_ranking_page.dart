@@ -64,7 +64,12 @@ class DoublettesRankingPage extends ConsumerWidget {
                       ),
                       cells: [
                         DataCell(Text((entry.key + 1).toString())),
-                        DataCell(Text(entry.value.nomEquipe)),
+                        DataCell(
+                          Text(
+                            // ignore: lines_longer_than_80_chars because interpolation
+                            '${entry.value.nomEquipe} (#${entry.value.doubletteId})',
+                          ),
+                        ),
                         DataCell(Text(entry.value.totalPoints.toString())),
                       ],
                     ),
