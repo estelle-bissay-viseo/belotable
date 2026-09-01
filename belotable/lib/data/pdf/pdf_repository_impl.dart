@@ -312,22 +312,23 @@ class PdfRepositoryImpl implements PdfRepository {
                       ],
                     ),
                     pw.SizedBox(width: 12),
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          'Doublette (nom et n°) :',
-                          style: const pw.TextStyle(fontSize: 10),
-                        ),
-                        pw.SizedBox(height: 2),
-                        pw.Container(
-                          width: 200,
-                          height: 20,
-                          decoration: pw.BoxDecoration(
-                            border: pw.Border.all(),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            'Doublette (nom et n°) :',
+                            style: const pw.TextStyle(fontSize: 10),
                           ),
-                        ),
-                      ],
+                          pw.SizedBox(height: 2),
+                          pw.Container(
+                            height: 20,
+                            decoration: pw.BoxDecoration(
+                              border: pw.Border.all(width: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -340,7 +341,10 @@ class PdfRepositoryImpl implements PdfRepository {
                 // Points section
                 pw.Text(
                   'Points :',
-                  style: const pw.TextStyle(fontSize: 10, decoration: pw.TextDecoration.underline),
+                  style: const pw.TextStyle(
+                    fontSize: 10,
+                    decoration: pw.TextDecoration.underline,
+                  ),
                 ),
                 pw.SizedBox(height: 5),
                 _buildScoreHelp(162),
@@ -352,7 +356,10 @@ class PdfRepositoryImpl implements PdfRepository {
                   children: [
                     pw.Text(
                       'Règles de jeu :',
-                      style: const pw.TextStyle(fontSize: 10, decoration: pw.TextDecoration.underline),
+                      style: const pw.TextStyle(
+                        fontSize: 10,
+                        decoration: pw.TextDecoration.underline,
+                      ),
                     ),
                     pw.SizedBox(height: 5),
                     pw.Text(
