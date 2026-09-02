@@ -283,7 +283,7 @@ class PdfRepositoryImpl implements PdfRepository {
           pageFormat: const PdfPageFormat(
             21.0 * PdfPageFormat.cm,
             29.7 * PdfPageFormat.cm,
-            marginAll: 1 * PdfPageFormat.cm,
+            marginAll: 0.5 * PdfPageFormat.cm,
           ),
           orientation: pw.PageOrientation.landscape,
           build: (context) {
@@ -410,16 +410,7 @@ class PdfRepositoryImpl implements PdfRepository {
         border: pw.Border.all(),
       ),
       children: [
-        pw.Padding(
-          padding: const pw.EdgeInsets.all(4),
-          child: pw.Text(
-            'Donne n°',
-            style: const pw.TextStyle(
-              fontSize: 12,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-        ),
+        _emptyCell(),
         pw.Padding(
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
@@ -464,7 +455,7 @@ class PdfRepositoryImpl implements PdfRepository {
             pw.Padding(
               padding: const pw.EdgeInsets.all(4),
               child: pw.Text(
-                '$i',
+                'Donne $i',
                 style: const pw.TextStyle(fontSize: 12),
               ),
             ),
@@ -539,9 +530,59 @@ class PdfRepositoryImpl implements PdfRepository {
       ],
     );
 
+    final opponent = pw.TableRow(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(),
+      ),
+      children: [
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            'Adversaires',
+            style: const pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+        _emptyCell(),
+        _emptyCell(),
+        _emptyCell(),
+      ],
+    );
+
+    final tableNumber = pw.TableRow(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(),
+      ),
+      children: [
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            'N° de table',
+            style: const pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+        _emptyCell(),
+        _emptyCell(),
+        _emptyCell(),
+      ],
+    );
+
     return pw.Table(
       border: pw.TableBorder.all(),
-      children: [headerRow, ...dataRows, totalRow, cumulRow, rank],
+      children: [
+        headerRow,
+        tableNumber,
+        opponent,
+        ...dataRows,
+        totalRow,
+        cumulRow,
+        rank,
+      ],
     );
   }
 
