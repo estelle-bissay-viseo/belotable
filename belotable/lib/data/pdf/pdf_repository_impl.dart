@@ -70,52 +70,43 @@ class PdfRepositoryImpl implements PdfRepository {
                                 ),
                               ],
                             ),
+                            pw.SizedBox(width: 4),
+                            pw.Row(
+                              children: [
+                                pw.Text(
+                                  'Table n° :',
+                                  style: const pw.TextStyle(
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                pw.SizedBox(width: 4),
+                                pw.Container(
+                                  width: 40,
+                                  height: 20,
+                                  decoration: pw.BoxDecoration(
+                                    border: pw.Border.all(width: 0.5),
+                                  ),
+                                ),
+                                pw.SizedBox(width: 4),
+                                pw.Text(
+                                  'Manche n° :',
+                                  style: const pw.TextStyle(
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                pw.SizedBox(width: 4),
+                                pw.Container(
+                                  width: 40,
+                                  height: 20,
+                                  decoration: pw.BoxDecoration(
+                                    border: pw.Border.all(width: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                         pw.SizedBox(height: 16),
-                        pw.Row(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(4),
-                              child: pw.Row(
-                                children: [
-                                  pw.Text(
-                                    'Table n° :',
-                                    style: const pw.TextStyle(fontSize: 10),
-                                  ),
-                                  pw.SizedBox(width: 5),
-                                  pw.Container(
-                                    width: 60,
-                                    height: 20,
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border.all(width: 0.5),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(4),
-                              child: pw.Row(
-                                children: [
-                                  pw.Text(
-                                    'Manche n° :',
-                                    style: const pw.TextStyle(fontSize: 10),
-                                  ),
-                                  pw.SizedBox(width: 5),
-                                  pw.Container(
-                                    width: 60,
-                                    height: 20,
-                                    decoration: pw.BoxDecoration(
-                                      border: pw.Border.all(width: 0.5),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        pw.SizedBox(height: 12),
                         pw.Row(
                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                           children: [
@@ -128,7 +119,7 @@ class PdfRepositoryImpl implements PdfRepository {
                                 ),
                                 pw.SizedBox(height: 2),
                                 pw.Container(
-                                  width: 150,
+                                  width: 185,
                                   height: 20,
                                   decoration: pw.BoxDecoration(
                                     border: pw.Border.all(width: 0.5),
@@ -145,7 +136,7 @@ class PdfRepositoryImpl implements PdfRepository {
                                 ),
                                 pw.SizedBox(height: 2),
                                 pw.Container(
-                                  width: 150,
+                                  width: 185,
                                   height: 20,
                                   decoration: pw.BoxDecoration(
                                     border: pw.Border.all(width: 0.5),
