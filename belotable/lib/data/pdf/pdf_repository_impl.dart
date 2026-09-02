@@ -285,85 +285,115 @@ class PdfRepositoryImpl implements PdfRepository {
             29.7 * PdfPageFormat.cm,
             marginAll: 1 * PdfPageFormat.cm,
           ),
+          orientation: pw.PageOrientation.landscape,
           build: (context) {
-            return pw.Column(
+            return pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Row(
-                  children: [
-                    pw.Transform.rotate(
-                      angle: _iconRotationDegrees * pi / 180,
-                      child: pw.Image(
-                        image,
-                        width: 40,
-                        height: 40,
-                      ),
-                    ),
-                    pw.SizedBox(width: 12),
-                    pw.Column(
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Padding(
+                    padding: const pw.EdgeInsets.only(right: 4),
+                    child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text(
-                          formatDateFrLettres(model.date),
-                          style: const pw.TextStyle(fontSize: 10),
+                        pw.Row(
+                          children: [
+                            pw.Transform.rotate(
+                              angle: _iconRotationDegrees * pi / 180,
+                              child: pw.Image(
+                                image,
+                                width: 40,
+                                height: 40,
+                              ),
+                            ),
+                            pw.SizedBox(width: 12),
+                            pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text(
+                                  formatDateFrLettres(model.date),
+                                  style: const pw.TextStyle(fontSize: 10),
+                                ),
+                                pw.SizedBox(height: 4),
+                                pw.Text(
+                                  model.organisateur,
+                                  style: const pw.TextStyle(
+                                    fontSize: 10,
+                                    fontStyle: pw.FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            pw.SizedBox(width: 12),
+                            pw.Expanded(
+                              child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text(
+                                    'Doublette (nom et n°) :',
+                                    style: const pw.TextStyle(fontSize: 10),
+                                  ),
+                                  pw.SizedBox(height: 2),
+                                  pw.Container(
+                                    height: 20,
+                                    decoration: pw.BoxDecoration(
+                                      border: pw.Border.all(width: 0.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        pw.SizedBox(height: 4),
-                        pw.Text(
-                          model.organisateur,
-                          style: const pw.TextStyle(
-                            fontSize: 10,
-                            fontStyle: pw.FontStyle.italic,
-                          ),
+                        pw.SizedBox(height: 16),
+                        // Score doublette
+                        _buildScoreDoublette(model.nombreDonnesParManche),
+                      ],
+                    ),
+                  ),
+                ),
+                pw.Expanded(
+                  flex: model.maxPointsParDonne == 0 ? 0 : 1,
+                  child: pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 10, right: 4),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // Points section
+                        ..._buildScoreHelp(model.maxPointsParDonne),
+                      ],
+                    ),
+                  ),
+                ),
+                pw.Expanded(
+                  flex: model.maxPointsParDonne == 0 ? 2 : 1,
+                  child: pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 4),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // Rules section
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(
+                              'Règles de jeu :',
+                              style: const pw.TextStyle(
+                                fontSize: 10,
+                                decoration: pw.TextDecoration.underline,
+                              ),
+                            ),
+                            pw.SizedBox(height: 5),
+                            pw.Text(
+                              model.reglesJeu,
+                              style: const pw.TextStyle(fontSize: 10),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    pw.SizedBox(width: 12),
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text(
-                            'Doublette (nom et n°) :',
-                            style: const pw.TextStyle(fontSize: 10),
-                          ),
-                          pw.SizedBox(height: 2),
-                          pw.Container(
-                            height: 20,
-                            decoration: pw.BoxDecoration(
-                              border: pw.Border.all(width: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 16),
-
-                // Score doublette
-                _buildScoreDoublette(model.nombreDonnesParManche),
-                pw.SizedBox(height: 16),
-
-                // Points section
-                ..._buildScoreHelp(model.maxPointsParDonne),
-
-                // Rules section
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'Règles de jeu :',
-                      style: const pw.TextStyle(
-                        fontSize: 10,
-                        decoration: pw.TextDecoration.underline,
-                      ),
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      model.reglesJeu,
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             );
@@ -384,26 +414,6 @@ class PdfRepositoryImpl implements PdfRepository {
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
             'Donne n°',
-            style: const pw.TextStyle(
-              fontSize: 12,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-        ),
-        pw.Padding(
-          padding: const pw.EdgeInsets.all(4),
-          child: pw.Text(
-            'Manche  ',
-            style: const pw.TextStyle(
-              fontSize: 12,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-        ),
-        pw.Padding(
-          padding: const pw.EdgeInsets.all(4),
-          child: pw.Text(
-            'Manche  ',
             style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
@@ -461,8 +471,6 @@ class PdfRepositoryImpl implements PdfRepository {
             _emptyCell(),
             _emptyCell(),
             _emptyCell(),
-            _emptyCell(),
-            _emptyCell(),
           ],
         ),
       );
@@ -483,8 +491,6 @@ class PdfRepositoryImpl implements PdfRepository {
             ),
           ),
         ),
-        _emptyCell(),
-        _emptyCell(),
         _emptyCell(),
         _emptyCell(),
         _emptyCell(),
@@ -509,8 +515,6 @@ class PdfRepositoryImpl implements PdfRepository {
         _emptyCell(),
         _emptyCell(),
         _emptyCell(),
-        _emptyCell(),
-        _emptyCell(),
       ],
     );
 
@@ -529,8 +533,6 @@ class PdfRepositoryImpl implements PdfRepository {
             ),
           ),
         ),
-        _emptyCell(),
-        _emptyCell(),
         _emptyCell(),
         _emptyCell(),
         _emptyCell(),
@@ -560,7 +562,7 @@ class PdfRepositoryImpl implements PdfRepository {
     }).toList();
 
     final rows = <pw.TableRow>[];
-    const maxColumns = 8;
+    const maxColumns = 3;
     final rowCount = (pairsAsPaddings.length / maxColumns).ceil();
 
     for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
@@ -579,7 +581,7 @@ class PdfRepositoryImpl implements PdfRepository {
 
     return <pw.Widget>[
       pw.Text(
-        'Points :',
+        'Aide pour les points :',
         style: const pw.TextStyle(
           fontSize: 10,
           decoration: pw.TextDecoration.underline,
