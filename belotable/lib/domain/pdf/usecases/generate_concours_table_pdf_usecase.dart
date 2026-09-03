@@ -44,6 +44,7 @@ class GenerateConcoursTablePdfUseCase {
       organisateur: concours.organisateur,
       reglesJeu: concours.reglesJeu,
       nombreDonnesParManche: concours.nombreDonnesParManche,
+      maxPointsParDonne: concours.nombreMaxPointsParDonne,
     );
 
     return pdfRepository.generateConcoursTablePdf(pdfModel);
