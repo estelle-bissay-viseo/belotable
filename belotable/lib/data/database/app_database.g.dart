@@ -1798,6 +1798,21 @@ class $TableDoublettesTableTable extends TableDoublettesTable
     requiredDuringInsert: false,
     defaultValue: const Constant('En attente'),
   );
+  static const VerificationMeta _pointsParDonnesMeta = const VerificationMeta(
+    'pointsParDonnes',
+  );
+  @override
+  late final GeneratedColumn<bool> pointsParDonnes = GeneratedColumn<bool>(
+    'points_par_donnes',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("points_par_donnes" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1805,6 +1820,7 @@ class $TableDoublettesTableTable extends TableDoublettesTable
     doubletteRowId,
     points,
     statut,
+    pointsParDonnes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1852,6 +1868,15 @@ class $TableDoublettesTableTable extends TableDoublettesTable
         statut.isAcceptableOrUnknown(data['statut']!, _statutMeta),
       );
     }
+    if (data.containsKey('points_par_donnes')) {
+      context.handle(
+        _pointsParDonnesMeta,
+        pointsParDonnes.isAcceptableOrUnknown(
+          data['points_par_donnes']!,
+          _pointsParDonnesMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1888,6 +1913,10 @@ class $TableDoublettesTableTable extends TableDoublettesTable
         DriftSqlType.string,
         data['${effectivePrefix}statut'],
       )!,
+      pointsParDonnes: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}points_par_donnes'],
+      )!,
     );
   }
 
@@ -1913,12 +1942,16 @@ class TableDoublettesTableData extends DataClass
 
   /// Team status in this table stored as string.
   final String statut;
+
+  /// Score entry mode: true = "par donne", false = "par manche".
+  final bool pointsParDonnes;
   const TableDoublettesTableData({
     required this.id,
     required this.tableId,
     required this.doubletteRowId,
     required this.points,
     required this.statut,
+    required this.pointsParDonnes,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1928,6 +1961,7 @@ class TableDoublettesTableData extends DataClass
     map['doublette_row_id'] = Variable<int>(doubletteRowId);
     map['points'] = Variable<int>(points);
     map['statut'] = Variable<String>(statut);
+    map['points_par_donnes'] = Variable<bool>(pointsParDonnes);
     return map;
   }
 
@@ -1938,6 +1972,7 @@ class TableDoublettesTableData extends DataClass
       doubletteRowId: Value(doubletteRowId),
       points: Value(points),
       statut: Value(statut),
+      pointsParDonnes: Value(pointsParDonnes),
     );
   }
 
@@ -1952,6 +1987,7 @@ class TableDoublettesTableData extends DataClass
       doubletteRowId: serializer.fromJson<int>(json['doubletteRowId']),
       points: serializer.fromJson<int>(json['points']),
       statut: serializer.fromJson<String>(json['statut']),
+      pointsParDonnes: serializer.fromJson<bool>(json['pointsParDonnes']),
     );
   }
   @override
@@ -1963,6 +1999,7 @@ class TableDoublettesTableData extends DataClass
       'doubletteRowId': serializer.toJson<int>(doubletteRowId),
       'points': serializer.toJson<int>(points),
       'statut': serializer.toJson<String>(statut),
+      'pointsParDonnes': serializer.toJson<bool>(pointsParDonnes),
     };
   }
 
@@ -1972,12 +2009,14 @@ class TableDoublettesTableData extends DataClass
     int? doubletteRowId,
     int? points,
     String? statut,
+    bool? pointsParDonnes,
   }) => TableDoublettesTableData(
     id: id ?? this.id,
     tableId: tableId ?? this.tableId,
     doubletteRowId: doubletteRowId ?? this.doubletteRowId,
     points: points ?? this.points,
     statut: statut ?? this.statut,
+    pointsParDonnes: pointsParDonnes ?? this.pointsParDonnes,
   );
   TableDoublettesTableData copyWithCompanion(
     TableDoublettesTableCompanion data,
@@ -1990,6 +2029,9 @@ class TableDoublettesTableData extends DataClass
           : this.doubletteRowId,
       points: data.points.present ? data.points.value : this.points,
       statut: data.statut.present ? data.statut.value : this.statut,
+      pointsParDonnes: data.pointsParDonnes.present
+          ? data.pointsParDonnes.value
+          : this.pointsParDonnes,
     );
   }
 
@@ -2000,13 +2042,15 @@ class TableDoublettesTableData extends DataClass
           ..write('tableId: $tableId, ')
           ..write('doubletteRowId: $doubletteRowId, ')
           ..write('points: $points, ')
-          ..write('statut: $statut')
+          ..write('statut: $statut, ')
+          ..write('pointsParDonnes: $pointsParDonnes')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, tableId, doubletteRowId, points, statut);
+  int get hashCode =>
+      Object.hash(id, tableId, doubletteRowId, points, statut, pointsParDonnes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2015,7 +2059,8 @@ class TableDoublettesTableData extends DataClass
           other.tableId == this.tableId &&
           other.doubletteRowId == this.doubletteRowId &&
           other.points == this.points &&
-          other.statut == this.statut);
+          other.statut == this.statut &&
+          other.pointsParDonnes == this.pointsParDonnes);
 }
 
 class TableDoublettesTableCompanion
@@ -2025,12 +2070,14 @@ class TableDoublettesTableCompanion
   final Value<int> doubletteRowId;
   final Value<int> points;
   final Value<String> statut;
+  final Value<bool> pointsParDonnes;
   const TableDoublettesTableCompanion({
     this.id = const Value.absent(),
     this.tableId = const Value.absent(),
     this.doubletteRowId = const Value.absent(),
     this.points = const Value.absent(),
     this.statut = const Value.absent(),
+    this.pointsParDonnes = const Value.absent(),
   });
   TableDoublettesTableCompanion.insert({
     this.id = const Value.absent(),
@@ -2038,6 +2085,7 @@ class TableDoublettesTableCompanion
     required int doubletteRowId,
     this.points = const Value.absent(),
     this.statut = const Value.absent(),
+    this.pointsParDonnes = const Value.absent(),
   }) : tableId = Value(tableId),
        doubletteRowId = Value(doubletteRowId);
   static Insertable<TableDoublettesTableData> custom({
@@ -2046,6 +2094,7 @@ class TableDoublettesTableCompanion
     Expression<int>? doubletteRowId,
     Expression<int>? points,
     Expression<String>? statut,
+    Expression<bool>? pointsParDonnes,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2053,6 +2102,7 @@ class TableDoublettesTableCompanion
       if (doubletteRowId != null) 'doublette_row_id': doubletteRowId,
       if (points != null) 'points': points,
       if (statut != null) 'statut': statut,
+      if (pointsParDonnes != null) 'points_par_donnes': pointsParDonnes,
     });
   }
 
@@ -2062,6 +2112,7 @@ class TableDoublettesTableCompanion
     Value<int>? doubletteRowId,
     Value<int>? points,
     Value<String>? statut,
+    Value<bool>? pointsParDonnes,
   }) {
     return TableDoublettesTableCompanion(
       id: id ?? this.id,
@@ -2069,6 +2120,7 @@ class TableDoublettesTableCompanion
       doubletteRowId: doubletteRowId ?? this.doubletteRowId,
       points: points ?? this.points,
       statut: statut ?? this.statut,
+      pointsParDonnes: pointsParDonnes ?? this.pointsParDonnes,
     );
   }
 
@@ -2090,6 +2142,9 @@ class TableDoublettesTableCompanion
     if (statut.present) {
       map['statut'] = Variable<String>(statut.value);
     }
+    if (pointsParDonnes.present) {
+      map['points_par_donnes'] = Variable<bool>(pointsParDonnes.value);
+    }
     return map;
   }
 
@@ -2100,7 +2155,8 @@ class TableDoublettesTableCompanion
           ..write('tableId: $tableId, ')
           ..write('doubletteRowId: $doubletteRowId, ')
           ..write('points: $points, ')
-          ..write('statut: $statut')
+          ..write('statut: $statut, ')
+          ..write('pointsParDonnes: $pointsParDonnes')
           ..write(')'))
         .toString();
   }
@@ -4262,6 +4318,7 @@ typedef $$TableDoublettesTableTableCreateCompanionBuilder =
       required int doubletteRowId,
       Value<int> points,
       Value<String> statut,
+      Value<bool> pointsParDonnes,
     });
 typedef $$TableDoublettesTableTableUpdateCompanionBuilder =
     TableDoublettesTableCompanion Function({
@@ -4270,6 +4327,7 @@ typedef $$TableDoublettesTableTableUpdateCompanionBuilder =
       Value<int> doubletteRowId,
       Value<int> points,
       Value<String> statut,
+      Value<bool> pointsParDonnes,
     });
 
 final class $$TableDoublettesTableTableReferences
@@ -4374,6 +4432,11 @@ class $$TableDoublettesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get pointsParDonnes => $composableBuilder(
+    column: $table.pointsParDonnes,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$TablesDeJeuTableTableFilterComposer get tableId {
     final $$TablesDeJeuTableTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4470,6 +4533,11 @@ class $$TableDoublettesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get pointsParDonnes => $composableBuilder(
+    column: $table.pointsParDonnes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$TablesDeJeuTableTableOrderingComposer get tableId {
     final $$TablesDeJeuTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4534,6 +4602,11 @@ class $$TableDoublettesTableTableAnnotationComposer
 
   GeneratedColumn<String> get statut =>
       $composableBuilder(column: $table.statut, builder: (column) => column);
+
+  GeneratedColumn<bool> get pointsParDonnes => $composableBuilder(
+    column: $table.pointsParDonnes,
+    builder: (column) => column,
+  );
 
   $$TablesDeJeuTableTableAnnotationComposer get tableId {
     final $$TablesDeJeuTableTableAnnotationComposer composer = $composerBuilder(
@@ -4653,12 +4726,14 @@ class $$TableDoublettesTableTableTableManager
                 Value<int> doubletteRowId = const Value.absent(),
                 Value<int> points = const Value.absent(),
                 Value<String> statut = const Value.absent(),
+                Value<bool> pointsParDonnes = const Value.absent(),
               }) => TableDoublettesTableCompanion(
                 id: id,
                 tableId: tableId,
                 doubletteRowId: doubletteRowId,
                 points: points,
                 statut: statut,
+                pointsParDonnes: pointsParDonnes,
               ),
           createCompanionCallback:
               ({
@@ -4667,12 +4742,14 @@ class $$TableDoublettesTableTableTableManager
                 required int doubletteRowId,
                 Value<int> points = const Value.absent(),
                 Value<String> statut = const Value.absent(),
+                Value<bool> pointsParDonnes = const Value.absent(),
               }) => TableDoublettesTableCompanion.insert(
                 id: id,
                 tableId: tableId,
                 doubletteRowId: doubletteRowId,
                 points: points,
                 statut: statut,
+                pointsParDonnes: pointsParDonnes,
               ),
           withReferenceMapper: (p0) => p0
               .map(

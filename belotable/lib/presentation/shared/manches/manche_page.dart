@@ -112,6 +112,9 @@ class _TableDeJeuCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pointsParDonnes =
+        table.doublettes.isNotEmpty && table.doublettes.first.pointsParDonnes;
+
     return Card.outlined(
       key: Key('table_card_${table.numero}'),
       child: Padding(
@@ -119,13 +122,17 @@ class _TableDeJeuCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 4,
               children: [
                 Text(
                   'Table ${table.numero}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(width: 12),
+                if (table.doublettes.isNotEmpty)
+                  _EntryModeSwitch(table: table, onRefresh: onRefresh),
                 _StatutChip(statut: table.statut),
               ],
             ),
@@ -141,9 +148,10 @@ class _TableDeJeuCard extends ConsumerWidget {
                   onRefresh: onRefresh,
                 ),
               ),
-              _TableSumRow(
-                table: table,
-              ),
+              if (pointsParDonnes)
+                _TableSumRow(
+                  table: table,
+                ),
             ],
           ],
         ),
@@ -176,6 +184,48 @@ class _StatutChip extends StatelessWidget {
       side: BorderSide(color: _color()),
       padding: EdgeInsets.zero,
       labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+    );
+  }
+}
+
+class _EntryModeSwitch extends ConsumerWidget {
+  const _EntryModeSwitch({
+    required this.table,
+    required this.onRefresh,
+  });
+
+  final TableDeJeu table;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pointsParDonnes = table.doublettes.first.pointsParDonnes;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'Saisie des points :',
+          style: TextStyle(fontSize: 12),
+        ),
+        const SizedBox(width: 6),
+        const Text('Par manche', style: TextStyle(fontSize: 12)),
+        Switch(
+          key: Key('entry_mode_switch_${table.numero}'),
+          value: pointsParDonnes,
+          onChanged: (value) async {
+            final useCase = ref.read(updateEntryModeUseCaseProvider);
+            await useCase(
+              tableDoubletteIds: table.doublettes
+                  .map((td) => td.id)
+                  .toList(growable: false),
+              pointsParDonnes: value,
+            );
+            onRefresh();
+          },
+        ),
+        const Text('Par donne', style: TextStyle(fontSize: 12)),
+      ],
     );
   }
 }
@@ -216,6 +266,9 @@ class _TableDoubletteRow extends ConsumerWidget {
         child: Text('Erreur: $e'),
       ),
       data: (donneDoublettes) => _DonneDoublettesRow(
+        key: ValueKey(
+          '${tableDoublette.id}_${tableDoublette.pointsParDonnes}',
+        ),
         tableDoublette: tableDoublette,
         tableNumero: tableNumero,
         donneDoublettes: donneDoublettes,
@@ -231,6 +284,7 @@ class _DonneDoublettesRow extends ConsumerStatefulWidget {
     required this.tableNumero,
     required this.donneDoublettes,
     required this.onRefresh,
+    super.key,
   });
 
   final TableDoublette tableDoublette;
@@ -246,6 +300,8 @@ class _DonneDoublettesRow extends ConsumerStatefulWidget {
 class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
   late final List<TextEditingController> _dealControllers;
   late final List<FocusNode> _dealFocusNodes;
+  late final TextEditingController _roundScoreController;
+  late final FocusNode _roundScoreFocusNode;
   bool _isSaving = false;
 
   @override
@@ -277,6 +333,22 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
         }
       });
     }
+
+    _roundScoreController = TextEditingController(
+      text: widget.tableDoublette.points.toString(),
+    );
+    _roundScoreFocusNode = FocusNode();
+    _roundScoreFocusNode.addListener(() async {
+      if (_roundScoreFocusNode.hasFocus) {
+        _roundScoreController.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _roundScoreController.text.length,
+        );
+      }
+      if (!_roundScoreFocusNode.hasFocus) {
+        await _saveRoundScore();
+      }
+    });
   }
 
   @override
@@ -287,6 +359,8 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
     for (final focusNode in _dealFocusNodes) {
       focusNode.dispose();
     }
+    _roundScoreController.dispose();
+    _roundScoreFocusNode.dispose();
     super.dispose();
   }
 
@@ -358,6 +432,45 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
     }
   }
 
+  Future<void> _saveRoundScore() async {
+    final points = int.tryParse(_roundScoreController.text.trim()) ?? 0;
+
+    // Validate >= 0
+    if (points < 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Les points doivent être >= 0'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      // Reset to previous value
+      _roundScoreController.text = widget.tableDoublette.points.toString();
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final updateUseCase = ref.read(updateRoundScoreUseCaseProvider);
+      await updateUseCase(
+        tableDoubletteId: widget.tableDoublette.id,
+        points: points,
+      );
+      widget.onRefresh();
+    } on Exception catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
   bool get _isWinner =>
       widget.tableDoublette.statut == TableDoubletteStatut.gagne;
 
@@ -368,6 +481,7 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
       0,
       (sum, dp) => sum + dp.points,
     );
+    final pointsParDonnes = td.pointsParDonnes;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -394,62 +508,87 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                // Deal inputs row
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(
-                      widget.donneDoublettes.length,
-                      (i) {
-                        final donneNumero = i + 1;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: SizedBox(
-                            width: 60,
-                            child: TextField(
-                              key: Key(
-                                // ignore: lines_longer_than_80_chars because UI key
-                                'points_field_${widget.tableNumero}_${td.doubletteId}_$donneNumero',
+                if (pointsParDonnes) ...[
+                  const SizedBox(height: 8),
+                  // Deal inputs row
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(
+                        widget.donneDoublettes.length,
+                        (i) {
+                          final donneNumero = i + 1;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: SizedBox(
+                              width: 60,
+                              child: TextField(
+                                key: Key(
+                                  // ignore: lines_longer_than_80_chars because UI key
+                                  'points_field_${widget.tableNumero}_${td.doubletteId}_$donneNumero',
+                                ),
+                                controller: _dealControllers[i],
+                                focusNode: _dealFocusNodes[i],
+                                keyboardType: TextInputType.number,
+                                textAlign: TextAlign.center,
+                                decoration: InputDecoration(
+                                  border: const OutlineInputBorder(),
+                                  labelText: 'D$donneNumero',
+                                  isDense: true,
+                                ),
+                                enabled: !_isSaving,
                               ),
-                              controller: _dealControllers[i],
-                              focusNode: _dealFocusNodes[i],
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                labelText: 'D$donneNumero',
-                                isDense: true,
-                              ),
-                              enabled: !_isSaving,
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
           const SizedBox(width: 8),
 
-          // Total score (read-only)
-          SizedBox(
-            width: 95,
-            child: InputDecorator(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Score final',
-                isDense: true,
+          if (pointsParDonnes)
+            // Total score (read-only, computed from deal scores)
+            SizedBox(
+              width: 95,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Score final',
+                  isDense: true,
+                ),
+                child: Text(
+                  total.toString(),
+                  key: Key(
+                    'total_field_${widget.tableNumero}_${td.doubletteId}',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              child: Text(
-                total.toString(),
-                key: Key('total_field_${widget.tableNumero}_${td.doubletteId}'),
+            )
+          else
+            // Round score (editable, directly entered)
+            SizedBox(
+              width: 95,
+              child: TextField(
+                key: Key(
+                  'round_score_field_${widget.tableNumero}_${td.doubletteId}',
+                ),
+                controller: _roundScoreController,
+                focusNode: _roundScoreFocusNode,
+                keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Score final',
+                  isDense: true,
+                ),
+                enabled: !_isSaving,
               ),
             ),
-          ),
           const SizedBox(width: 8),
           DropdownButton<TableDoubletteStatut>(
             key: Key('statut_dropdown_${widget.tableNumero}_${td.doubletteId}'),

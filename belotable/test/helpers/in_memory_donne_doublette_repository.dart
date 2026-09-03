@@ -64,4 +64,15 @@ class InMemoryDonneDoubletteRepository implements DonneDoubletteRepository {
     }
     return total;
   }
+
+  @override
+  Future<void> resetDonneDoublettes({
+    required int tableDoubletteId,
+  }) async {
+    for (final key in _donneDoublettes.keys.toList()) {
+      if (key.tableDoubletteId == tableDoubletteId) {
+        _donneDoublettes[key] = 0;
+      }
+    }
+  }
 }
