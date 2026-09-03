@@ -417,6 +417,13 @@ void main() {
         findsOneWidget,
       );
 
+      // Switch to "Saisie des points par donne" to enable deal-level entry
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('entry_mode_switch_1')),
+      );
+      await tester.pumpAndSettle();
+
       // Fill first table results
       await tester.enterText(
         find.byKey(const Key('points_field_1_1_1')),

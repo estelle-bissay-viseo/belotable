@@ -71,6 +71,12 @@ abstract interface class MancheRepository {
     required int points,
   });
 
+  /// Updates score entry mode for a table-doublette row.
+  Future<void> updateEntryMode({
+    required int tableDoubletteId,
+    required bool pointsParDonnes,
+  });
+
   /// Updates statut of a doublette in a table and its opponent if applicable.
   /// Returns the updated table with recomputed status.
   Future<TableDeJeu> updateStatut({

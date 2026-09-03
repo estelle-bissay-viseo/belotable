@@ -21,6 +21,7 @@ class InMemoryMancheRepository implements MancheRepository {
     required int doubletteRowId,
     int points = 0,
     TableDoubletteStatut statut = TableDoubletteStatut.enAttente,
+    bool pointsParDonnes = false,
   }) {
     final id = _nextTableDoubletteId++;
     _doubletteRowIdByTableDoubletteId[id] = doubletteRowId;
@@ -33,6 +34,7 @@ class InMemoryMancheRepository implements MancheRepository {
       points: points,
       statut: statut,
       nomEquipe: doublette?.nomEquipe ?? 'Equipe $doubletteRowId',
+      pointsParDonnes: pointsParDonnes,
     );
   }
 
@@ -346,6 +348,17 @@ class InMemoryMancheRepository implements MancheRepository {
     await _updateTableDoublette(
       tableDoubletteId: tableDoubletteId,
       mapper: (td) => td.copyWith(points: points),
+    );
+  }
+
+  @override
+  Future<void> updateEntryMode({
+    required int tableDoubletteId,
+    required bool pointsParDonnes,
+  }) async {
+    await _updateTableDoublette(
+      tableDoubletteId: tableDoubletteId,
+      mapper: (td) => td.copyWith(pointsParDonnes: pointsParDonnes),
     );
   }
 
