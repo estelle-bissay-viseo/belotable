@@ -147,10 +147,14 @@ Dès que la manche est créée, les **modifications des doublettes ont des impac
 
 Pour saisir les résultats d'une manche, cliquez sur le bouton **Manche X** depuis la page de gestion du concours.
 
-Vous pouvez saisir les résultats des donnes jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc). La saisie des points lance immédiatement le calcul des points total de la doublette et le classement de la manche.
+Vous pouvez saisir les résultats des donnes jouées sur chaque table en notant directement les points de chaque doublette, puis le statut de la doublette (Gagné, Perdu, etc).
 
-La saisie des points lance immédiatement le calcul de la somme des points de chaque donne et ces sommes sont affichées sur la table comme aide à la vérification des points.
-Si un nombre maximum de points par donne a été configuré sur le concours (autre que 0), lorsqu'une de ces sommes est différente de ce maximum, elle est affichée en rouge pour mettre en évidence l'erreur. Mais cela n'empêche pas l'enregistrement des données, afin de vous permettre de vérifier et corriger cela plus tard.
+Par défaut, vous pouvez saisir directement les points totaux de la manche. Si vous avez un doute ou une vérification à faire, vous pouvez saisir les points de chaque donne individuellement en sélectionnant le mode de saisie des points par donne sur la table concernée.
+
+La saisie des points lance immédiatement le calcul de la somme des points (de chaque donne ou de la manche en fonction du mode de saisie choisi sur la table) et ces sommes sont affichées comme aide à la vérification des points.
+Si un nombre maximum de points par donne a été configuré sur le concours (autre que 0), lorsqu'une de ces sommes est différente de ce maximum (multiplié par le nombre de donnes dans le cas de la saisie des points par manche), elle est affichée en rouge pour mettre en évidence l'erreur. Mais cela n'empêche pas l'enregistrement des données, afin de vous permettre de vérifier et corriger cela plus tard.
+
+![Aide au calcul des points](./assets/images/page-manche-tables-help.png)
 
 Une manche est considérée comme terminée lorsque tous les statuts des parties jouées sur les tables sont différents de "En attente".
 

@@ -822,12 +822,20 @@ class _RoundScoreSumRow extends ConsumerWidget {
                     const SizedBox(height: 8),
                     InputDecorator(
                       key: Key('round_score_sum_${table.numero}'),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(
+                            color: (errorHint != null)
+                                ? Colors.red
+                                : Colors.grey,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(
+                            color: (errorHint != null)
+                                ? Colors.red
+                                : Colors.grey,
+                          ),
                         ),
                         isDense: true,
                       ),
