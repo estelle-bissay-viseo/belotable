@@ -59,6 +59,7 @@ class TableDoublette {
     required this.points,
     required this.statut,
     required this.nomEquipe,
+    this.pointsParDonnes = false,
   });
 
   /// Auto-generated surrogate primary key.
@@ -82,10 +83,14 @@ class TableDoublette {
   /// Team name (denormalized for display).
   final String nomEquipe;
 
+  /// True for "Saisie des points par donne", false for "par manche".
+  final bool pointsParDonnes;
+
   /// Returns copy with updated fields.
   TableDoublette copyWith({
     int? points,
     TableDoubletteStatut? statut,
+    bool? pointsParDonnes,
   }) {
     return TableDoublette(
       id: id,
@@ -95,6 +100,7 @@ class TableDoublette {
       points: points ?? this.points,
       statut: statut ?? this.statut,
       nomEquipe: nomEquipe,
+      pointsParDonnes: pointsParDonnes ?? this.pointsParDonnes,
     );
   }
 }

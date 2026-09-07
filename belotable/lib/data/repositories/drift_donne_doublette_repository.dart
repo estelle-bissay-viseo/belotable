@@ -61,4 +61,13 @@ class DriftDonneDoubletteRepository implements DonneDoubletteRepository {
       tableDoubletteId: tableDoubletteId,
     );
   }
+
+  @override
+  Future<void> resetDonneDoublettes({
+    required int tableDoubletteId,
+  }) async {
+    await _database.manchesDao.resetDonneDoublettes(
+      tableDoubletteId: tableDoubletteId,
+    );
+  }
 }

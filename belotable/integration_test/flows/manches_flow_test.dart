@@ -516,6 +516,26 @@ void main() {
         findsOneWidget,
       );
 
+      // Switch to "Saisie des points par donne" to enable deal-level entry
+      expect(
+        find.byKey(const Key('entry_mode_switch_1')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('entry_mode_switch_1')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('entry_mode_switch_2')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('entry_mode_switch_2')),
+      );
+      await tester.pumpAndSettle();
+
       // Fill first table results
       expect(
         find.byKey(const Key('table_card_1')),

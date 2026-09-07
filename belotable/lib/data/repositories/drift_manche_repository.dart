@@ -172,6 +172,17 @@ class DriftMancheRepository implements MancheRepository {
   }
 
   @override
+  Future<void> updateEntryMode({
+    required int tableDoubletteId,
+    required bool pointsParDonnes,
+  }) {
+    return _db.manchesDao.updateEntryMode(
+      tableDoubletteId: tableDoubletteId,
+      pointsParDonnes: pointsParDonnes,
+    );
+  }
+
+  @override
   Future<TableDeJeu> updateStatut({
     required int tableDoubletteId,
     required TableDoubletteStatut statut,

@@ -24,4 +24,9 @@ abstract class DonneDoubletteRepository {
   Future<int> calculateTotalPointsFromDeals({
     required int tableDoubletteId,
   });
+
+  /// Resets all deal points to 0 for a table-doublette.
+  Future<void> resetDonneDoublettes({
+    required int tableDoubletteId,
+  });
 }

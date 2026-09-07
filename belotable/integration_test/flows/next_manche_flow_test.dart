@@ -667,6 +667,18 @@ void main() {
       );
 
       // Input points: T1=100, T2=50, T3=100, T4=30
+      // Switch to "Saisie des points par donne" to enable deal-level entry
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('entry_mode_switch_1')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        warnIfMissed: false,
+        find.byKey(const Key('entry_mode_switch_2')),
+      );
+      await tester.pumpAndSettle();
+
       await tester.enterText(
         find.byKey(const Key('points_field_1_1_1')),
         '100',

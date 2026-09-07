@@ -21,7 +21,9 @@ import 'package:belotable/domain/manches/donne_doublette_repository.dart';
 import 'package:belotable/domain/manches/manche.dart';
 import 'package:belotable/domain/manches/manche_repository.dart';
 import 'package:belotable/domain/manches/table_de_jeu.dart';
+import 'package:belotable/domain/manches/update_entry_mode_use_case.dart';
 import 'package:belotable/domain/manches/update_manche_points_use_case.dart';
+import 'package:belotable/domain/manches/update_round_score_use_case.dart';
 import 'package:belotable/domain/pdf/repositories/pdf_repository.dart';
 import 'package:belotable/domain/pdf/usecases/generate_concours_doublette_pdf_usecase.dart';
 import 'package:belotable/domain/pdf/usecases/generate_concours_table_pdf_usecase.dart';
@@ -155,6 +157,24 @@ final updateManchePointsUseCaseProvider = Provider<UpdateManchePointsUseCase>(
     );
   },
 );
+
+/// Provides UpdateEntryModeUseCase with repository dependencies.
+final updateEntryModeUseCaseProvider = Provider<UpdateEntryModeUseCase>((ref) {
+  final mancheRepo = ref.watch(mancheRepositoryProvider);
+  final donneDoubletteRepo = ref.watch(donneDoubletteRepositoryProvider);
+  return UpdateEntryModeUseCase(
+    mancheRepo,
+    donneDoubletteRepo,
+  );
+});
+
+/// Provides UpdateRoundScoreUseCase with repository dependency.
+final updateRoundScoreUseCaseProvider = Provider<UpdateRoundScoreUseCase>((
+  ref,
+) {
+  final mancheRepo = ref.watch(mancheRepositoryProvider);
+  return UpdateRoundScoreUseCase(mancheRepo);
+});
 
 /// Provides manches list for a concours.
 // ignore: specify_nonobvious_property_types

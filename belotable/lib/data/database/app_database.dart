@@ -135,6 +135,10 @@ class TableDoublettesTable extends Table {
   /// Team status in this table stored as string.
   TextColumn get statut => text().withDefault(const Constant('En attente'))();
 
+  /// Score entry mode: true = "par donne", false = "par manche".
+  BoolColumn get pointsParDonnes =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {tableId, doubletteRowId},
@@ -518,6 +522,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
             points: td.points,
             statut: TableDoubletteStatut.fromDb(td.statut),
             nomEquipe: d.nomEquipe,
+            pointsParDonnes: td.pointsParDonnes,
           );
         })
         .toList(growable: false);
@@ -807,6 +812,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
       points: td.points,
       statut: TableDoubletteStatut.fromDb(td.statut),
       nomEquipe: d.nomEquipe,
+      pointsParDonnes: td.pointsParDonnes,
     );
   }
 
@@ -852,6 +858,7 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
             points: td.points,
             statut: TableDoubletteStatut.fromDb(td.statut),
             nomEquipe: d.nomEquipe,
+            pointsParDonnes: td.pointsParDonnes,
           );
         })
         .toList(growable: false);
@@ -890,6 +897,21 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
           (t) => t.id.equals(tableDoubletteId),
         ))
         .write(TableDoublettesTableCompanion(points: Value(points)));
+  }
+
+  /// Updates score entry mode of a doublette in a table.
+  Future<void> updateEntryMode({
+    required int tableDoubletteId,
+    required bool pointsParDonnes,
+  }) async {
+    await (update(tableDoublettesTable)..where(
+          (t) => t.id.equals(tableDoubletteId),
+        ))
+        .write(
+          TableDoublettesTableCompanion(
+            pointsParDonnes: Value(pointsParDonnes),
+          ),
+        );
   }
 
   /// Updates statut of a doublette and applies opponent/table status rules.
@@ -1083,6 +1105,16 @@ class ManchesDao extends DatabaseAccessor<AppDatabase> with _$ManchesDaoMixin {
 
     final row = await query.getSingleOrNull();
     return row?.read(pointsExpr) ?? 0;
+  }
+
+  /// Resets all deal points to 0 for a table-doublette.
+  Future<void> resetDonneDoublettes({
+    required int tableDoubletteId,
+  }) async {
+    await (update(donneDoublettesTable)..where(
+          (dp) => dp.tableDoubletteId.equals(tableDoubletteId),
+        ))
+        .write(const DonneDoublettesTableCompanion(points: Value(0)));
   }
 
   /// Recomputes and persists a doublette's total points across all manches,
