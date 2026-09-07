@@ -122,21 +122,21 @@ class _TableDeJeuCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 12,
-              runSpacing: 4,
+            Row(
               children: [
                 Text(
                   'Table ${table.numero}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(width: 12),
                 _StatutChip(statut: table.statut),
+                if (table.doublettes.isNotEmpty) ...[
+                  const Spacer(),
+                  _EntryModeSwitch(table: table, onRefresh: onRefresh),
+                ],
               ],
             ),
             const SizedBox(height: 12),
-            if (table.doublettes.isNotEmpty)
-                  _EntryModeSwitch(table: table, onRefresh: onRefresh),
             if (table.doublettes.isEmpty)
               const Text('Aucune doublette assignée')
             else ...[
@@ -208,24 +208,26 @@ class _EntryModeSwitch extends ConsumerWidget {
           'Saisie des points :',
           style: TextStyle(fontSize: 12),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 4),
         const Text('Par manche', style: TextStyle(fontSize: 12)),
-        Transform.scale(scale: 0.7,
-                 child:
-        Switch(
-          key: Key('entry_mode_switch_${table.numero}'),
-          value: pointsParDonnes,
-          onChanged: (value) async {
-            final useCase = ref.read(updateEntryModeUseCaseProvider);
-            await useCase(
-              tableDoubletteIds: table.doublettes
-                  .map((td) => td.id)
-                  .toList(growable: false),
-              pointsParDonnes: value,
-            );
-            onRefresh();
-          },
-        ),),
+        Transform.scale(
+          scale: 0.7,
+          child: Switch(
+            key: Key('entry_mode_switch_${table.numero}'),
+            value: pointsParDonnes,
+            padding: EdgeInsets.zero,
+            onChanged: (value) async {
+              final useCase = ref.read(updateEntryModeUseCaseProvider);
+              await useCase(
+                tableDoubletteIds: table.doublettes
+                    .map((td) => td.id)
+                    .toList(growable: false),
+                pointsParDonnes: value,
+              );
+              onRefresh();
+            },
+          ),
+        ),
         const Text('Par donne', style: TextStyle(fontSize: 12)),
       ],
     );
