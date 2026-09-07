@@ -151,6 +151,10 @@ class _TableDeJeuCard extends ConsumerWidget {
               if (pointsParDonnes)
                 _TableSumRow(
                   table: table,
+                )
+              else
+                _RoundScoreSumRow(
+                  table: table,
                 ),
             ],
           ],
@@ -594,34 +598,44 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
               ),
             ),
           const SizedBox(width: 8),
-          DropdownButton<TableDoubletteStatut>(
-            key: Key('statut_dropdown_${widget.tableNumero}_${td.doubletteId}'),
-            value: td.statut,
-            items: TableDoubletteStatut.values
-                .map(
-                  (s) => DropdownMenuItem(
-                    key: Key(
-                      // ignore: lines_longer_than_80_chars because UI key
-                      'statut_dropdown_item_${widget.tableNumero}_${td.doubletteId}_${s.name}',
+          SizedBox(
+            width: _statutDropdownWidth,
+            child: DropdownButton<TableDoubletteStatut>(
+              key: Key(
+                'statut_dropdown_${widget.tableNumero}_${td.doubletteId}',
+              ),
+              value: td.statut,
+              isExpanded: true,
+              items: TableDoubletteStatut.values
+                  .map(
+                    (s) => DropdownMenuItem(
+                      key: Key(
+                        // ignore: lines_longer_than_80_chars because UI key
+                        'statut_dropdown_item_${widget.tableNumero}_${td.doubletteId}_${s.name}',
+                      ),
+                      value: s,
+                      child: Text(s.label),
                     ),
-                    value: s,
-                    child: Text(s.label),
-                  ),
-                )
-                .toList(),
-            onChanged: _isSaving
-                ? null
-                : (s) async {
-                    if (s != null) {
-                      await _updateStatut(s);
-                    }
-                  },
+                  )
+                  .toList(),
+              onChanged: _isSaving
+                  ? null
+                  : (s) async {
+                      if (s != null) {
+                        await _updateStatut(s);
+                      }
+                    },
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+/// Fixed width shared with the status dropdown so sibling helper rows
+/// (e.g. [_RoundScoreSumRow]) can align under the "Score final" column.
+const double _statutDropdownWidth = 150;
 
 class _TableSumRow extends ConsumerWidget {
   const _TableSumRow({
@@ -745,6 +759,104 @@ class _TableSumRow extends ConsumerWidget {
                   ),
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Informational, non-blocking sum of directly entered round scores.
+class _RoundScoreSumRow extends ConsumerWidget {
+  const _RoundScoreSumRow({
+    required this.table,
+  });
+
+  final TableDeJeu table;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final firstDoublette = table.doublettes.isNotEmpty
+        ? table.doublettes[0]
+        : null;
+    if (firstDoublette == null) {
+      return const SizedBox.shrink();
+    }
+
+    final concoursAsync = ref.watch(
+      concoursProvider(firstDoublette.concoursId),
+    );
+
+    return concoursAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (concours) {
+        if (concours == null || concours.nombreMaxPointsParDonne == 0) {
+          return const SizedBox.shrink();
+        }
+
+        final total = table.doublettes.fold<int>(
+          0,
+          (sum, td) => sum + td.points,
+        );
+        final expectedTotal =
+            concours.nombreMaxPointsParDonne * concours.nombreDonnesParManche;
+        final errorHint = getDealSumError(total, expectedTotal);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            children: [
+              const Expanded(child: SizedBox.shrink()),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 95,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Sommes des points',
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    InputDecorator(
+                      key: Key('round_score_sum_${table.numero}'),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        isDense: true,
+                      ),
+                      child: Text(
+                        total.toString(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: (errorHint != null) ? Colors.red : Colors.grey,
+                        ),
+                      ),
+                    ),
+                    if (errorHint != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        errorHint,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const SizedBox(width: _statutDropdownWidth),
             ],
           ),
         );
