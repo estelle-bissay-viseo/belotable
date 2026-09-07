@@ -131,12 +131,12 @@ class _TableDeJeuCard extends ConsumerWidget {
                   'Table ${table.numero}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                if (table.doublettes.isNotEmpty)
-                  _EntryModeSwitch(table: table, onRefresh: onRefresh),
                 _StatutChip(statut: table.statut),
               ],
             ),
             const SizedBox(height: 12),
+            if (table.doublettes.isNotEmpty)
+                  _EntryModeSwitch(table: table, onRefresh: onRefresh),
             if (table.doublettes.isEmpty)
               const Text('Aucune doublette assignée')
             else ...[
@@ -210,6 +210,8 @@ class _EntryModeSwitch extends ConsumerWidget {
         ),
         const SizedBox(width: 6),
         const Text('Par manche', style: TextStyle(fontSize: 12)),
+        Transform.scale(scale: 0.7,
+                 child:
         Switch(
           key: Key('entry_mode_switch_${table.numero}'),
           value: pointsParDonnes,
@@ -223,7 +225,7 @@ class _EntryModeSwitch extends ConsumerWidget {
             );
             onRefresh();
           },
-        ),
+        ),),
         const Text('Par donne', style: TextStyle(fontSize: 12)),
       ],
     );
