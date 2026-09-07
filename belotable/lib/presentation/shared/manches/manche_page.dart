@@ -844,6 +844,7 @@ class _RoundScoreSumRow extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         errorHint,
+                        key: Key('round_score_sum_error_${table.numero}'),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 8,
