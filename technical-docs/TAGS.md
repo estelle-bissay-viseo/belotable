@@ -24,6 +24,7 @@
 - [03-creer-entite-avec-drift](tutorials/03-creer-entite-avec-drift.md)
 - [drift-structure](reference/drift-structure.md)
 - [modele-de-donnees](reference/modele-de-donnees.md)
+- [reset-database](how-to/reset-database.md)
 - [sqlite-et-drift](explanation/sqlite-et-drift.md)
 
 ## développement
@@ -62,6 +63,7 @@
 - [flutter-rediger-nouveau-integration-test](how-to/flutter-rediger-nouveau-integration-test.md)
 - [flutter-rediger-nouveau-test](how-to/flutter-rediger-nouveau-test.md)
 - [flutter-utiliser-linter-local](how-to/flutter-utiliser-linter-local.md)
+- [reset-database](how-to/reset-database.md)
 - [sqlite-et-drift](explanation/sqlite-et-drift.md)
 
 ## fonctionnalités

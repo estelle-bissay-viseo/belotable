@@ -22,3 +22,11 @@ Voir [la page listant chaque page par catégorie](TAGS.md).
 
 - chaque page doit avoir une première ligne commentée indiquant ses tags en suivant ce format précis : `<!-- tags: tag-1, tag-2, ... -->` (tout en minuscule, et chaque tag en kebab-case). Ces tags permettent de générer la page TAGS.md via le script `dev-scripts/technical-doc-tags-page.sh`.
 - Le skill `doc-diataxis` est disponible pour les agents IA pour la rédaction de la documentation technique. Si vous l'utilisez, assurez-vous de relire le contenu généré pour corriger les erreurs éventuelles et compléter les informations manquantes.
+
+## A propos de l'IA
+
+Le développement de ce projet est assisté par IA, via Github Copilot, en utilisant principalement des modèles de Claude.
+
+C'est pourquoi différents fichiers et configurations pour ces IA sont présents dans le projet.
+
+Attention, le contenu généré par l'IA doit toujours être relu et validé par un développeur pour s'assurer de sa précision et de sa pertinence.
