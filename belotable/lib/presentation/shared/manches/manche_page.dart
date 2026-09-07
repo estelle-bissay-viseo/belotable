@@ -544,7 +544,6 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
                                   labelText: 'D$donneNumero',
                                   isDense: true,
                                 ),
-                                enabled: !_isSaving,
                               ),
                             ),
                           );
@@ -594,7 +593,6 @@ class _DonneDoublettesRowState extends ConsumerState<_DonneDoublettesRow> {
                   labelText: 'Score final',
                   isDense: true,
                 ),
-                enabled: !_isSaving,
               ),
             ),
           const SizedBox(width: 8),
