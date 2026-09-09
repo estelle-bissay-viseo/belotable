@@ -44,37 +44,39 @@ class DoublettesRankingPage extends ConsumerWidget {
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              key: const Key('doublettes_ranking_table'),
-              columns: const [
-                DataColumn(label: Text('Position')),
-                DataColumn(label: Text('Doublette')),
-                DataColumn(label: Text('Points totaux')),
-              ],
-              rows: sorted
-                  .asMap()
-                  .entries
-                  .map(
-                    (entry) => DataRow(
-                      key: ValueKey<String>(
-                        'doublette_ranking_row_'
-                        '${entry.value.concoursId}_'
-                        '${entry.value.doubletteId}',
-                      ),
-                      cells: [
-                        DataCell(Text((entry.key + 1).toString())),
-                        DataCell(
-                          Text(
-                            // ignore: lines_longer_than_80_chars because interpolation
-                            '${entry.value.nomEquipe} (#${entry.value.doubletteId})',
-                          ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                key: const Key('doublettes_ranking_table'),
+                columns: const [
+                  DataColumn(label: Text('Position')),
+                  DataColumn(label: Text('Doublette')),
+                  DataColumn(label: Text('Points totaux')),
+                ],
+                rows: sorted
+                    .asMap()
+                    .entries
+                    .map(
+                      (entry) => DataRow(
+                        key: ValueKey<String>(
+                          'doublette_ranking_row_'
+                          '${entry.value.concoursId}_'
+                          '${entry.value.doubletteId}',
                         ),
-                        DataCell(Text(entry.value.totalPoints.toString())),
-                      ],
-                    ),
-                  )
-                  .toList(),
+                        cells: [
+                          DataCell(Text((entry.key + 1).toString())),
+                          DataCell(
+                            Text(
+                              // ignore: lines_longer_than_80_chars because interpolation
+                              '${entry.value.nomEquipe} (#${entry.value.doubletteId})',
+                            ),
+                          ),
+                          DataCell(Text(entry.value.totalPoints.toString())),
+                        ],
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           );
         },

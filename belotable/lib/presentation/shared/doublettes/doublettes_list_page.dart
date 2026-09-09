@@ -118,76 +118,80 @@ class DoublettesListPage extends ConsumerWidget {
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              key: const Key('doublettes_list_table'),
-              columns: const [
-                DataColumn(label: Text('Id')),
-                DataColumn(label: Text('Nom équipe')),
-                DataColumn(label: Text('Joueur A')),
-                DataColumn(label: Text('Joueur B')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: doublettes
-                  .map(
-                    (doublette) => DataRow(
-                      key: ValueKey<String>(
-                        'doublette_row_${doublette.concoursId}_'
-                        '${doublette.doubletteId}',
-                      ),
-                      cells: [
-                        DataCell(Text(doublette.doubletteId.toString())),
-                        DataCell(Text(doublette.nomEquipe)),
-                        DataCell(Text(doublette.joueurA)),
-                        DataCell(Text(doublette.joueurB)),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                key: ValueKey<String>(
-                                  'doublette_manage_button_'
-                                  '${doublette.concoursId}_'
-                                  '${doublette.doubletteId}',
-                                ),
-                                onPressed: () async {
-                                  final updated = await Navigator.of(context)
-                                      .pushNamed(
-                                        DoubletteDetailPage.routeName,
-                                        arguments: DoubletteDetailArgs(
-                                          concoursId: doublette.concoursId,
-                                          doubletteId: doublette.doubletteId,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                key: const Key('doublettes_list_table'),
+                columns: const [
+                  DataColumn(label: Text('Id')),
+                  DataColumn(label: Text('Nom équipe')),
+                  DataColumn(label: Text('Joueur A')),
+                  DataColumn(label: Text('Joueur B')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: doublettes
+                    .map(
+                      (doublette) => DataRow(
+                        key: ValueKey<String>(
+                          'doublette_row_${doublette.concoursId}_'
+                          '${doublette.doubletteId}',
+                        ),
+                        cells: [
+                          DataCell(Text(doublette.doubletteId.toString())),
+                          DataCell(Text(doublette.nomEquipe)),
+                          DataCell(Text(doublette.joueurA)),
+                          DataCell(Text(doublette.joueurB)),
+                          DataCell(
+                            Row(
+                              children: [
+                                IconButton(
+                                  key: ValueKey<String>(
+                                    'doublette_manage_button_'
+                                    '${doublette.concoursId}_'
+                                    '${doublette.doubletteId}',
+                                  ),
+                                  onPressed: () async {
+                                    final updated = await Navigator.of(context)
+                                        .pushNamed(
+                                          DoubletteDetailPage.routeName,
+                                          arguments: DoubletteDetailArgs(
+                                            concoursId: doublette.concoursId,
+                                            doubletteId: doublette.doubletteId,
+                                          ),
+                                        );
+                                    if (updated == true) {
+                                      ref.invalidate(
+                                        doublettesByConcoursProvider(
+                                          concoursId,
                                         ),
                                       );
-                                  if (updated == true) {
-                                    ref.invalidate(
-                                      doublettesByConcoursProvider(concoursId),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.settings_outlined),
-                                tooltip: 'Gérer',
-                              ),
-                              IconButton(
-                                key: ValueKey<String>(
-                                  'doublette_delete_button_'
-                                  '${doublette.concoursId}_'
-                                  '${doublette.doubletteId}',
+                                    }
+                                  },
+                                  icon: const Icon(Icons.settings_outlined),
+                                  tooltip: 'Gérer',
                                 ),
-                                onPressed: () => _showDeleteConfirmation(
-                                  context,
-                                  ref,
-                                  doublette,
+                                IconButton(
+                                  key: ValueKey<String>(
+                                    'doublette_delete_button_'
+                                    '${doublette.concoursId}_'
+                                    '${doublette.doubletteId}',
+                                  ),
+                                  onPressed: () => _showDeleteConfirmation(
+                                    context,
+                                    ref,
+                                    doublette,
+                                  ),
+                                  icon: const Icon(Icons.delete_outline),
+                                  tooltip: 'Supprimer',
                                 ),
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Supprimer',
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(growable: false),
+                        ],
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
             ),
           );
         },

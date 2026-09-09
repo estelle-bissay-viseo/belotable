@@ -94,99 +94,105 @@ class ConcoursListPage extends ConsumerWidget {
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              key: const Key('concours_list_table'),
-              columns: const [
-                DataColumn(label: Text('Date')),
-                DataColumn(label: Text('Lieu')),
-                DataColumn(label: Text('Organisateur')),
-                DataColumn(label: Text('Statut')),
-                DataColumn(label: Text('Doublettes')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: concoursList
-                  .map(
-                    (concours) {
-                      final formattedDate = formatDateFrNumerique(
-                        concours.date,
-                      );
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                key: const Key('concours_list_table'),
+                columns: const [
+                  DataColumn(label: Text('Date')),
+                  DataColumn(label: Text('Lieu')),
+                  DataColumn(label: Text('Organisateur')),
+                  DataColumn(label: Text('Statut')),
+                  DataColumn(label: Text('Doublettes')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: concoursList
+                    .map(
+                      (concours) {
+                        final formattedDate = formatDateFrNumerique(
+                          concours.date,
+                        );
 
-                      return DataRow(
-                        key: ValueKey<String>('concours_row_${concours.id}'),
-                        cells: [
-                          DataCell(Text(formattedDate)),
-                          DataCell(Text(concours.lieu)),
-                          DataCell(Text(concours.organisateur)),
-                          DataCell(
-                            Text(
-                              concours.statutConcours.displayName,
-                              key: ValueKey<String>(
-                                'concours_status_${concours.id}',
+                        return DataRow(
+                          key: ValueKey<String>('concours_row_${concours.id}'),
+                          cells: [
+                            DataCell(Text(formattedDate)),
+                            DataCell(Text(concours.lieu)),
+                            DataCell(Text(concours.organisateur)),
+                            DataCell(
+                              Text(
+                                concours.statutConcours.displayName,
+                                key: ValueKey<String>(
+                                  'concours_status_${concours.id}',
+                                ),
                               ),
                             ),
-                          ),
-                          DataCell(
-                            Text(
-                              concours.nombreDoublettes.toString(),
-                              key: ValueKey<String>(
-                                'concours_doublettes_count_${concours.id}',
+                            DataCell(
+                              Text(
+                                concours.nombreDoublettes.toString(),
+                                key: ValueKey<String>(
+                                  'concours_doublettes_count_${concours.id}',
+                                ),
                               ),
                             ),
-                          ),
-                          DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  key: ValueKey<String>(
-                                    'concours_edit_button_${concours.id}',
+                            DataCell(
+                              Row(
+                                children: [
+                                  IconButton(
+                                    key: ValueKey<String>(
+                                      'concours_edit_button_${concours.id}',
+                                    ),
+                                    onPressed: concours.canEditInfo()
+                                        ? () async {
+                                            await Navigator.of(
+                                              context,
+                                            ).pushNamed(
+                                              ConcoursEditPage.routeName,
+                                              arguments: concours.id,
+                                            );
+                                            ref.invalidate(
+                                              concoursListProvider,
+                                            );
+                                          }
+                                        : null,
+                                    icon: const Icon(Icons.edit_outlined),
+                                    tooltip: 'Modifier',
                                   ),
-                                  onPressed: concours.canEditInfo()
-                                      ? () async {
-                                          await Navigator.of(context).pushNamed(
-                                            ConcoursEditPage.routeName,
-                                            arguments: concours.id,
-                                          );
-                                          ref.invalidate(concoursListProvider);
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.edit_outlined),
-                                  tooltip: 'Modifier',
-                                ),
-                                IconButton(
-                                  key: ValueKey<String>(
-                                    'concours_manage_button_${concours.id}',
+                                  IconButton(
+                                    key: ValueKey<String>(
+                                      'concours_manage_button_${concours.id}',
+                                    ),
+                                    onPressed: () async {
+                                      await Navigator.of(context).pushNamed(
+                                        ConcoursManagePage.routeName,
+                                        arguments: concours.id,
+                                      );
+                                      ref.invalidate(concoursListProvider);
+                                    },
+                                    icon: const Icon(Icons.settings_outlined),
+                                    tooltip: 'Gérer',
                                   ),
-                                  onPressed: () async {
-                                    await Navigator.of(context).pushNamed(
-                                      ConcoursManagePage.routeName,
-                                      arguments: concours.id,
-                                    );
-                                    ref.invalidate(concoursListProvider);
-                                  },
-                                  icon: const Icon(Icons.settings_outlined),
-                                  tooltip: 'Gérer',
-                                ),
-                                IconButton(
-                                  key: ValueKey<String>(
-                                    'concours_delete_button_${concours.id}',
+                                  IconButton(
+                                    key: ValueKey<String>(
+                                      'concours_delete_button_${concours.id}',
+                                    ),
+                                    onPressed: () => _showDeleteConfirmation(
+                                      context,
+                                      ref,
+                                      concours,
+                                    ),
+                                    icon: const Icon(Icons.delete_outline),
+                                    tooltip: 'Supprimer',
                                   ),
-                                  onPressed: () => _showDeleteConfirmation(
-                                    context,
-                                    ref,
-                                    concours,
-                                  ),
-                                  icon: const Icon(Icons.delete_outline),
-                                  tooltip: 'Supprimer',
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                  )
-                  .toList(growable: false),
+                          ],
+                        );
+                      },
+                    )
+                    .toList(growable: false),
+              ),
             ),
           );
         },
