@@ -49,19 +49,27 @@ int resolveDisplayColumnCount({
 List<List<TableDeJeu>> splitDisplayTablesIntoColumns(
   List<TableDeJeu> tables,
   int columnCount,
+) => splitDisplayItemsIntoColumns(tables, columnCount);
+
+/// Splits [items] into [columnCount] left-to-right chunks, earlier
+/// columns receiving any extra remainder rows. Shared by any display list
+/// (tables, ranking, ...) that needs the same column-fitting behavior.
+List<List<T>> splitDisplayItemsIntoColumns<T>(
+  List<T> items,
+  int columnCount,
 ) {
-  if (columnCount <= 1 || tables.isEmpty) {
-    return [tables];
+  if (columnCount <= 1 || items.isEmpty) {
+    return [items];
   }
 
-  final baseSize = tables.length ~/ columnCount;
-  final remainder = tables.length % columnCount;
+  final baseSize = items.length ~/ columnCount;
+  final remainder = items.length % columnCount;
 
-  final columns = <List<TableDeJeu>>[];
+  final columns = <List<T>>[];
   var start = 0;
   for (var i = 0; i < columnCount; i++) {
     final size = baseSize + (i < remainder ? 1 : 0);
-    columns.add(tables.sublist(start, start + size));
+    columns.add(items.sublist(start, start + size));
     start += size;
   }
   return columns;

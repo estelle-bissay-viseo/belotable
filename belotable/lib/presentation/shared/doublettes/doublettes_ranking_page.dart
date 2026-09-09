@@ -1,4 +1,4 @@
-import 'package:belotable/domain/doublettes/doublette.dart';
+import 'package:belotable/domain/doublettes/doublette_ranking.dart';
 import 'package:belotable/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,9 +38,7 @@ class DoublettesRankingPage extends ConsumerWidget {
             );
           }
 
-          // Sort by total points descending
-          final sorted = List<Doublette>.from(doublettes)
-            ..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
+          final sorted = sortDoublettesByRanking(doublettes);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
