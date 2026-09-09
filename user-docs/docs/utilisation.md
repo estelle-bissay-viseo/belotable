@@ -182,7 +182,7 @@ Pour ouvrir cet écran, il faut cliquer sur le bouton "Ouvrir l'écran d'afficha
 
 ![Ecran d'affichage avec tables](./assets/images/display-screen-tables.png)
 
-L'affichage de la liste des tables s'adapte automatiquement à la taille de la fenêtre pour afficher toutes les informations sans avoir à faire défiler horizontalement.
+L'affichage de la liste des tables s'adapte automatiquement à la taille de la fenêtre pour afficher toutes les informations sans avoir à faire défiler l'écran.
 
 ![Ecran d'affichage adaptatif](./assets/images/display-screen-tables-responsive.png)
 
