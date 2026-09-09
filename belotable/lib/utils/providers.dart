@@ -9,6 +9,7 @@ import 'package:belotable/domain/concours/concours_repository.dart';
 import 'package:belotable/domain/concours/create_concours_use_case.dart';
 import 'package:belotable/domain/concours/delete_concours_use_case.dart';
 import 'package:belotable/domain/concours/update_concours_use_case.dart';
+import 'package:belotable/domain/display/display_data.dart';
 import 'package:belotable/domain/doublettes/create_doublette_use_case.dart';
 import 'package:belotable/domain/doublettes/delete_doublette_use_case.dart';
 import 'package:belotable/domain/doublettes/doublette.dart';
@@ -27,6 +28,7 @@ import 'package:belotable/domain/manches/update_round_score_use_case.dart';
 import 'package:belotable/domain/pdf/repositories/pdf_repository.dart';
 import 'package:belotable/domain/pdf/usecases/generate_concours_doublette_pdf_usecase.dart';
 import 'package:belotable/domain/pdf/usecases/generate_concours_table_pdf_usecase.dart';
+import 'package:belotable/presentation/shared/services/display_window_service.dart';
 import 'package:belotable/presentation/shared/services/pdf_export_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -224,6 +226,26 @@ final generateConcoursDoublettePdfUseCaseProvider =
 final pdfExportServiceProvider = Provider<PdfExportService>((ref) {
   return createPdfExportService();
 });
+
+/// Provides DisplayWindowService for opening the display screen,
+/// with platform-specific implementations.
+final displayWindowServiceProvider = Provider<DisplayWindowService>((ref) {
+  return createDisplayWindowService();
+});
+
+/// Provides current-round display data (latest manche and its tables) for
+/// a concours. Manual refresh is done by invalidating this provider.
+// ignore: specify_nonobvious_property_types
+final displayDataProvider = FutureProvider.autoDispose
+    .family<DisplayData, String>((ref, concoursId) async {
+      final mancheRepo = ref.watch(mancheRepositoryProvider);
+      final manche = await mancheRepo.findLatestManche(concoursId);
+      if (manche == null) {
+        return const DisplayData();
+      }
+      final tables = await mancheRepo.findTablesDeJeuByMancheId(manche.id);
+      return DisplayData(manche: manche, tables: tables);
+    });
 
 /// Provides donnes doublettes for a specific table-doublette.
 // ignore: specify_nonobvious_property_types

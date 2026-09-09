@@ -3,6 +3,7 @@ import 'package:belotable/presentation/shared/concours/concours_creation_page.da
 import 'package:belotable/presentation/shared/concours/concours_edit_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_list_page.dart';
 import 'package:belotable/presentation/shared/concours/concours_manage_page.dart';
+import 'package:belotable/presentation/shared/display/display_screen_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_creation_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_detail_page.dart';
 import 'package:belotable/presentation/shared/doublettes/doublette_navigation_args.dart';
@@ -16,10 +17,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() {
+void main(List<String> args) {
+  // A route argument (see DisplayScreenPage.routePathFor) is passed when this
+  // process is spawned to open an independent display screen window.
+  final initialRoute = args.isNotEmpty ? args.first : null;
   runApp(
-    const ProviderScope(
-      child: MyApp(),
+    ProviderScope(
+      child: MyApp(initialRoute: initialRoute),
     ),
   );
 }
@@ -27,13 +31,18 @@ void main() {
 /// Root widget providing dependency injection via ProviderScope.
 class MyApp extends StatelessWidget {
   /// Creates root application widget.
-  const MyApp({super.key});
+  const MyApp({this.initialRoute, super.key});
+
+  /// Overrides the default startup route, used to open the display screen
+  /// directly in a newly spawned process/window.
+  final String? initialRoute;
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Belotable',
+      initialRoute: initialRoute,
       locale: const Locale('fr'),
       supportedLocales: const [
         Locale('fr'),
@@ -125,6 +134,19 @@ class MyApp extends StatelessWidget {
                 mancheId: args.mancheId,
                 mancheNumero: args.mancheNumero,
               ),
+              settings: settings,
+            );
+          }
+        }
+
+        final routeName = settings.name;
+        if (routeName != null) {
+          final concoursId = DisplayScreenPage.concoursIdFromRouteName(
+            routeName,
+          );
+          if (concoursId != null) {
+            return MaterialPageRoute<void>(
+              builder: (_) => DisplayScreenPage(concoursId: concoursId),
               settings: settings,
             );
           }

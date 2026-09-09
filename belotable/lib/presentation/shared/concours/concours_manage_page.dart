@@ -398,6 +398,40 @@ class _ConcoursManagePageState extends ConsumerState<ConcoursManagePage> {
                           );
                         },
                       ),
+                      const SizedBox(height: 8),
+                      Consumer(
+                        builder: (context, ref, _) {
+                          return FilledButton.tonalIcon(
+                            key: const Key(
+                              'concours_detail_open_display_button',
+                            ),
+                            onPressed: () async {
+                              final displayWindowService = ref.read(
+                                displayWindowServiceProvider,
+                              );
+                              try {
+                                await displayWindowService.open(
+                                  widget.concoursId,
+                                );
+                              } on Exception {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        // ignore: lines_longer_than_80_chars because short
+                                        "Erreur: Impossible d'ouvrir l'écran d'affichage",
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            label: const Text("Ouvrir l'écran d'affichage"),
+                            icon: const Icon(Icons.tv),
+                            iconAlignment: .start,
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
