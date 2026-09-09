@@ -60,6 +60,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify PDF button exists
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_pdf_table_button')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('concours_detail_pdf_table_button')),
         findsOneWidget,
@@ -158,6 +164,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify PDF button exists
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_pdf_doublette_button')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('concours_detail_pdf_doublette_button')),
         findsOneWidget,

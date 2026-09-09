@@ -171,3 +171,19 @@ La nouvelle manche est générée automatiquement en fonction du classement de l
 Le classement de doublettes est disponible depuis la page de gestion du concours, en cliquant sur **Voir le classement**. Il est disponible dès qu'une manche a commencé, et est mis à jour automatiquement dès qu'un résultat de partie est saisi.
 
 ![Classement](./assets/images/page-classement.png)
+
+### Ecran d'affichage
+
+Durant le concours, vous pouvez ouvrir un écran secondaire dédié à l'affichage des tables de la manche en cours. Cet écran peut être utilisé pour être projeté sur un écran externe afin que tous les participants puissent se placer facilement sur leur table.
+
+Pour ouvrir cet écran, il faut cliquer sur le bouton "Ouvrir l'écran d'affichage" depuis la page de gestion du concours. Une nouvelle fenêtre s'ouvrira, vous pourrez la déplacer vers votre écran de projection.
+
+![Ecran d'affichage vide](./assets/images/display-screen-empty.png)
+
+![Ecran d'affichage avec tables](./assets/images/display-screen-tables.png)
+
+L'affichage de la liste des tables s'adapte automatiquement à la taille de la fenêtre pour afficher toutes les informations sans avoir à faire défiler horizontalement.
+
+![Ecran d'affichage adaptatif](./assets/images/display-screen-tables-responsive.png)
+
+Cet écran d'affichage ne se met **pas** à jour automatiquement. Pour mettre à jour les informations, cliquez sur son bouton de rafraîchissement en haut à droite.

@@ -48,6 +48,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_doublettes_button')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('concours_detail_doublettes_button')),
+        findsOneWidget,
+      );
       await tester.tap(
         warnIfMissed: false,
         find.byKey(const Key('concours_detail_doublettes_button')),
@@ -166,6 +176,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.dragUntilVisible(
+        find.byKey(const Key('concours_detail_doublettes_button')),
+        find.byKey(const Key('concours_detail_form')),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('concours_detail_doublettes_button')),
+        findsOneWidget,
+      );
       await tester.tap(
         warnIfMissed: false,
         find.byKey(const Key('concours_detail_doublettes_button')),
