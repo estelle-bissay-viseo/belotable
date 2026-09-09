@@ -174,15 +174,17 @@ Le classement de doublettes est disponible depuis la page de gestion du concours
 
 ### Ecran d'affichage
 
-Durant le concours, vous pouvez ouvrir un écran secondaire dédié à l'affichage des tables de la manche en cours. Cet écran peut être utilisé pour être projeté sur un écran externe afin que tous les participants puissent se placer facilement sur leur table.
+Durant le concours, vous pouvez ouvrir un écran secondaire dédié à l'affichage des tables de la manche en cours et le classement actuel des doublettes. Cet écran peut être utilisé pour être projeté sur un écran externe afin que tous les participants puissent se placer facilement sur leur table.
 
 Pour ouvrir cet écran, il faut cliquer sur le bouton "Ouvrir l'écran d'affichage" depuis la page de gestion du concours. Une nouvelle fenêtre s'ouvrira, vous pourrez la déplacer vers votre écran de projection.
 
 ![Ecran d'affichage vide](./assets/images/display-screen-empty.png)
 
-![Ecran d'affichage avec tables](./assets/images/display-screen-tables.png)
+![Ecran d'affichage par défaut](./assets/images/display-screen-default.png)
 
-L'affichage de la liste des tables s'adapte automatiquement à la taille de la fenêtre pour afficher toutes les informations sans avoir à faire défiler l'écran.
+L'affichage des listes s'adapte automatiquement à la taille de la fenêtre pour afficher au mieux les informations sans avoir à faire défiler l'écran.
+
+Par défaut, la liste des tables est affichée et la liste du classement est masquée. Vous pouvez modifier cela à votre guise en utilisant la fonctionnalité de plier/déplier de chaque liste.
 
 ![Ecran d'affichage adaptatif](./assets/images/display-screen-tables-responsive.png)
 
